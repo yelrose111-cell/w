@@ -1,0 +1,264 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+const cloudinary = require('cloudinary').v2;
+const crypto = require('crypto');
+require('dotenv').config();
+
+const Album = require('../models/Album');
+const Settings = require('../models/Settings');
+
+const app = express();
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
+app.use(express.json({ limit: '50mb' }));
+app.use(cookieParser());
+
+// Configure Cloudinary
+if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+  cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+  });
+}
+
+// MongoDB Connection
+let isConnected = false;
+const connectDB = async () => {
+  if (isConnected) return;
+  
+  if (!process.env.MONGODB_URI) {
+    console.warn('MONGODB_URI is not defined. Database operations will fail.');
+    return;
+  }
+  
+  try {
+    const db = await mongoose.connect(process.env.MONGODB_URI);
+    isConnected = db.connections[0].readyState;
+    console.log('MongoDB Connected');
+  } catch (error) {
+    console.error('MongoDB connection error:', error);
+  }
+};
+
+app.use(async (req, res, next) => {
+  if (!process.env.SESSION_SECRET || !process.env.ADMIN_PASSWORD_HASH) {
+    console.error('CRITICAL: SESSION_SECRET or ADMIN_PASSWORD_HASH is missing. Refusing to serve requests.');
+    return res.status(500).json({ success: false, error: 'Server misconfiguration' });
+  }
+  await connectDB();
+  next();
+});
+
+// Authentication Middleware
+const authMiddleware = (req, res, next) => {
+  const token = req.cookies.auth_token;
+  if (!token) {
+    return res.status(401).json({ success: false, error: 'Unauthorized: No token provided' });
+  }
+
+  try {
+    // Basic stateless token validation using HMAC with SESSION_SECRET
+    const [payload, signature] = token.split('.');
+    if (!payload || !signature) {
+      return res.status(401).json({ success: false, error: 'Unauthorized: Invalid token format' });
+    }
+
+    const expectedSignature = crypto
+      .createHmac('sha256', process.env.SESSION_SECRET)
+      .update(payload)
+      .digest('hex');
+
+    if (signature !== expectedSignature) {
+      return res.status(401).json({ success: false, error: 'Unauthorized: Invalid token signature' });
+    }
+
+    const decodedPayload = JSON.parse(Buffer.from(payload, 'base64').toString('utf-8'));
+    
+    // Check expiration (24 hours)
+    if (Date.now() > decodedPayload.exp) {
+      return res.status(401).json({ success: false, error: 'Unauthorized: Token expired' });
+    }
+
+    req.admin = true;
+    next();
+  } catch (err) {
+    return res.status(401).json({ success: false, error: 'Unauthorized: Token validation failed' });
+  }
+};
+
+
+// ---------------- Auth Endpoints ----------------
+
+app.post('/api/auth/login', (req, res) => {
+  const { pin } = req.body;
+  
+  // Hash the incoming PIN with SHA-256 to compare with ADMIN_PASSWORD_HASH
+  const hashedPin = crypto.createHash('sha256').update(pin || '').digest('hex');
+  
+  const storedHash = process.env.ADMIN_PASSWORD_HASH;
+
+  if (hashedPin === storedHash) {
+    const payloadBase64 = Buffer.from(JSON.stringify({
+      role: 'admin',
+      exp: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
+    })).toString('base64');
+    
+    const signature = crypto
+      .createHmac('sha256', process.env.SESSION_SECRET)
+      .update(payloadBase64)
+      .digest('hex');
+
+    const token = `${payloadBase64}.${signature}`;
+
+    res.cookie('auth_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    });
+
+    return res.json({ success: true });
+  } else {
+    return res.status(401).json({ success: false, error: 'Invalid PIN' });
+  }
+});
+
+app.post('/api/auth/logout', (req, res) => {
+  res.clearCookie('auth_token');
+  res.json({ success: true });
+});
+
+app.get('/api/auth/status', (req, res) => {
+  const token = req.cookies.auth_token;
+  if (!token) return res.json({ authenticated: false });
+  
+  try {
+    const [payload, signature] = token.split('.');
+    const expectedSignature = crypto.createHmac('sha256', process.env.SESSION_SECRET).update(payload).digest('hex');
+    
+    if (signature === expectedSignature) {
+      const decodedPayload = JSON.parse(Buffer.from(payload, 'base64').toString('utf-8'));
+      if (Date.now() <= decodedPayload.exp) {
+         return res.json({ authenticated: true });
+      }
+    }
+  } catch (err) {}
+  
+  res.json({ authenticated: false });
+});
+
+// ---------------- Cloudinary Signed Upload ----------------
+
+app.post('/api/cloudinary/sign', authMiddleware, (req, res) => {
+  if (!process.env.CLOUDINARY_API_SECRET) {
+    return res.status(500).json({ success: false, error: 'Cloudinary is not configured.' });
+  }
+  
+  const timestamp = Math.round((new Date).getTime()/1000);
+  const signature = cloudinary.utils.api_sign_request({
+    timestamp: timestamp,
+    folder: 'yellowrose'
+  }, process.env.CLOUDINARY_API_SECRET);
+
+  res.json({ 
+    success: true, 
+    signature, 
+    timestamp,
+    cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+    apiKey: process.env.CLOUDINARY_API_KEY
+  });
+});
+
+// ---------------- Albums Endpoints ----------------
+
+app.get('/api/albums', async (req, res) => {
+  try {
+    const albums = await Album.find().sort({ createdAt: -1 }).lean();
+    res.json(albums);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/api/albums', authMiddleware, async (req, res) => {
+  try {
+    const albumData = req.body;
+    if (!albumData.id) {
+      albumData.id = `alb_yr_${Date.now()}`;
+    }
+    
+    const savedAlbum = await Album.findOneAndUpdate(
+      { id: albumData.id },
+      albumData,
+      { new: true, upsert: true }
+    );
+    
+    res.status(201).json({ success: true, album: savedAlbum });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete('/api/albums/:id', authMiddleware, async (req, res) => {
+  try {
+    await Album.findOneAndDelete({ id: req.params.id });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ---------------- Settings Endpoints ----------------
+
+app.get('/api/settings', async (req, res) => {
+  try {
+    const settingsDoc = await Settings.findOne({ key: 'site_settings' });
+    if (settingsDoc && settingsDoc.value) {
+      // Don't expose sensitive info if they accidentally saved it, though new structure shouldn't have any
+      const val = settingsDoc.value;
+      delete val.cloudinaryName;
+      delete val.cloudinaryPreset;
+      delete val.jsonbinKey;
+      delete val.jsonbinBinId;
+      delete val.adminPinHash;
+      res.json(val);
+    } else {
+      res.json({});
+    }
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/api/settings', authMiddleware, async (req, res) => {
+  try {
+    const settingsObj = req.body;
+    await Settings.findOneAndUpdate(
+      { key: 'site_settings' },
+      { value: settingsObj },
+      { upsert: true }
+    );
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Health check
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', dbConnected: isConnected });
+});
+
+if (require.main === module) {
+  const PORT = process.env.PORT || 8080;
+  app.listen(PORT, () => {
+    console.log(`Local Vercel API simulation running on port ${PORT}`);
+  });
+}
+
+module.exports = app;

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تفاصيل الألبوم | يلوروز YELLOW ROSE</title>
+  <meta name="description" content="استعرض تفاصيل وصور ألبومات يلوروز لتنسيقات الورد والمناسبات الفاخرة، باقات، مسكات عرائس، شبكات، وحفلات خاصة.">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/logo.png">
+
+  <!-- Google Fonts: Tajawal & Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,500&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- CSS Styles (Minified) -->
+  <link rel="stylesheet" href="assets/dist/css/style.min.css">
+</head>
+<body>
+
+  <!-- شريط إعلاني علوي فاخر (تعديل مباشر من الإدارة) -->
+  <aside class="top-bar" id="siteAnnouncementBar" aria-label="شريط إعلاني">
+    <div class="top-bar-content">
+      <span id="siteAnnouncementText">✨ يلوروز | نصنع من كل مناسبة تحفة بصرية استثنائية تعكس ذوقكم الرفيع ✨</span>
+    </div>
+  </aside>
+
+  <!-- الترويسة الرئيسية -->
+  <header class="main-header" id="header">
+    <div class="header-container">
+      <a href="index.html" class="brand-link">
+        <img src="assets/logo.png?v=2" alt="شعار يلوروز YELLOW ROSE" class="brand-logo">
+        <div class="brand-text">
+          <span class="brand-arabic">يلوروز</span>
+          <span class="brand-english">YELLOW ROSE</span>
+        </div>
+      </a>
+
+      <nav class="nav-menu" id="navMenu">
+        <a href="index.html#home" class="nav-item">الرئيسية</a>
+        <a href="index.html#gallery" class="nav-item active">أعمالنا</a>
+        <a href="index.html#reviews" class="nav-item">التقييمات والموقع</a>
+      </nav>
+
+      <div class="header-actions">
+        <!-- زر مباشر للواتساب -->
+        <a href="https://wa.me/966582739397" target="_blank" rel="noopener" class="btn-header-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+          <span>تواصل مباشر</span>
+        </a>
+
+        <!-- زر القائمة للجوال -->
+        <button class="mobile-menu-toggle" id="mobileMenuBtn" aria-label="فتح القائمة">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- صندوق في حالة عدم العثور على الألبوم -->
+  <div id="albumNotFound" style="display: none; padding: 100px 20px; text-align: center;">
+    <div class="container">
+      <i class="fas fa-exclamation-circle" style="font-size: 50px; color: var(--gold-primary); margin-bottom: 20px;"></i>
+      <h2 style="font-size: 26px; margin-bottom: 12px; color: var(--text-main);">لم يتم العثور على الألبوم</h2>
+      <p id="notFoundMessage" style="color: var(--text-muted); font-size: 16px; margin-bottom: 30px;">الألبوم المطلوب غير متوفر حالياً.</p>
+      <a href="index.html#gallery" class="btn-hero-primary">
+        <i class="fas fa-arrow-right"></i> العودة لمعرض أعمالنا
+      </a>
+    </div>
+  </div>
+
+  <!-- حاوية تفاصيل الألبوم الرئيسية -->
+  <main id="albumDetailsContainer" style="display: none;">
+    
+    <!-- قسم ترويسة الألبوم الفاخرة -->
+    <section class="album-page-hero">
+      <div class="container">
+        <!-- مسار التنقل Breadcrumb -->
+        <nav class="album-breadcrumb" aria-label="مسار التنقل">
+          <a href="index.html"><i class="fas fa-home"></i> الرئيسية</a>
+          <i class="fas fa-chevron-left"></i>
+          <a href="index.html#gallery" id="breadcrumbCategory">التصنيفات</a>
+          <i class="fas fa-chevron-left"></i>
+          <span id="breadcrumbTitle">تفاصيل الألبوم</span>
+        </nav>
+
+        <div class="album-hero-content">
+          <div class="album-hero-text">
+            <div class="album-badge-row">
+              <span class="album-cat-pill" id="albumCategoryBadge">
+                <i class="fas fa-gem"></i> تصنيف
+              </span>
+              <span class="album-count-pill">
+                <i class="fas fa-camera"></i> <span id="albumPhotoCount">0 صور</span>
+              </span>
+              <span class="album-date-pill">
+                <i class="far fa-calendar-alt"></i> <span id="albumDate">2026</span>
+              </span>
+            </div>
+
+            <h1 class="album-hero-title" id="albumTitle">عنوان الألبوم الفاخر</h1>
+            <p class="album-hero-desc" id="albumDescription">تفاصيل التنسيق ومكونات الزهور الطبيعية والخامات الراقية.</p>
+          </div>
+
+          <div class="album-hero-actions">
+            <a href="#" id="albumMainWhatsAppBtn" target="_blank" rel="noopener" class="btn-album-whatsapp-main">
+              <i class="fab fa-whatsapp"></i>
+              <span>طلب هذا الألبوم بالكامل عبر واتساب</span>
+            </a>
+            <a href="index.html#gallery" class="btn-topbar-link" style="justify-content: center;">
+              <i class="fas fa-th-large"></i> تصفح باقي أعمالنا
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- قسم المجلدات الفرعية (الألبومات) في حال عرض القسم -->
+    <section class="sub-albums-section" id="subAlbumsSection" style="display: none; padding: 40px 0; background: var(--bg-alt);">
+      <div class="container">
+        <div class="section-heading text-center" style="margin-bottom: 30px;">
+          <h2 class="heading-title" style="font-size: 24px;">ألبومات وتنسيقات متكاملة</h2>
+          <div class="heading-divider"></div>
+        </div>
+        <div class="gallery-grid" id="subAlbumsGrid">
+          <!-- يتم توليد كروت الألبومات ديناميكياً -->
+        </div>
+      </div>
+    </section>
+
+    <!-- شبكة صور الألبوم الفردية بدقة عالية مع الاسم ورقم الكود -->
+    <section class="album-grid-section" id="directImagesSection">
+      <div class="container">
+        <div class="section-heading text-center" style="margin-bottom: 40px;">
+          <span class="heading-badge">صور بدقة كاملة</span>
+          <h2 class="heading-title">لقطات وتفاصيل العمل</h2>
+          <div class="heading-divider"></div>
+          <p class="heading-subtitle">كل صورة تحمل اسماً ورمز كود خاصاً؛ يمكنك الضغط للتكبير أو طلب نفس النموذج عبر الواتساب</p>
+        </div>
+
+        <div class="album-photos-grid" id="albumPhotosGrid">
+          <!-- يتم توليد كروت الصور ديناميكياً مع الاسم ورقم الكود بواسطة album.js -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- عارض الصور المنبثق الكامل (Album Lightbox) -->
+  <div class="album-lightbox-modal" id="albumLightboxModal" role="dialog" aria-modal="true">
+    <button class="lightbox-close-btn" id="closeLightboxBtn" aria-label="إغلاق المعاينة">
+      <i class="fas fa-times"></i>
+    </button>
+    
+    <button class="lightbox-nav-btn lightbox-prev" id="lightboxPrevBtn" aria-label="الصورة السابقة">
+      <i class="fas fa-chevron-right"></i>
+    </button>
+    <button class="lightbox-nav-btn lightbox-next" id="lightboxNextBtn" aria-label="الصورة التالية">
+      <i class="fas fa-chevron-left"></i>
+    </button>
+
+    <div class="lightbox-content-box">
+      <img src="" alt="معاينة الصورة المكبرة" id="lightboxImg" class="lightbox-main-img">
+      <div class="lightbox-bottom-bar">
+        <div class="lightbox-title" id="lightboxTitle">عنوان وكود النموذج</div>
+        <div class="lightbox-counter" id="lightboxCounter">صورة 1 من 1</div>
+        <a href="#" id="lightboxWaBtn" target="_blank" rel="noopener" class="btn-lightbox-wa">
+          <i class="fab fa-whatsapp"></i> طلب هذا النموذج
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- التذييل الفاخر (Footer) -->
+  <footer class="main-footer" style="margin-top: 40px;">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col brand-col">
+          <div class="footer-logo-row">
+            <img src="assets/logo.png?v=2" alt="يلوروز" class="footer-logo">
+            <div>
+              <span class="footer-brand-ar">يلوروز</span>
+              <span class="footer-brand-en">YELLOW ROSE</span>
+            </div>
+          </div>
+          <p class="footer-about">
+            نخبة من أجود أنواع الورد الطبيعي وتنسيقات المناسبات الفاخرة. نسعى دائماً لنصنع من لحظاتكم ذكريات لا تُنسى.
+          </p>
+
+          <!-- أيقونات التواصل الاجتماعي الصافية دون أسماء حسابات -->
+          <div class="social-pure-icons-row" aria-label="حسابات التواصل">
+            <a href="https://wa.me/966582739397" target="_blank" rel="noopener" class="social-icon-btn whatsapp-icon" title="واتساب يلوروز">
+              <i class="fab fa-whatsapp"></i>
+            </a>
+            <a href="https://www.instagram.com/yelrose11" target="_blank" rel="noopener" class="social-icon-btn instagram-icon" title="انستقرام يلوروز">
+              <i class="fab fa-instagram"></i>
+            </a>
+            <a href="https://www.snapchat.com/add/yelrose11" target="_blank" rel="noopener" class="social-icon-btn snapchat-icon" title="سناب شات يلوروز">
+              <i class="fab fa-snapchat-ghost"></i>
+            </a>
+            <a href="https://www.tiktok.com/@yelrose11" target="_blank" rel="noopener" class="social-icon-btn tiktok-icon" title="تيك توك يلوروز">
+              <i class="fab fa-tiktok"></i>
+            </a>
+            <a href="https://maps.app.goo.gl/mQVuqixcRywvdfzRA?g_st=ic" target="_blank" rel="noopener" class="social-icon-btn maps-icon" title="خرائط جوجل يلوروز">
+              <i class="fas fa-map-marker-alt"></i>
+            </a>
+          </div>
+        </div>
+
+        <div class="footer-col">
+          <h4 class="footer-col-title">روابط سريعة</h4>
+          <ul class="footer-links">
+            <li><a href="index.html#home"><i class="fas fa-angle-left"></i> الرئيسية</a></li>
+            <li><a href="index.html#gallery"><i class="fas fa-angle-left"></i> أعمالنا</a></li>
+            <li><a href="index.html#reviews"><i class="fas fa-angle-left"></i> التقييمات والموقع</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4 class="footer-col-title">الطلب والتواصل المباشر</h4>
+          <div class="footer-contact-item">
+            <i class="fas fa-phone-alt"></i>
+            <a href="tel:0582739397" dir="ltr">058 273 9397</a>
+          </div>
+          <div class="footer-contact-item">
+            <i class="fab fa-whatsapp"></i>
+            <a href="https://wa.me/966582739397" target="_blank" rel="noopener">محادثة واتساب فورية</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <p>© 2026 جميع الحقوق محفوظة لـ <strong>يلوروز (YELLOW ROSE)</strong> للأزهار والمناسبات الفاخرة.</p>
+        <a href="admin.html" class="footer-secret-admin-link" title="منطقة الإدارة">
+          <i class="fas fa-shield-alt"></i> الإدارة
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Minified Scripts -->
+  <script src="assets/dist/js/db.min.js"></script>
+  <script src="assets/dist/js/album.min.js"></script>
+</body>
+</html>

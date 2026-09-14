@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>يلوروز | YELLOW ROSE - أعمال وتنسيقات الورد والمناسبات الفاخرة</title>
+  <meta name="description" content="يلوروز (YELLOW ROSE) - ألبومات وأعمال وتصاميم تنسيقات ورد ومناسبات فاخرة، باقات، فازات، مسكات عرائس، طاولات مداخل، شبكات، واحتفالات خاصة.">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/logo.png">
+
+  <!-- Google Fonts: Tajawal & Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,500&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- CSS Styles (Minified) -->
+  <link rel="stylesheet" href="assets/dist/css/style.min.css">
+</head>
+<body>
+
+  <!-- شريط إعلاني علوي فاخر (يمكن للإدارة تعديله أو إخفاؤه) -->
+  <aside class="top-bar" id="siteAnnouncementBar" aria-label="شريط إعلاني">
+    <div class="top-bar-content">
+      <span id="siteAnnouncementText">✨ يلوروز | نصنع من كل مناسبة تحفة بصرية استثنائية تعكس ذوقكم الرفيع ✨</span>
+    </div>
+  </aside>
+
+  <!-- الترويسة الرئيسية والشريط العلوي -->
+  <header class="main-header" id="header">
+    <div class="header-container">
+      <a href="#home" class="brand-link">
+        <img src="assets/logo.png?v=2" alt="شعار يلوروز YELLOW ROSE" class="brand-logo">
+        <div class="brand-text">
+          <span class="brand-arabic">يلوروز</span>
+          <span class="brand-english">YELLOW ROSE</span>
+        </div>
+      </a>
+
+      <!-- القائمة الرئيسية (تم تحديث وتصحيح العبارات إملائياً) -->
+      <nav class="nav-menu" id="navMenu">
+        <a href="#home" class="nav-item active">الرئيسية</a>
+        <a href="#gallery" class="nav-item">أعمالنا</a>
+        <a href="#reviews" class="nav-item">التقييمات والموقع</a>
+      </nav>
+
+      <div class="header-actions">
+        <!-- شارة سرية تظهر للإدارة فقط في حال تسجيل الدخول -->
+        <a href="admin.html" id="adminSecretBadge" class="btn-admin-secret" title="لوحة الإدارة" style="display: none;">
+          <i class="fas fa-lock-open"></i>
+          <span>لوحة التحكم</span>
+        </a>
+
+        <!-- زر مباشر للواتساب -->
+        <a href="https://wa.me/966582739397" target="_blank" rel="noopener" class="btn-header-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+          <span>تواصل مباشر</span>
+        </a>
+
+        <!-- زر القائمة للجوال -->
+        <button class="mobile-menu-toggle" id="mobileMenuBtn" aria-label="فتح القائمة">
+          <i class="fas fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- القسم الترحيبي (Hero Section) -->
+  <section class="hero-section" id="home">
+    <div class="hero-overlay"></div>
+    <div class="hero-container">
+      <div class="hero-badge">
+        <i class="fas fa-gem"></i> تميز لا يُضاهى في عالم الورد والمناسبات
+      </div>
+      
+      <div class="hero-logo-box">
+        <img src="assets/logo.png?v=2" alt="يلوروز" class="hero-logo-img">
+      </div>
+
+      <h1 class="hero-title">
+        <span class="hero-title-gold">يلوروز</span> <span class="hero-slogan-ar">للورد والمناسبات</span>
+      </h1>
+      <p class="hero-subtitle-en">YELLOW ROSE • LUXURY FLORAL & EVENT DESIGN</p>
+
+      <div class="hero-buttons">
+        <a href="#gallery" class="btn-hero-primary">
+          <i class="fas fa-images"></i> استعراض أعمالنا
+        </a>
+      </div>
+
+      <div class="hero-quick-stats">
+        <div class="stat-pill">
+          <i class="fas fa-check-circle"></i> 12 قسماً وتصنيفاً شاملاً
+        </div>
+        <div class="stat-pill">
+          <i class="fas fa-star"></i> تقييم 5 نجوم على Google Maps
+        </div>
+        <div class="stat-pill">
+          <i class="fas fa-clock"></i> تجاوب فوري على الواتساب
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ألبوم التصنيفات وأعمالنا (Gallery Section) -->
+  <section class="gallery-section" id="gallery">
+    <div class="container">
+      <div class="section-heading text-center">
+        <span class="heading-badge">كتالوج المعرض</span>
+        <h2 class="heading-title">ألبوم التصنيفات وأعمالنا</h2>
+        <div class="heading-divider"></div>
+        <p class="heading-subtitle">تصفح تصنيفاتنا المختارة، واضغط على أي ألبوم للاطلاع على تفاصيل صوره الكاملة وأكوادها</p>
+      </div>
+
+      <!-- شريط أدوات الفلترة والأقسام الـ 12 -->
+      <div class="categories-bar-wrapper">
+        <div class="categories-bar" id="categoryTabs">
+          <button class="cat-btn active" data-category="all">
+            <i class="fas fa-th"></i>
+            <span>الكل</span>
+            <span class="cat-count" id="count-all">0</span>
+          </button>
+          
+          <button class="cat-btn" data-category="bouquets">
+            <i class="fas fa-seedling"></i>
+            <span>باقات</span>
+            <span class="cat-count" id="count-bouquets">0</span>
+          </button>
+
+          <button class="cat-btn" data-category="vases">
+            <i class="fas fa-wine-bottle"></i>
+            <span>فازات</span>
+            <span class="cat-count" id="count-vases">0</span>
+          </button>
+
+          <button class="cat-btn" data-category="bridal">
+            <i class="fas fa-female"></i>
+            <span>مسكات عرائس</span>
+            <span class="cat-count" id="count-bridal">0</span>
+          </button>
+
+          <button class="cat-btn" data-category="entrance_tables">
+            <i class="fas fa-archway"></i>
+            <span>طاولات مداخل</span>
+            <span class="cat-count" id="count-entrance_tables">0</span>
+          </button>
+
+          <button class="cat-btn" data-category="balloon_arch">
+            <i class="fas fa-circle-notch"></i>
+            <span>قوس بالونات</span>
+            <span class="cat-count" id="count-balloon_arch">0</span>
+          </button>
+
+          <button class="cat-btn" data-category="marriage_contracts">
+            <i class="fas fa-file-signature"></i>
+            <span>عقود زواج</span>
+            <span class="cat-count" id="count-marriage_contracts">0</span>
+          </button>
+
+          <button class="cat-btn" data-category="flower_corners">
+            <i class="fas fa-vector-square"></i>
+            <span>ركنية ورد</span>
+            <span class="cat-count" id="count-flower_corners">0</span>
+          </button>
+
+          <button class="cat-btn" data-category="coffee_corners">
+            <i class="fas fa-coffee"></i>
+            <span>ركن قهوة</span>
+            <span class="cat-count" id="count-coffee_corners">0</span>
+          </button>
+
+          <button class="cat-btn" data-category="engagement">
+            <i class="fas fa-ring"></i>
+            <span>شبكات خطوبة</span>
+            <span class="cat-count" id="count-engagement">0</span>
+          </button>
+
+          <button class="cat-btn" data-category="car_decor">
+            <i class="fas fa-car-side"></i>
+            <span>تشريع وزينة سيارات</span>
+            <span class="cat-count" id="count-car_decor">0</span>
+          </button>
+
+          <button class="cat-btn" data-category="special_events">
+            <i class="fas fa-glass-cheers"></i>
+            <span>احتفالات خاصة</span>
+            <span class="cat-count" id="count-special_events">0</span>
+          </button>
+
+          <button class="cat-btn" data-category="other">
+            <i class="fas fa-ellipsis-h"></i>
+            <span>أخرى</span>
+            <span class="cat-count" id="count-other">0</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- شريط البحث السريع المخصص للزوار -->
+      <div class="gallery-controls">
+        <div class="search-box" style="max-width: 550px; margin: 0 auto;">
+          <i class="fas fa-search"></i>
+          <input type="text" id="gallerySearchInput" placeholder="ابحث باسم التنسيق أو القسم (مثال: مسكة عروس، باقة روز)...">
+        </div>
+      </div>
+
+      <!-- شبكة عرض بطاقات الألبومات -->
+      <div class="gallery-grid" id="galleryGrid">
+        <!-- يتم توليد كروت الألبومات ديناميكياً بواسطة assets/js/main.js -->
+      </div>
+
+      <!-- رسالة في حال عدم وجود نتائج -->
+      <div class="no-items-message hidden" id="noItemsMessage">
+        <i class="fas fa-box-open"></i>
+        <p>لا توجد ألبومات مطابقة لهذا التصنيف حالياً.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- قسم التقييمات وموقع Google Maps (Reviews & Location) -->
+  <section class="reviews-section" id="reviews">
+    <div class="container">
+      <div class="reviews-box">
+        <div class="reviews-content">
+          <div class="google-badge">
+            <i class="fab fa-google"></i> Google Maps Reviews
+          </div>
+          <h2 class="reviews-title">ثقة ورضا عملائنا هي سر تميزنا</h2>
+          <div class="stars-row">
+            <span class="stars-icons">★★★★★</span>
+            <span class="stars-score">5.0 / 5.0</span>
+          </div>
+          <p class="reviews-text">
+            نسعد ونفخر دائماً بآراء عملائنا الكرام وتجاربهم الإيجابية معنا على خرائط جوجل. شاركنا تجربتك أو تصفح التقييمات وموقعنا مباشرة.
+          </p>
+          <div class="reviews-actions">
+            <a href="https://maps.app.goo.gl/mQVuqixcRywvdfzRA?g_st=ic" target="_blank" rel="noopener" class="btn-google-maps">
+              <i class="fas fa-map-marker-alt"></i> موقعنا وتقييمات خرائط Google
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- التذييل الفاخر (Footer) مع أيقونات التواصل الاجتماعي الصافية دون أسماء حسابات -->
+  <footer class="main-footer">
+    <div class="container footer-container">
+      <div class="footer-brand">
+        <img src="assets/logo.png?v=2" alt="يلوروز" class="footer-logo">
+        <h3 class="footer-title"><span class="footer-brand-ar">يلوروز</span> | <span class="footer-brand-en">YELLOW ROSE</span></h3>
+        <p class="footer-desc">
+          الوجهة الأولى لتنسيقات الورد الطبيعي الفاخرة والمناسبات الراقية.
+        </p>
+
+        <!-- أيقونات التواصل الاجتماعي المباشرة دون نصوص أو أسماء حسابات -->
+        <div class="social-pure-icons-row" aria-label="حسابات متجر يلوروز">
+          <a href="https://wa.me/966582739397" target="_blank" rel="noopener" class="social-icon-btn whatsapp-icon" title="واتساب يلوروز">
+            <i class="fab fa-whatsapp"></i>
+          </a>
+          <a href="https://www.instagram.com/yelrose11" target="_blank" rel="noopener" class="social-icon-btn instagram-icon" title="انستقرام يلوروز">
+            <i class="fab fa-instagram"></i>
+          </a>
+          <a href="https://www.snapchat.com/add/yelrose11" target="_blank" rel="noopener" class="social-icon-btn snapchat-icon" title="سناب شات يلوروز">
+            <i class="fab fa-snapchat-ghost"></i>
+          </a>
+          <a href="https://www.tiktok.com/@yelrose11" target="_blank" rel="noopener" class="social-icon-btn tiktok-icon" title="تيك توك يلوروز">
+            <i class="fab fa-tiktok"></i>
+          </a>
+          <a href="https://maps.app.goo.gl/mQVuqixcRywvdfzRA?g_st=ic" target="_blank" rel="noopener" class="social-icon-btn maps-icon" title="خرائط جوجل يلوروز">
+            <i class="fas fa-map-marker-alt"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="footer-categories">
+        <h4 class="footer-subtitle">أقسام أعمالنا</h4>
+        <div class="footer-links-grid">
+          <a href="#gallery" onclick="filterByCategory('bouquets')">باقات ورد</a>
+          <a href="#gallery" onclick="filterByCategory('vases')">فازات وتنسيقات</a>
+          <a href="#gallery" onclick="filterByCategory('bridal')">مسكات عرائس</a>
+          <a href="#gallery" onclick="filterByCategory('entrance_tables')">طاولات مداخل</a>
+          <a href="#gallery" onclick="filterByCategory('balloon_arch')">قوس بالونات</a>
+          <a href="#gallery" onclick="filterByCategory('marriage_contracts')">عقود زواج</a>
+          <a href="#gallery" onclick="filterByCategory('flower_corners')">ركنية ورد</a>
+          <a href="#gallery" onclick="filterByCategory('coffee_corners')">ركن قهوة</a>
+          <a href="#gallery" onclick="filterByCategory('engagement')">شبكات خطوبة</a>
+          <a href="#gallery" onclick="filterByCategory('car_decor')">زينة سيارات</a>
+          <a href="#gallery" onclick="filterByCategory('special_events')">احتفالات خاصة</a>
+          <a href="#gallery" onclick="filterByCategory('other')">أخرى</a>
+        </div>
+      </div>
+
+      <div class="footer-contact">
+        <h4 class="footer-subtitle">الطلب والحجز</h4>
+        <p><i class="fab fa-whatsapp text-gold"></i> تواصل فوري: 0582739397</p>
+        <p><i class="fas fa-map-marker-alt text-gold"></i> معتمد ومسجل على خرائط Google</p>
+        <p style="margin-top: 15px;">
+          <a href="https://wa.me/966582739397" target="_blank" rel="noopener" class="btn-header-whatsapp" style="display: inline-flex; padding: 10px 20px;">
+            <i class="fab fa-whatsapp"></i> محادثة واتساب فورية
+          </a>
+        </p>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="container footer-bottom-content">
+        <p>© 2026 يلوروز (YELLOW ROSE). جميع الحقوق محفوظة.</p>
+        <!-- رابط إدارة سري مخصص للمالك -->
+        <a href="admin.html" class="footer-secret-admin-link" title="منطقة الإدارة">
+          <i class="fas fa-shield-alt"></i> الإدارة
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- الزر العائم المباشر للواتساب -->
+  <div class="floating-quick-bar">
+    <a href="https://wa.me/966582739397" target="_blank" rel="noopener" class="float-btn float-whatsapp" title="تواصل واتساب مباشر">
+      <i class="fab fa-whatsapp"></i>
+      <span class="float-tooltip">تواصل واتساب مباشر</span>
+    </a>
+  </div>
+
+  <!-- محرك البيانات وقاعدة البيانات السحابية والمحلية -->
+  <script src="assets/dist/js/db.min.js"></script>
+  <!-- Minified Scripts -->
+  <script src="assets/dist/js/main.min.js"></script>
+</body>
+</html>

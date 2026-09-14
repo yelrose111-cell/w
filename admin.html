@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة التحكم وإدارة ألبومات يلوروز | YELLOW ROSE Admin</title>
+  <meta name="robots" content="noindex, nofollow">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/logo.png">
+
+  <!-- Google Fonts: Tajawal & Playfair Display -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,500&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- CSS Styles (Minified) -->
+  <link rel="stylesheet" href="assets/dist/css/style.min.css">
+</head>
+<body style="background: #F8F7F3;">
+
+  <!-- بوابة التحقق وحماية لوحة التحكم بالـ PIN -->
+  <div class="admin-login-overlay" id="adminLoginOverlay">
+    <div class="admin-login-box">
+      <img src="assets/logo.png" alt="شعار يلوروز" class="admin-login-logo">
+      <h2 class="admin-login-title">لوحة تحكم يلوروز</h2>
+      <p class="admin-login-subtitle">YELLOW ROSE • ALBUM MANAGEMENT</p>
+
+      <form id="adminLoginForm">
+        <div class="admin-input-group">
+          <label class="admin-label" for="adminPinInput">أدخل رمز الدخول السري (PIN):</label>
+          <input type="password" id="adminPinInput" class="admin-input" placeholder="••••••••" required autofocus style="text-align: center; letter-spacing: 3px; font-size: 18px;">
+        </div>
+
+        <button type="submit" class="admin-login-btn">
+          <i class="fas fa-unlock-alt"></i> دخول لوحة التحكم
+        </button>
+
+        <p class="login-error-msg hidden" id="loginError"></p>
+
+        <div style="margin-top: 25px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 12px; color: #999;">
+          <span>يرجى إدخال رمز الدخول السري للمتابعة:</span>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- محتوى لوحة التحكم المحمي -->
+  <div id="adminDashboardContent" style="display: none;">
+    
+    <!-- الشريط العلوي للإدارة -->
+    <header class="admin-topbar">
+      <div class="admin-topbar-container">
+        <div class="admin-brand">
+          <img src="assets/logo.png" alt="يلوروز">
+          <div>
+            <div class="admin-brand-title">لوحة إدارة ألبومات يلوروز</div>
+            <div style="font-size: 11px; color: var(--gold-light);">YELLOW ROSE SYSTEM v2.0</div>
+          </div>
+        </div>
+
+        <div class="admin-topbar-actions">
+          <a href="index.html" target="_blank" class="btn-topbar-link">
+            <i class="fas fa-external-link-alt"></i> <span>معاينة المتجر كزائر</span>
+          </a>
+          <div id="apiStatusIndicator" class="api-status offline" title="حالة الاتصال بالخادم">
+            <i class="fas fa-circle"></i> <span id="apiStatusText">متصل (Local)</span>
+          </div>
+          <button id="logoutBtn" class="btn-logout" title="تسجيل الخروج">
+            <i class="fas fa-sign-out-alt"></i> <span>خروج</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- المحتوى الرئيسي للوحة التحكم -->
+    <main class="admin-main">
+      
+      <!-- إحصائيات سريعة -->
+      <section class="admin-stats-grid">
+        <div class="admin-stat-card">
+          <div class="stat-icon"><i class="fas fa-images"></i></div>
+          <div>
+            <div class="stat-val" id="statAlbumsCount">0</div>
+            <div class="stat-lbl">إجمالي الألبومات النشطة</div>
+          </div>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="stat-icon"><i class="fas fa-camera"></i></div>
+          <div>
+            <div class="stat-val" id="statPhotosCount">0</div>
+            <div class="stat-lbl">إجمالي الصور المرفوعة</div>
+          </div>
+        </div>
+
+        <div class="admin-stat-card">
+          <div class="stat-icon"><i class="fas fa-th-list"></i></div>
+          <div>
+            <div class="stat-val" id="statCategoriesCount">0</div>
+            <div class="stat-lbl">الأقسام المغطاة (من 12)</div>
+          </div>
+        </div>
+
+        <div class="admin-stat-card" style="cursor: pointer; border: 1px solid rgba(249, 217, 73, 0.4);" onclick="document.querySelector('[data-tab=\'tabBrandIdentity\']').click()" title="انقر لتعديل هوية المتجر والشعار">
+          <div class="stat-icon" style="background: rgba(249, 217, 73, 0.15);"><i class="fas fa-palette text-gold"></i></div>
+          <div>
+            <div class="stat-val" id="statBrandName">يلوروز</div>
+            <div class="stat-lbl">الشعار والهوية (تعديل مباشر)</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- شريط التبويبات -->
+      <nav class="admin-tabs-nav" aria-label="تبويبات الإدارة">
+        <button class="admin-tab-btn active" data-tab="tabAlbumsList">
+          <i class="fas fa-list"></i> قائمة الألبومات
+        </button>
+        <button class="admin-tab-btn" data-tab="tabAlbumForm">
+          <i class="fas fa-plus-circle"></i> إضافة / تعديل ألبوم
+        </button>
+        <button class="admin-tab-btn" data-tab="tabBrandIdentity">
+          <i class="fas fa-palette text-gold"></i> هوية المتجر والشعار
+        </button>
+      </nav>
+
+      <!-- تبويب 1: قائمة الألبومات -->
+      <section class="admin-tab-pane active" id="tabAlbumsList">
+        <div class="admin-card">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <h3 class="admin-card-title" style="margin-bottom: 0; border: none; padding: 0;">الألبومات المسجلة بالمعرض</h3>
+            <button class="btn-card-album" onclick="document.querySelector('[data-tab=\'tabAlbumForm\']').click()" style="padding: 8px 16px;">
+              <i class="fas fa-plus"></i> إضافة ألبوم جديد
+            </button>
+          </div>
+
+          <div class="admin-albums-list" id="adminAlbumsList">
+            <!-- يتم توليد الصفوف ديناميكياً عبر admin.js -->
+          </div>
+        </div>
+      </section>
+
+      <!-- تبويب 2: إضافة أو تعديل ألبوم -->
+      <section class="admin-tab-pane" id="tabAlbumForm">
+        <div class="admin-card">
+          <h3 class="admin-card-title" id="albumFormTitle">إضافة صور للقسم</h3>
+
+          <form id="albumForm">
+            <!-- مفتاح تفعيل وضع الألبوم -->
+            <div class="admin-input-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding: 15px; background: rgba(var(--gold-primary-rgb), 0.05); border-radius: var(--radius-md); border: 1px solid rgba(var(--gold-primary-rgb), 0.2);">
+              <input type="checkbox" id="enableAlbumModeCheck" style="width: 18px; height: 18px; accent-color: var(--gold-primary); cursor: pointer;">
+              <label for="enableAlbumModeCheck" style="font-size: 15px; font-weight: 700; cursor: pointer; color: var(--gold-dark);">
+                تفعيل وضع الألبوم (إنشاء ألبوم منفصل لهذه الصور بدلاً من إضافتها المباشرة للقسم)
+              </label>
+            </div>
+
+            <!-- حقل القسم دائماً ظاهر -->
+            <div class="admin-input-group">
+              <label class="admin-label" for="albumCategorySelect">التصنيف / القسم *</label>
+              <select id="albumCategorySelect" class="admin-select" required>
+                <!-- خيارات الـ 12 قسماً يتم توليدها ديناميكياً -->
+              </select>
+            </div>
+
+            <!-- الحقول الخاصة بالألبوم (مخفية افتراضياً) -->
+            <div id="albumModeFields" style="display: none; padding-top: 15px; border-top: 1px dashed var(--border-color); margin-top: 15px;">
+              <div class="admin-input-group">
+                <label class="admin-label" for="albumTitleInput">عنوان الألبوم / التنسيق *</label>
+                <input type="text" id="albumTitleInput" class="admin-input" placeholder="مثال: مسكة عروس ملكية توليب وكالا">
+              </div>
+
+              <div class="admin-input-group">
+                <label class="admin-label" for="albumDescInput">وصف الألبوم ومكونات الورد والخامات</label>
+                <textarea id="albumDescInput" class="admin-textarea" rows="3" placeholder="اكتب تفاصيل الزهور، ألوان التنسيق، والخامات المصاحبة..."></textarea>
+              </div>
+
+              <div class="admin-input-group" style="display: flex; align-items: center; gap: 10px; margin: 15px 0;">
+                <input type="checkbox" id="albumFeaturedCheck" style="width: 18px; height: 18px; accent-color: var(--gold-primary); cursor: pointer;">
+                <label for="albumFeaturedCheck" style="font-size: 14px; font-weight: 700; cursor: pointer; color: var(--text-main);">
+                  تمييز هذا الألبوم في الواجهة الرئيسية (Featured)
+                </label>
+              </div>
+            </div>
+
+            <!-- منطقة رفع الصور السحابية Cloudinary Direct Upload -->
+            <div class="admin-input-group" style="margin-top: 25px;">
+              <label class="admin-label">
+                <i class="fas fa-cloud-upload-alt"></i> رفع صور الألبوم من الجهاز (Cloudinary Direct Upload):
+              </label>
+
+              <label class="upload-dropzone" for="albumFilesInput">
+                <div class="upload-dropzone-icon">
+                  <i class="fas fa-images"></i>
+                </div>
+                <h4 style="font-size: 16px; font-weight: 800; color: var(--text-main); margin-bottom: 6px;">
+                  اضغط هنا لاختيار صورة أو عدة صور معاً من جهازك
+                </h4>
+                <p style="font-size: 13px; color: var(--text-muted);">
+                  يدعم اختيار ملفات JPG, PNG, WEBP. سيتم رفعها مباشرة وحفظ روابطها السحابية.
+                </p>
+                <input type="file" id="albumFilesInput" multiple accept="image/*" style="display: none;">
+              </label>
+
+              <!-- شريط تقدم الرفع المباشر -->
+              <div class="upload-progress-box hidden" id="uploadProgressContainer">
+                <div id="uploadProgressStatus" style="font-size: 13px; font-weight: 700; color: var(--text-main);">جاري الرفع...</div>
+                <div class="progress-bar-bg">
+                  <div class="progress-bar-fill" id="uploadProgressBar"></div>
+                </div>
+              </div>
+
+              <!-- خيار بديل لإضافة رابط صورة مباشر -->
+              <div style="display: flex; gap: 10px; margin-top: 10px;">
+                <input type="url" id="directImageUrlInput" class="admin-input" placeholder="أو الصق رابط صورة جاهز هنا (URL)..." style="flex: 1;">
+                <button type="button" id="addDirectUrlBtn" class="btn-topbar-link" style="white-space: nowrap; padding: 10px 16px; background: #EFEFEF; color: #111;">
+                  <i class="fas fa-plus"></i> إضافة الرابط
+                </button>
+              </div>
+
+              <!-- استعراض ومعاينة الصور المرفوعة للألبوم -->
+              <div style="margin-top: 20px;">
+                <div style="display: flex; align-items: center; justify-content: space-between;">
+                  <span style="font-size: 13px; font-weight: 700; color: var(--text-main);">
+                    صور الألبوم الحالية (اضغط على أيقونة التاج <i class="fas fa-crown text-gold"></i> لتعيينها كغلاف):
+                  </span>
+                </div>
+                <div class="preview-images-grid" id="uploadedImagesGrid">
+                  <!-- معاينات الصور المرفوعة -->
+                </div>
+              </div>
+            </div>
+
+            <!-- أزرار الإجراءات -->
+            <div style="display: flex; gap: 12px; margin-top: 35px; border-top: 1px solid rgba(0,0,0,0.08); padding-top: 20px;">
+              <button type="submit" id="saveAlbumBtn" class="btn-card-album" style="padding: 12px 24px; font-size: 15px;">
+                <i class="fas fa-save"></i> حفظ الألبوم في المعرض
+              </button>
+              <button type="button" id="cancelEditBtn" class="btn-topbar-link hidden" style="padding: 12px 20px; font-size: 14px;">
+                إلغاء التعديل
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- تبويب 3: هوية المتجر والشعار وتعديل الأسماء والسلوجان -->
+      <section class="admin-tab-pane" id="tabBrandIdentity">
+        <!-- بطاقة إدارة الشعار الرسمي والرفع -->
+        <div class="admin-card" style="margin-bottom: 25px;">
+          <h3 class="admin-card-title">
+            <i class="fas fa-gem text-gold"></i> شعار المتجر والأيقونة الرسمية (Store Logo & Icon)
+          </h3>
+          <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.7;">
+            يمكنك رفع صورة شعار جديدة مباشرة من جهازك (PNG أو JPG أو WEBP)، أو إدخال مسار / رابط الشعار، لتحديث الشعار تلقائياً في الترويسة، قسم البداية، التذييل، وأيقونة المتصفح.
+          </p>
+
+          <div class="admin-identity-layout">
+            <!-- الجانب الأيمن: أزرار الرفع والتحكم -->
+            <div>
+              <div style="background: rgba(249, 217, 73, 0.08); border: 1.5px dashed var(--gold-primary); border-radius: 12px; padding: 25px; text-align: center; margin-bottom: 20px;">
+                <input type="file" id="brandLogoFileInput" accept="image/*" style="display: none;">
+                <div style="font-size: 38px; color: var(--gold-primary); margin-bottom: 12px;">
+                  <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h4 style="font-size: 16px; margin-bottom: 8px; color: var(--text-main);">تغيير الشعار من جهازك</h4>
+                <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 18px;">
+                  اختر ملف صورة من جهاز الكمبيوتر أو الهاتف (يُفضل مربع بنسبة 1:1)
+                </p>
+                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                  <button type="button" id="btnUploadLogo" class="btn-card-album" style="padding: 10px 22px; font-size: 14px; background: var(--gold-gradient); color: #111; font-weight: 700;">
+                    <i class="fas fa-upload"></i> رفع شعار جديد
+                  </button>
+                  <button type="button" id="btnResetDefaultLogo" class="btn-topbar-link" style="padding: 10px 18px; font-size: 13px; background: #fff; border: 1px solid #ddd; color: #444;">
+                    <i class="fas fa-history"></i> استعادة الشعار الأصلي
+                  </button>
+                </div>
+              </div>
+
+              <div class="admin-input-group">
+                <label class="admin-label" for="cfgBrandLogoUrl">
+                  <i class="fas fa-link text-gold"></i> رابط أو مسار صورة الشعار المباشر:
+                </label>
+                <input type="text" id="cfgBrandLogoUrl" class="admin-input" placeholder="assets/logo.png?v=2">
+                <span style="font-size: 11px; color: #888; display: block; margin-top: 5px;">
+                  يتم تحديث هذا الحقل تلقائياً عند رفع صورة من الجهاز، أو يمكنك كتابة رابط مباشر.
+                </span>
+              </div>
+            </div>
+
+            <!-- الجانب الأيسر: المعاينة الحية للشعار في مختلف المواقع -->
+            <div style="background: #FFFFFF; border: 1px solid rgba(0,0,0,0.08); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+              <h4 style="font-size: 14px; font-weight: 800; color: var(--text-main); margin-bottom: 15px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #EEE; padding-bottom: 10px;">
+                <i class="fas fa-eye text-gold"></i> المعاينة الحية للشعار في المتجر:
+              </h4>
+
+              <!-- معاينة 1: الترويسة الرئيسية (Header) -->
+              <div style="margin-bottom: 16px; padding: 12px 16px; background: #F8F7F3; border-radius: 8px; border: 1px solid rgba(0,0,0,0.05);">
+                <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 8px;">
+                  1. مظهر الشعار في الترويسة العلوية (Navbar):
+                </span>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <img id="previewLogoNav" class="brand-logo" src="assets/logo.png?v=2" alt="معاينة الشعار" style="height: 44px; width: 44px; object-fit: cover; border-radius: 10px; border: 1.5px solid rgba(249, 217, 73, 0.6); background: #F9D949;">
+                  <div>
+                    <div class="preview-brand-ar" style="font-size: 18px; font-weight: 800; color: #111; line-height: 1.1;">يلوروز</div>
+                    <div class="preview-brand-en" style="font-family: 'Playfair Display', serif; font-size: 9px; color: var(--gold-dark); letter-spacing: 2px; font-weight: 600;">YELLOW ROSE</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- معاينة 2: قسم البداية الفاخر (Hero Box) -->
+              <div style="margin-bottom: 16px; padding: 16px; background: #181611; border-radius: 8px; text-align: center; border: 1px solid rgba(249, 217, 73, 0.3);">
+                <span style="font-size: 11px; font-weight: 700; color: var(--gold-light); display: block; margin-bottom: 10px;">
+                  2. مظهر الشعار في واجهة البداية (Hero Section):
+                </span>
+                <div style="width: 75px; height: 75px; margin: 0 auto 10px; border-radius: 20px; overflow: hidden; border: 2px solid #F9D949; box-shadow: 0 4px 20px rgba(249, 217, 73, 0.4); background: #F9D949;">
+                  <img id="previewLogoHero" src="assets/logo.png?v=2" alt="معاينة الهيرو" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div style="color: #FFF; font-size: 15px; font-weight: 800;">
+                  <span class="preview-brand-ar" style="color: var(--gold-light);">يلوروز</span> <span class="preview-slogan-ar" style="font-weight: 400; font-size: 13px;">للورد والمناسبات</span>
+                </div>
+                <div class="preview-slogan-en" style="font-size: 9px; color: rgba(255,255,255,0.6); letter-spacing: 1.5px; margin-top: 3px;">YELLOW ROSE • LUXURY FLORAL & EVENT DESIGN</div>
+              </div>
+
+              <!-- معاينة 3: التذييل (Footer) -->
+              <div style="padding: 12px 16px; background: #111111; border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+                <span style="font-size: 11px; font-weight: 700; color: #888; display: block; margin-bottom: 8px;">
+                  3. مظهر الشعار في التذييل السفلي (Footer):
+                </span>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <img id="previewLogoFooter" src="assets/logo.png?v=2" alt="معاينة التذييل" style="width: 36px; height: 36px; object-fit: cover; border-radius: 8px; border: 1px solid rgba(249, 217, 73, 0.4); background: #F9D949;">
+                  <div style="color: #FFF; font-size: 13px; font-weight: 700;">
+                    <span class="preview-brand-ar">يلوروز</span> | <span class="preview-brand-en" style="color: var(--gold-light);">YELLOW ROSE</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- بطاقة تعديل أسماء البراند والشعارات اللفظية -->
+        <div class="admin-card" style="margin-bottom: 25px;">
+          <h3 class="admin-card-title">
+            <i class="fas fa-signature text-gold"></i> أسماء العلامة التجارية والشعارات اللفظية (Brand Names & Slogans)
+          </h3>
+          <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">
+            يمكنك تعديل الأسماء والشعارات اللفظية بالعربية والإنجليزية في أي وقت، وسيتم تحديثها فوراً في كافة أرجاء الموقع وكتالوج المعرض.
+          </p>
+
+          <div class="admin-grid-2col" style="margin-bottom: 20px;">
+            <div class="admin-input-group">
+              <label class="admin-label" for="cfgBrandNameAr">
+                <i class="fas fa-font text-gold"></i> اسم المتجر / البراند بالعربية: *
+              </label>
+              <input type="text" id="cfgBrandNameAr" class="admin-input" placeholder="يلوروز" required>
+              <span style="font-size: 11px; color: #888; display: block; margin-top: 4px;">يظهر في الترويسة العلوية، العنوان الرئيسي، والتذييل.</span>
+            </div>
+
+            <div class="admin-input-group">
+              <label class="admin-label" for="cfgBrandNameEn">
+                <i class="fas fa-italic text-gold"></i> اسم المتجر بالإنجليزية (English Brand Name): *
+              </label>
+              <input type="text" id="cfgBrandNameEn" class="admin-input" placeholder="YELLOW ROSE" required>
+              <span style="font-size: 11px; color: #888; display: block; margin-top: 4px;">يظهر بخط مذهب فاخر أسفل الاسم العربي.</span>
+            </div>
+          </div>
+
+          <div class="admin-grid-2col">
+            <div class="admin-input-group">
+              <label class="admin-label" for="cfgBrandSloganAr">
+                <i class="fas fa-quote-right text-gold"></i> الشعار اللفظي العربي (Arabic Slogan):
+              </label>
+              <input type="text" id="cfgBrandSloganAr" class="admin-input" placeholder="للورد والمناسبات">
+              <span style="font-size: 11px; color: #888; display: block; margin-top: 4px;">العبارة المكملة لاسم المتجر بالواجهة.</span>
+            </div>
+
+            <div class="admin-input-group">
+              <label class="admin-label" for="cfgBrandSloganEn">
+                <i class="fas fa-globe text-gold"></i> الشعار / السلوجان الإنجليزي (English Subtitle):
+              </label>
+              <input type="text" id="cfgBrandSloganEn" class="admin-input" placeholder="YELLOW ROSE • LUXURY FLORAL & EVENT DESIGN">
+              <span style="font-size: 11px; color: #888; display: block; margin-top: 4px;">الوصف الرسمي للنشاط المعروض أسفل الهيرو.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- بطاقة شريط الإعلانات الترويجي العلوي -->
+        <div class="admin-card" style="margin-bottom: 25px;">
+          <h3 class="admin-card-title">
+            <i class="fas fa-bullhorn text-gold"></i> شريط الإعلانات الترويجي العلوي (Announcement Bar)
+          </h3>
+
+          <div style="margin-bottom: 18px; display: flex; align-items: center; gap: 10px;">
+            <input type="checkbox" id="cfgAnnouncementEnabled" style="width: 18px; height: 18px; accent-color: var(--gold-primary); cursor: pointer;">
+            <label for="cfgAnnouncementEnabled" style="font-size: 14px; font-weight: 700; cursor: pointer; color: var(--text-main);">
+              تفعيل ظهور شريط الإعلانات الذهبي في أعلى الموقع
+            </label>
+          </div>
+
+          <div class="admin-input-group">
+            <label class="admin-label" for="cfgAnnouncementText">نص شريط الإعلانات:</label>
+            <input type="text" id="cfgAnnouncementText" class="admin-input" placeholder="✨ يلوروز | نصنع من كل مناسبة تحفة بصرية استثنائية تعكس ذوقكم الرفيع ✨">
+          </div>
+        </div>
+
+        <!-- أزرار حفظ وتطبيق هوية المتجر -->
+        <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+          <button type="button" id="saveBrandIdentityBtn" class="btn-card-album" style="padding: 14px 32px; font-size: 16px; font-weight: 800; background: var(--gold-gradient); color: #111; box-shadow: 0 4px 15px rgba(212,175,55,0.4);">
+            <i class="fas fa-check-circle"></i> حفظ وتحديث هوية المتجر والشعار فوراً
+          </button>
+          <a href="index.html" target="_blank" class="btn-topbar-link" style="padding: 14px 20px; font-size: 14px;">
+            <i class="fas fa-external-link-alt"></i> معاينة المتجر في نافذة جديدة
+          </a>
+        </div>
+      </section>
+
+
+    </main>
+
+  </div>
+
+  <!-- Minified Scripts -->
+  <script src="assets/dist/js/db.min.js"></script>
+  <script src="assets/dist/js/admin.min.js"></script>
+</body>
+</html>
