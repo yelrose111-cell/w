@@ -554,7 +554,6 @@ function resetAlbumForm() {
 // Setup Brand Identity & Logo Management (Dedicated Tab)
 async function setupBrandIdentitySettings() {
   const settings = await window.YellowRoseDB.getSiteSettings();
-  const config = window.YellowRoseDB.getCloudConfig();
 
   // Input elements
   const logoUrlInput = document.getElementById("cfgBrandLogoUrl");
