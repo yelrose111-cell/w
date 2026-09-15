@@ -276,8 +276,19 @@
               </div>
 
               <div class="admin-input-group">
-                <label class="admin-label" for="categoryIconInput">رمز الأيقونة (FontAwesome) *</label>
-                <input type="text" id="categoryIconInput" class="admin-input" placeholder="مثال: fa-seedling" required>
+                <label class="admin-label" for="categoryIconInput">رمز الأيقونة (اختياري / كبديل للصورة)</label>
+                <input type="text" id="categoryIconInput" class="admin-input" placeholder="مثال: fa-seedling">
+              </div>
+
+              <div class="admin-input-group">
+                <label class="admin-label" for="categoryImageFile">صورة القسم (ملف)</label>
+                <input type="file" id="categoryImageFile" class="admin-input" accept="image/*">
+                <small style="color: var(--text-light); margin-top: 5px; display: block;">ارفع صورة ليتم استخدامها كغلاف للقسم في الواجهة الرئيسية.</small>
+              </div>
+
+              <div class="admin-input-group">
+                <label class="admin-label" for="categoryImageUrl">أو رابط صورة القسم</label>
+                <input type="url" id="categoryImageUrl" class="admin-input" placeholder="https://example.com/image.jpg">
               </div>
 
               <div class="admin-input-group">

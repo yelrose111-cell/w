@@ -221,11 +221,13 @@ function setupFormHandlers() {
       const id = document.getElementById("categoryIdInput").value;
       const name = document.getElementById("categoryNameInput").value;
       const icon = document.getElementById("categoryIconInput").value;
+      const coverUrl = document.getElementById("categoryImageUrl").value;
       const order = document.getElementById("categoryOrderInput").value || 0;
       
       const categoryData = {
         name: name,
         icon: icon,
+        coverUrl: coverUrl,
         order: parseInt(order)
       };
       
@@ -241,6 +243,23 @@ function setupFormHandlers() {
       } else {
         showToast("خطأ أثناء الحفظ، يرجى المحاولة مرة أخرى.");
       }
+    });
+  }
+
+  // Handle Category Image File Upload
+  const categoryImageFile = document.getElementById("categoryImageFile");
+  if (categoryImageFile) {
+    categoryImageFile.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const dataUrl = ev.target.result;
+        const imageUrlInput = document.getElementById("categoryImageUrl");
+        if (imageUrlInput) imageUrlInput.value = dataUrl;
+        showToast("تم تحويل صورة القسم، سيتم حفظها عند ضغط 'حفظ القسم'");
+      };
+      reader.readAsDataURL(file);
     });
   }
 
@@ -810,7 +829,8 @@ window.editCategory = async (id) => {
   
   document.getElementById("categoryIdInput").value = cat.id;
   document.getElementById("categoryNameInput").value = cat.name;
-  document.getElementById("categoryIconInput").value = cat.icon;
+  document.getElementById("categoryIconInput").value = cat.icon || "";
+  document.getElementById("categoryImageUrl").value = cat.coverUrl || "";
   document.getElementById("categoryOrderInput").value = cat.order || 0;
   
   document.getElementById("categoryFormTitle").textContent = "تعديل القسم";

@@ -67,14 +67,22 @@ async function loadAndRenderProducts() {
   if (categoryTabs) {
     categoryTabs.innerHTML = `
       <button class="cat-btn active" data-category="all">
-        <i class="fas fa-th"></i>
+        <div class="cat-img-wrapper">
+          <i class="fas fa-th cat-fallback-icon"></i>
+        </div>
         <span>الكل</span>
       </button>
     `;
     cats.forEach(cat => {
+      const mediaHtml = cat.coverUrl 
+        ? `<img src="${cat.coverUrl}" alt="${cat.name}" class="cat-img" loading="lazy">` 
+        : `<i class="fas ${cat.icon || 'fa-tag'} cat-fallback-icon"></i>`;
+      
       categoryTabs.innerHTML += `
         <button class="cat-btn" data-category="${cat.id}">
-          <i class="fas ${cat.icon || 'fa-tag'}"></i>
+          <div class="cat-img-wrapper">
+            ${mediaHtml}
+          </div>
           <span>${cat.name}</span>
         </button>
       `;
