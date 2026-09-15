@@ -428,6 +428,23 @@ function setupFormHandlers() {
   }
 }
 
+// Reset Product Form
+function resetProductForm() {
+  const form = document.getElementById("albumForm");
+  if (form) form.reset();
+  editingAlbumId = null;
+  currentProductImages = [];
+  selectedCoverUrl = "";
+  
+  const grid = document.getElementById("uploadedImagesGrid");
+  if (grid) grid.innerHTML = "";
+  
+  const cancelBtn = document.getElementById("cancelEditBtn");
+  if (cancelBtn) cancelBtn.classList.add("hidden");
+  
+  const formTitle = document.getElementById("albumFormTitle");
+  if (formTitle) formTitle.innerHTML = '<i class="fas fa-plus-circle"></i> إضافة منتج جديد';
+}
 
 // Upload Single File to Cloudinary via Secure Signed Upload
 async function handleSingleFileUpload(file, currentIdx, totalCount) {

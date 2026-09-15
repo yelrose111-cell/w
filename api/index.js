@@ -356,7 +356,7 @@ app.post('/api/settings', authMiddleware, async (req, res) => {
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', dbConnected: isConnected });
+  res.json({ status: 'ok', dbConnected: mongoose.connection.readyState === 1 });
 });
 
 if (require.main === module) {
