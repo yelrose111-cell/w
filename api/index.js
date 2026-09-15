@@ -7,6 +7,9 @@ const crypto = require('crypto');
 require('dotenv').config();
 
 const Album = require('../models/Album');
+const Category = require('../models/Category');
+const Subcategory = require('../models/Subcategory');
+const Product = require('../models/Product');
 const Settings = require('../models/Settings');
 
 const app = express();
@@ -217,6 +220,98 @@ app.post('/api/albums', authMiddleware, async (req, res) => {
 app.delete('/api/albums/:id', authMiddleware, async (req, res) => {
   try {
     await Album.findOneAndDelete({ id: req.params.id });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ---------------- E-Commerce Endpoints ----------------
+
+// --- Categories ---
+app.get('/api/categories', async (req, res) => {
+  try {
+    const items = await Category.find().sort({ order: 1, createdAt: 1 }).lean();
+    res.json(items);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/api/categories', authMiddleware, async (req, res) => {
+  try {
+    const data = req.body;
+    if (!data.id) data.id = `cat_${Date.now()}`;
+    const saved = await Category.findOneAndUpdate({ id: data.id }, data, { new: true, upsert: true });
+    res.status(201).json({ success: true, category: saved });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete('/api/categories/:id', authMiddleware, async (req, res) => {
+  try {
+    await Category.findOneAndDelete({ id: req.params.id });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// --- Subcategories ---
+app.get('/api/subcategories', async (req, res) => {
+  try {
+    const items = await Subcategory.find().sort({ order: 1, createdAt: 1 }).lean();
+    res.json(items);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/api/subcategories', authMiddleware, async (req, res) => {
+  try {
+    const data = req.body;
+    if (!data.id) data.id = `subcat_${Date.now()}`;
+    const saved = await Subcategory.findOneAndUpdate({ id: data.id }, data, { new: true, upsert: true });
+    res.status(201).json({ success: true, subcategory: saved });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete('/api/subcategories/:id', authMiddleware, async (req, res) => {
+  try {
+    await Subcategory.findOneAndDelete({ id: req.params.id });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// --- Products ---
+app.get('/api/products', async (req, res) => {
+  try {
+    const items = await Product.find().sort({ createdAt: -1 }).lean();
+    res.json(items);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.post('/api/products', authMiddleware, async (req, res) => {
+  try {
+    const data = req.body;
+    if (!data.id) data.id = `prod_${Date.now()}`;
+    const saved = await Product.findOneAndUpdate({ id: data.id }, data, { new: true, upsert: true });
+    res.status(201).json({ success: true, product: saved });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.delete('/api/products/:id', authMiddleware, async (req, res) => {
+  try {
+    await Product.findOneAndDelete({ id: req.params.id });
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });

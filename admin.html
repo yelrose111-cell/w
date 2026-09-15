@@ -116,82 +116,86 @@
 
       <!-- شريط التبويبات -->
       <nav class="admin-tabs-nav" aria-label="تبويبات الإدارة">
-        <button class="admin-tab-btn active" data-tab="tabAlbumsList">
-          <i class="fas fa-list"></i> قائمة الألبومات
+        <button class="admin-tab-btn active" data-tab="tabProductsList">
+          <i class="fas fa-box"></i> قائمة المنتجات
         </button>
-        <button class="admin-tab-btn" data-tab="tabAlbumForm">
-          <i class="fas fa-plus-circle"></i> إضافة / تعديل ألبوم
+        <button class="admin-tab-btn" data-tab="tabProductForm">
+          <i class="fas fa-plus-circle"></i> إضافة / تعديل منتج
+        </button>
+        <button class="admin-tab-btn" data-tab="tabCategories">
+          <i class="fas fa-tags"></i> إدارة الأقسام
         </button>
         <button class="admin-tab-btn" data-tab="tabBrandIdentity">
-          <i class="fas fa-palette text-gold"></i> هوية المتجر والشعار
+          <i class="fas fa-palette text-gold"></i> إعدادات الهوية والموقع
         </button>
       </nav>
 
-      <!-- تبويب 1: قائمة الألبومات -->
-      <section class="admin-tab-pane active" id="tabAlbumsList">
+      <!-- تبويب 1: قائمة المنتجات -->
+      <section class="admin-tab-pane active" id="tabProductsList">
         <div class="admin-card">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-            <h3 class="admin-card-title" style="margin-bottom: 0; border: none; padding: 0;">الألبومات المسجلة بالمعرض</h3>
-            <button class="btn-card-album" onclick="document.querySelector('[data-tab=\'tabAlbumForm\']').click()" style="padding: 8px 16px;">
-              <i class="fas fa-plus"></i> إضافة ألبوم جديد
+            <h3 class="admin-card-title" style="margin-bottom: 0; border: none; padding: 0;">المنتجات المسجلة</h3>
+            <button class="btn-card-album" onclick="document.querySelector('[data-tab=\'tabProductForm\']').click()" style="padding: 8px 16px;">
+              <i class="fas fa-plus"></i> إضافة منتج جديد
             </button>
           </div>
 
-          <div class="admin-albums-list" id="adminAlbumsList">
+          <div class="admin-albums-list" id="adminProductsList">
             <!-- يتم توليد الصفوف ديناميكياً عبر admin.js -->
           </div>
         </div>
       </section>
 
-      <!-- تبويب 2: إضافة أو تعديل ألبوم -->
-      <section class="admin-tab-pane" id="tabAlbumForm">
+      <!-- تبويب 2: إضافة أو تعديل منتج -->
+      <section class="admin-tab-pane" id="tabProductForm">
         <div class="admin-card">
-          <h3 class="admin-card-title" id="albumFormTitle">إضافة صور للقسم</h3>
+          <h3 class="admin-card-title" id="productFormTitle">إضافة منتج جديد</h3>
 
-          <form id="albumForm">
-            <!-- مفتاح تفعيل وضع الألبوم -->
-            <div class="admin-input-group" style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px; padding: 15px; background: rgba(var(--gold-primary-rgb), 0.05); border-radius: var(--radius-md); border: 1px solid rgba(var(--gold-primary-rgb), 0.2);">
-              <input type="checkbox" id="enableAlbumModeCheck" style="width: 18px; height: 18px; accent-color: var(--gold-primary); cursor: pointer;">
-              <label for="enableAlbumModeCheck" style="font-size: 15px; font-weight: 700; cursor: pointer; color: var(--gold-dark);">
-                تفعيل وضع الألبوم (إنشاء ألبوم منفصل لهذه الصور بدلاً من إضافتها المباشرة للقسم)
-              </label>
-            </div>
-
-            <!-- حقل القسم دائماً ظاهر -->
+          <form id="productForm">
+            <!-- حقل القسم الرئيسي -->
             <div class="admin-input-group">
-              <label class="admin-label" for="albumCategorySelect">التصنيف / القسم *</label>
-              <select id="albumCategorySelect" class="admin-select" required>
-                <!-- خيارات الـ 12 قسماً يتم توليدها ديناميكياً -->
+              <label class="admin-label" for="productCategorySelect">التصنيف / القسم الرئيسي *</label>
+              <select id="productCategorySelect" class="admin-select" required>
+                <option value="">-- اختر القسم الرئيسي --</option>
               </select>
             </div>
 
-            <!-- الحقول الخاصة بالألبوم (مخفية افتراضياً) -->
-            <div id="albumModeFields" style="display: none; padding-top: 15px; border-top: 1px dashed var(--border-color); margin-top: 15px;">
-              <div class="admin-input-group">
-                <label class="admin-label" for="albumTitleInput">عنوان الألبوم / التنسيق *</label>
-                <input type="text" id="albumTitleInput" class="admin-input" placeholder="مثال: مسكة عروس ملكية توليب وكالا">
-              </div>
+            <div class="admin-input-group">
+              <label class="admin-label" for="productSubcategorySelect">القسم الفرعي (اختياري)</label>
+              <select id="productSubcategorySelect" class="admin-select">
+                <option value="">-- بدون قسم فرعي --</option>
+              </select>
+            </div>
 
-              <div class="admin-input-group">
-                <label class="admin-label" for="albumDescInput">وصف الألبوم ومكونات الورد والخامات</label>
-                <textarea id="albumDescInput" class="admin-textarea" rows="3" placeholder="اكتب تفاصيل الزهور، ألوان التنسيق، والخامات المصاحبة..."></textarea>
-              </div>
+            <div class="admin-input-group">
+              <label class="admin-label" for="productTitleInput">اسم المنتج *</label>
+              <input type="text" id="productTitleInput" class="admin-input" placeholder="مثال: مسكة عروس ملكية توليب وكالا" required>
+            </div>
 
-              <div class="admin-input-group" style="display: flex; align-items: center; gap: 10px; margin: 15px 0;">
-                <input type="checkbox" id="albumFeaturedCheck" style="width: 18px; height: 18px; accent-color: var(--gold-primary); cursor: pointer;">
-                <label for="albumFeaturedCheck" style="font-size: 14px; font-weight: 700; cursor: pointer; color: var(--text-main);">
-                  تمييز هذا الألبوم في الواجهة الرئيسية (Featured)
-                </label>
-              </div>
+            <div class="admin-input-group">
+              <label class="admin-label" for="productPriceInput">سعر المنتج (اختياري)</label>
+              <input type="text" id="productPriceInput" class="admin-input" placeholder="مثال: 350 ريال">
+            </div>
+
+            <div class="admin-input-group">
+              <label class="admin-label" for="productDescInput">وصف المنتج (التفاصيل والخامات) *</label>
+              <textarea id="productDescInput" class="admin-textarea" rows="4" placeholder="اكتب تفاصيل الزهور، ألوان التنسيق، والخامات المصاحبة..." required></textarea>
+            </div>
+
+            <div class="admin-input-group" style="display: flex; align-items: center; gap: 10px; margin: 15px 0;">
+              <input type="checkbox" id="productFeaturedCheck" style="width: 18px; height: 18px; accent-color: var(--gold-primary); cursor: pointer;">
+              <label for="productFeaturedCheck" style="font-size: 14px; font-weight: 700; cursor: pointer; color: var(--text-main);">
+                تمييز هذا المنتج في الواجهة الرئيسية (Featured)
+              </label>
             </div>
 
             <!-- منطقة رفع الصور السحابية Cloudinary Direct Upload -->
             <div class="admin-input-group" style="margin-top: 25px;">
               <label class="admin-label">
-                <i class="fas fa-cloud-upload-alt"></i> رفع صور الألبوم من الجهاز (Cloudinary Direct Upload):
+                <i class="fas fa-cloud-upload-alt"></i> رفع صور المنتج من الجهاز (Cloudinary Direct Upload):
               </label>
 
-              <label class="upload-dropzone" for="albumFilesInput">
+              <label class="upload-dropzone" for="productFilesInput">
                 <div class="upload-dropzone-icon">
                   <i class="fas fa-images"></i>
                 </div>
@@ -201,7 +205,7 @@
                 <p style="font-size: 13px; color: var(--text-muted);">
                   يدعم اختيار ملفات JPG, PNG, WEBP. سيتم رفعها مباشرة وحفظ روابطها السحابية.
                 </p>
-                <input type="file" id="albumFilesInput" multiple accept="image/*" style="display: none;">
+                <input type="file" id="productFilesInput" multiple accept="image/*" style="display: none;">
               </label>
 
               <!-- شريط تقدم الرفع المباشر -->
@@ -220,11 +224,11 @@
                 </button>
               </div>
 
-              <!-- استعراض ومعاينة الصور المرفوعة للألبوم -->
+              <!-- استعراض ومعاينة الصور المرفوعة للمنتج -->
               <div style="margin-top: 20px;">
                 <div style="display: flex; align-items: center; justify-content: space-between;">
                   <span style="font-size: 13px; font-weight: 700; color: var(--text-main);">
-                    صور الألبوم الحالية (اضغط على أيقونة التاج <i class="fas fa-crown text-gold"></i> لتعيينها كغلاف):
+                    صور المنتج الحالية (اضغط على أيقونة التاج <i class="fas fa-crown text-gold"></i> لتعيينها كصورة رئيسية):
                   </span>
                 </div>
                 <div class="preview-images-grid" id="uploadedImagesGrid">
@@ -235,8 +239,8 @@
 
             <!-- أزرار الإجراءات -->
             <div style="display: flex; gap: 12px; margin-top: 35px; border-top: 1px solid rgba(0,0,0,0.08); padding-top: 20px;">
-              <button type="submit" id="saveAlbumBtn" class="btn-card-album" style="padding: 12px 24px; font-size: 15px;">
-                <i class="fas fa-save"></i> حفظ الألبوم في المعرض
+              <button type="submit" id="saveProductBtn" class="btn-card-album" style="padding: 12px 24px; font-size: 15px;">
+                <i class="fas fa-save"></i> حفظ المنتج
               </button>
               <button type="button" id="cancelEditBtn" class="btn-topbar-link hidden" style="padding: 12px 20px; font-size: 14px;">
                 إلغاء التعديل
@@ -245,8 +249,56 @@
           </form>
         </div>
       </section>
+      <!-- تبويب 3: إدارة الأقسام -->
+      <section class="admin-tab-pane" id="tabCategories">
+        <div class="admin-card">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <h3 class="admin-card-title" style="margin-bottom: 0; border: none; padding: 0;">إدارة الأقسام</h3>
+            <button class="btn-card-album" onclick="document.getElementById('categoryFormContainer').style.display='block'" style="padding: 8px 16px;">
+              <i class="fas fa-plus"></i> إضافة قسم جديد
+            </button>
+          </div>
 
-      <!-- تبويب 3: هوية المتجر والشعار وتعديل الأسماء والسلوجان -->
+          <!-- قائمة الأقسام -->
+          <div class="admin-albums-list" id="adminCategoriesList" style="margin-bottom: 30px;">
+            <!-- يتم التوليد ديناميكيا -->
+          </div>
+
+          <!-- نموذج الإضافة/التعديل للقسم -->
+          <div id="categoryFormContainer" style="display: none; border-top: 1px dashed var(--border-color); padding-top: 20px;">
+            <h4 style="font-size: 16px; margin-bottom: 15px; color: var(--gold-dark);" id="categoryFormTitle">إضافة قسم جديد</h4>
+            <form id="categoryForm">
+              <input type="hidden" id="categoryIdInput">
+              
+              <div class="admin-input-group">
+                <label class="admin-label" for="categoryNameInput">اسم القسم *</label>
+                <input type="text" id="categoryNameInput" class="admin-input" placeholder="مثال: باقات ورد" required>
+              </div>
+
+              <div class="admin-input-group">
+                <label class="admin-label" for="categoryIconInput">رمز الأيقونة (FontAwesome) *</label>
+                <input type="text" id="categoryIconInput" class="admin-input" placeholder="مثال: fa-seedling" required>
+              </div>
+
+              <div class="admin-input-group">
+                <label class="admin-label" for="categoryOrderInput">الترتيب</label>
+                <input type="number" id="categoryOrderInput" class="admin-input" value="0">
+              </div>
+
+              <div style="display: flex; gap: 12px; margin-top: 15px;">
+                <button type="submit" class="btn-card-album" style="padding: 10px 20px; font-size: 14px;">
+                  <i class="fas fa-save"></i> حفظ القسم
+                </button>
+                <button type="button" onclick="document.getElementById('categoryFormContainer').style.display='none'; document.getElementById('categoryForm').reset(); document.getElementById('categoryIdInput').value='';" class="btn-topbar-link" style="padding: 10px 20px; font-size: 14px;">
+                  إلغاء
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- تبويب 4: هوية المتجر والشعار وتعديل الأسماء والسلوجان -->
       <section class="admin-tab-pane" id="tabBrandIdentity">
         <!-- بطاقة إدارة الشعار الرسمي والرفع -->
         <div class="admin-card" style="margin-bottom: 25px;">

@@ -5,7 +5,7 @@
  */
 
 let currentEditingId = null;
-let currentAlbumImages = [];
+let currentProductImages = [];
 let selectedCoverUrl = "";
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupTabNavigation();
   setupFormHandlers();
   await setupBrandIdentitySettings();
-  await loadDashboardStatsAndAlbums();
+  await loadDashboardStatsAndProducts();
   checkApiStatus();
 });
 
@@ -66,7 +66,7 @@ function initAdminAuth() {
       if (success) {
         loginOverlay.style.display = "none";
         dashboardContent.style.display = "block";
-        loadDashboardStatsAndAlbums();
+        loadDashboardStatsAndProducts();
       } else {
         if (loginError) {
           loginError.textContent = "رمز الدخول غير صحيح، يرجى المحاولة مرة أخرى.";
@@ -105,12 +105,17 @@ function setupTabNavigation() {
 }
 
 // Populate Category Dropdown
-function populateCategorySelect() {
-  const select = document.getElementById("albumCategorySelect");
+async function populateCategorySelect() {
+  const select = document.getElementById("productCategorySelect");
   if (!select) return;
-  select.innerHTML = "";
+  
+  const categories = await window.YellowRoseDB.getCategories();
+  // Update global cache
+  window.CATEGORIES = {};
+  categories.forEach(c => window.CATEGORIES[c.id] = c);
 
-  Object.values(window.CATEGORIES).forEach(cat => {
+  select.innerHTML = '<option value="">-- اختر القسم الرئيسي --</option>';
+  categories.forEach(cat => {
     const opt = document.createElement("option");
     opt.value = cat.id;
     opt.textContent = cat.name;
@@ -119,10 +124,10 @@ function populateCategorySelect() {
 }
 
 // Load Dashboard Stats and Albums List
-async function loadDashboardStatsAndAlbums() {
-  const albums = await window.YellowRoseDB.getAlbums(true);
+async function loadDashboardStatsAndProducts() {
+  const albums = await window.YellowRoseDB.getProducts(true);
 
-  const statAlbumsCount = document.getElementById("statAlbumsCount");
+  const statProductsCount = document.getElementById("statProductsCount");
   const statPhotosCount = document.getElementById("statPhotosCount");
   const statCategoriesCount = document.getElementById("statCategoriesCount");
 
@@ -134,16 +139,17 @@ async function loadDashboardStatsAndAlbums() {
     if (a.category) activeCats.add(a.category);
   });
 
-  if (statAlbumsCount) statAlbumsCount.textContent = albums.length;
+  if (statProductsCount) statProductsCount.textContent = albums.length;
   if (statPhotosCount) statPhotosCount.textContent = totalPhotos;
   if (statCategoriesCount) statCategoriesCount.textContent = activeCats.size;
 
-  renderAdminAlbumsList(albums);
+  renderAdminProductsList(albums);
+  await loadCategoriesList();
 }
 
 // Render Admin Albums List
-function renderAdminAlbumsList(albums) {
-  const listContainer = document.getElementById("adminAlbumsList");
+function renderAdminProductsList(albums) {
+  const listContainer = document.getElementById("adminProductsList");
   if (!listContainer) return;
   listContainer.innerHTML = "";
 
@@ -182,13 +188,13 @@ function renderAdminAlbumsList(albums) {
         </div>
       </div>
       <div class="row-actions">
-        <a href="album.html?id=${album.id}" target="_blank" class="btn-action-view" title="معاينة كزائر">
+        <a href="catalog.html?id=${album.id}" target="_blank" class="btn-action-view" title="معاينة كزائر">
           <i class="fas fa-eye"></i> معاينة
         </a>
-        <button class="btn-action-edit" onclick="editAlbum('${album.id}')" title="تعديل الألبوم">
+        <button class="btn-action-edit" onclick="editProduct('${album.id}')" title="تعديل الألبوم">
           <i class="fas fa-edit"></i> تعديل
         </button>
-        <button class="btn-action-delete" onclick="deleteAlbum('${album.id}')" title="حذف الألبوم">
+        <button class="btn-action-delete" onclick="deleteProduct('${album.id}')" title="حذف الألبوم">
           <i class="fas fa-trash-alt"></i> حذف
         </button>
       </div>
@@ -198,23 +204,42 @@ function renderAdminAlbumsList(albums) {
   });
 }
 
+
 // Setup Form & Upload Handlers
 function setupFormHandlers() {
-  const form = document.getElementById("albumForm");
-  const fileInput = document.getElementById("albumFilesInput");
+  const form = document.getElementById("productForm");
+  const fileInput = document.getElementById("productFilesInput");
   const urlInput = document.getElementById("directImageUrlInput");
   const addUrlBtn = document.getElementById("addDirectUrlBtn");
   const cancelBtn = document.getElementById("cancelEditBtn");
-  const albumModeCheck = document.getElementById("enableAlbumModeCheck");
-  const albumModeFields = document.getElementById("albumModeFields");
-
-  // Toggle Album Mode
-  if (albumModeCheck && albumModeFields) {
-    albumModeCheck.addEventListener("change", (e) => {
-      if (e.target.checked) {
-        albumModeFields.style.display = "block";
+  
+  // Category Form
+  const categoryForm = document.getElementById("categoryForm");
+  if (categoryForm) {
+    categoryForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = document.getElementById("categoryIdInput").value;
+      const name = document.getElementById("categoryNameInput").value;
+      const icon = document.getElementById("categoryIconInput").value;
+      const order = document.getElementById("categoryOrderInput").value || 0;
+      
+      const categoryData = {
+        name: name,
+        icon: icon,
+        order: parseInt(order)
+      };
+      
+      if (id) categoryData.id = id;
+      
+      const success = await window.YellowRoseDB.saveCategory(categoryData);
+      if (success) {
+        showToast("تم حفظ القسم بنجاح!");
+        document.getElementById("categoryFormContainer").style.display = "none";
+        categoryForm.reset();
+        await loadCategoriesList();
+        populateCategorySelect(); // Update dropdown
       } else {
-        albumModeFields.style.display = "none";
+        showToast("خطأ أثناء الحفظ، يرجى المحاولة مرة أخرى.");
       }
     });
   }
@@ -244,12 +269,11 @@ function setupFormHandlers() {
     addUrlBtn.addEventListener("click", () => {
       const url = urlInput.value.trim();
       if (url) {
-        const idx = currentAlbumImages.length + 1;
-        const albumTitle = document.getElementById("albumTitleInput").value.trim() || "تنسيق";
-        currentAlbumImages.push({
+        const title = document.getElementById("productTitleInput").value.trim() || "منتج";
+        currentProductImages.push({
           url: url,
-          name: `${albumTitle} (صورة #${idx})`,
-          code: `#YR-${Date.now().toString().slice(-4)}-${idx < 10 ? '0' + idx : idx}`
+          name: `${title} (لقطة 직접ية)`,
+          code: `#YR-PR-${currentProductImages.length + 1}`
         });
         if (!selectedCoverUrl) selectedCoverUrl = url;
         urlInput.value = "";
@@ -258,95 +282,63 @@ function setupFormHandlers() {
     });
   }
 
-  // Cancel Edit
-  if (cancelBtn) {
-    cancelBtn.addEventListener("click", () => {
-      resetAlbumForm();
-      document.querySelector('[data-tab="tabAlbumsList"]').click();
-    });
-  }
-
-  // Form Submit
+  // Submit Product Form
   if (form) {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const category = document.getElementById("albumCategorySelect").value;
-      const isAlbumMode = document.getElementById("enableAlbumModeCheck") ? document.getElementById("enableAlbumModeCheck").checked : true;
-      const title = document.getElementById("albumTitleInput").value.trim();
-      const description = document.getElementById("albumDescInput").value.trim();
-      const featured = document.getElementById("albumFeaturedCheck").checked;
-
-      if (isAlbumMode && !title) {
-        alert("يرجى إدخال عنوان الألبوم.");
+      if (currentProductImages.length === 0) {
+        showToast("يرجى إضافة صورة واحدة على الأقل!");
         return;
       }
 
-      if (currentAlbumImages.length === 0) {
-        alert("يرجى رفع أو إضافة صورة واحدة على الأقل.");
-        return;
-      }
+      const catSelect = document.getElementById("productCategorySelect");
+      const titleInput = document.getElementById("productTitleInput");
+      const descInput = document.getElementById("productDescInput");
+      const priceInput = document.getElementById("productPriceInput");
+      const featuredCheck = document.getElementById("productFeaturedCheck");
 
-      const submitBtn = document.getElementById("saveAlbumBtn");
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+      const productData = {
+        id: currentEditingId || `pr_${Date.now()}`,
+        categoryId: catSelect.value,
+        title: titleInput.value.trim(),
+        description: descInput ? descInput.value.trim() : "",
+        price: priceInput ? priceInput.value.trim() : "",
+        featured: featuredCheck ? featuredCheck.checked : false,
+        coverUrl: selectedCoverUrl || currentProductImages[0].url,
+        images: currentProductImages,
+        createdAt: new Date().toISOString()
+      };
 
-      try {
-        if (isAlbumMode || currentEditingId) {
-          // الحفظ كألبوم منفصل
-          const cover = selectedCoverUrl || (currentAlbumImages[0] ? currentAlbumImages[0].url : "");
-          const albumData = {
-            id: currentEditingId || `alb_yr_${Date.now()}`,
-            title: title || "ألبوم غير مسمى",
-            category,
-            categoryName: window.CATEGORIES[category]?.name || "باقات ورد",
-            description,
-            coverUrl: cover,
-            images: currentAlbumImages,
-            featured,
-            createdAt: new Date().toISOString().split("T")[0]
-          };
-          await window.YellowRoseDB.saveAlbum(albumData);
-          showToast(currentEditingId ? "تم تحديث الألبوم بنجاح!" : "تمت إضافة الألبوم بنجاح!");
-        } else {
-          // الحفظ المباشر للقسم
-          const directId = `direct_${category}`;
-          let directAlbum = await window.YellowRoseDB.getAlbumById(directId);
-          if (!directAlbum) {
-            directAlbum = {
-              id: directId,
-              title: `صور مباشرة - ${window.CATEGORIES[category]?.name || "القسم"}`,
-              category,
-              categoryName: window.CATEGORIES[category]?.name || "باقات ورد",
-              description: "صور مضافة مباشرة للقسم",
-              coverUrl: currentAlbumImages[0] ? currentAlbumImages[0].url : "",
-              images: [],
-              featured: false,
-              createdAt: new Date().toISOString().split("T")[0],
-              isDirectMode: true
-            };
-          }
-          directAlbum.images.push(...currentAlbumImages);
-          if (!directAlbum.coverUrl && directAlbum.images.length > 0) {
-            directAlbum.coverUrl = directAlbum.images[0].url;
-          }
-          await window.YellowRoseDB.saveAlbum(directAlbum);
-          showToast("تمت إضافة الصور للقسم بنجاح!");
-        }
+      const btn = document.getElementById("saveProductBtn");
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+      btn.disabled = true;
 
-        resetAlbumForm();
-        await loadDashboardStatsAndAlbums();
-        document.querySelector('[data-tab="tabAlbumsList"]').click();
-      } catch (err) {
-        alert("حدث خطأ أثناء الحفظ.");
-        console.error(err);
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-save"></i> حفظ الألبوم في المعرض';
+      const success = await window.YellowRoseDB.saveProduct(productData);
+
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+
+      if (success) {
+        showToast("تم حفظ المنتج بنجاح!");
+        resetProductForm();
+        loadDashboardStatsAndProducts();
+        document.querySelector('[data-tab="tabProductsList"]').click();
+      } else {
+        showToast("خطأ أثناء الحفظ، يرجى المحاولة مرة أخرى.");
       }
     });
   }
+
+  if (cancelBtn) {
+    cancelBtn.addEventListener("click", () => {
+      resetProductForm();
+      document.querySelector('[data-tab="tabProductsList"]').click();
+    });
+  }
 }
+
 
 // Upload Single File to Cloudinary via Secure Signed Upload
 async function handleSingleFileUpload(file, currentIdx, totalCount) {
@@ -360,9 +352,9 @@ async function handleSingleFileUpload(file, currentIdx, totalCount) {
     progressBar.style.width = `${Math.round((currentIdx / totalCount) * 100)}%`;
   }
 
-  const isAlbumMode = document.getElementById("enableAlbumModeCheck") ? document.getElementById("enableAlbumModeCheck").checked : true;
-  const albumTitle = isAlbumMode ? document.getElementById("albumTitleInput").value.trim() : document.getElementById("albumCategorySelect").options[document.getElementById("albumCategorySelect").selectedIndex].text;
-  const numIdx = currentAlbumImages.length + 1;
+  const isAlbumMode = document.getElementById("enableProductModeCheck") ? document.getElementById("enableProductModeCheck").checked : true;
+  const albumTitle = isAlbumMode ? document.getElementById("productTitleInput").value.trim() : document.getElementById("productCategorySelect").options[document.getElementById("productCategorySelect").selectedIndex].text;
+  const numIdx = currentProductImages.length + 1;
   const photoName = `${albumTitle || "تنسيق"} (صورة #${numIdx})`;
   const photoCode = `#YR-${Date.now().toString().slice(-4)}-${numIdx < 10 ? '0' + numIdx : numIdx}`;
 
@@ -386,7 +378,7 @@ async function handleSingleFileUpload(file, currentIdx, totalCount) {
 
     if (response.ok) {
       const data = await response.json();
-      currentAlbumImages.push({
+      currentProductImages.push({
         url: data.secure_url,
         thumbnailUrl: data.secure_url, // For now they are same, Cloudinary supports transformations
         publicId: data.public_id,
@@ -412,12 +404,12 @@ function renderImagesPreview() {
   if (!previewBox) return;
   previewBox.innerHTML = "";
 
-  if (currentAlbumImages.length === 0) {
+  if (currentProductImages.length === 0) {
     previewBox.innerHTML = '<p class="text-muted" style="font-size: 13px; grid-column: 1 / -1;">لم يتم رفع أي صور بعد.</p>';
     return;
   }
 
-  currentAlbumImages.forEach((photo, idx) => {
+  currentProductImages.forEach((photo, idx) => {
     const photoUrl = typeof photo === "string" ? photo : photo.url;
     const photoName = typeof photo === "object" && photo.name ? photo.name : `صورة #${idx + 1}`;
     const photoCode = typeof photo === "object" && photo.code ? photo.code : `#YR-0${idx + 1}`;
@@ -453,47 +445,47 @@ function renderImagesPreview() {
 }
 
 window.updatePhotoName = function(idx, val) {
-  if (currentAlbumImages[idx]) {
-    if (typeof currentAlbumImages[idx] === "string") {
-      currentAlbumImages[idx] = { url: currentAlbumImages[idx], name: val, code: `#YR-0${idx + 1}` };
+  if (currentProductImages[idx]) {
+    if (typeof currentProductImages[idx] === "string") {
+      currentProductImages[idx] = { url: currentProductImages[idx], name: val, code: `#YR-0${idx + 1}` };
     } else {
-      currentAlbumImages[idx].name = val;
+      currentProductImages[idx].name = val;
     }
   }
 };
 
 window.updatePhotoCode = function(idx, val) {
-  if (currentAlbumImages[idx]) {
-    if (typeof currentAlbumImages[idx] === "string") {
-      currentAlbumImages[idx] = { url: currentAlbumImages[idx], name: `صورة #${idx + 1}`, code: val };
+  if (currentProductImages[idx]) {
+    if (typeof currentProductImages[idx] === "string") {
+      currentProductImages[idx] = { url: currentProductImages[idx], name: `صورة #${idx + 1}`, code: val };
     } else {
-      currentAlbumImages[idx].code = val;
+      currentProductImages[idx].code = val;
     }
   }
 };
 
 window.setAsCover = function(index) {
-  const photo = currentAlbumImages[index];
+  const photo = currentProductImages[index];
   selectedCoverUrl = typeof photo === "string" ? photo : photo.url;
   renderImagesPreview();
 };
 
 window.removeImage = function(index) {
-  const removed = currentAlbumImages.splice(index, 1)[0];
+  const removed = currentProductImages.splice(index, 1)[0];
   const removedUrl = typeof removed === "string" ? removed : removed.url;
   if (selectedCoverUrl === removedUrl) {
-    selectedCoverUrl = currentAlbumImages[0] ? (currentAlbumImages[0].url || currentAlbumImages[0]) : "";
+    selectedCoverUrl = currentProductImages[0] ? (currentProductImages[0].url || currentProductImages[0]) : "";
   }
   renderImagesPreview();
 };
 
 // Edit Album Action
 window.editAlbum = async function(id) {
-  const album = await window.YellowRoseDB.getAlbumById(id);
+  const album = await window.YellowRoseDB.getProductById(id);
   if (!album) return;
 
   currentEditingId = album.id;
-  currentAlbumImages = (album.images || [album.coverUrl]).map((img, i) => {
+  currentProductImages = (album.images || [album.coverUrl]).map((img, i) => {
     if (typeof img === "string") {
       return {
         url: img,
@@ -503,46 +495,46 @@ window.editAlbum = async function(id) {
     }
     return { ...img };
   });
-  selectedCoverUrl = album.coverUrl || (currentAlbumImages[0] ? currentAlbumImages[0].url : "");
+  selectedCoverUrl = album.coverUrl || (currentProductImages[0] ? currentProductImages[0].url : "");
 
-  document.getElementById("albumFormTitle").textContent = album.isDirectMode ? `إدارة الصور المباشرة: ${window.CATEGORIES[album.category]?.name || album.category}` : `تعديل ألبوم: ${album.title}`;
-  document.getElementById("albumTitleInput").value = album.title;
-  document.getElementById("albumCategorySelect").value = album.category;
-  document.getElementById("albumDescInput").value = album.description || "";
-  document.getElementById("albumFeaturedCheck").checked = !!album.featured;
-  document.getElementById("saveAlbumBtn").innerHTML = '<i class="fas fa-save"></i> حفظ التحديثات';
+  document.getElementById("productFormTitle").textContent = album.isDirectMode ? `إدارة الصور المباشرة: ${window.CATEGORIES[album.category]?.name || album.category}` : `تعديل ألبوم: ${album.title}`;
+  document.getElementById("productTitleInput").value = album.title;
+  document.getElementById("productCategorySelect").value = album.category;
+  document.getElementById("productDescInput").value = album.description || "";
+  document.getElementById("productFeaturedCheck").checked = !!album.featured;
+  document.getElementById("saveProductBtn").innerHTML = '<i class="fas fa-save"></i> حفظ التحديثات';
   document.getElementById("cancelEditBtn").classList.remove("hidden");
 
-  const albumModeCheck = document.getElementById("enableAlbumModeCheck");
+  const albumModeCheck = document.getElementById("enableProductModeCheck");
   if (albumModeCheck) {
     albumModeCheck.checked = !album.isDirectMode;
     albumModeCheck.dispatchEvent(new Event("change"));
   }
 
   renderImagesPreview();
-  document.querySelector('[data-tab="tabAlbumForm"]').click();
+  document.querySelector('[data-tab="tabProductForm"]').click();
 };
 
 // Delete Album Action
 window.deleteAlbum = async function(id) {
   if (confirm("هل أنت متأكد من رغبتك في حذف هذا الألبوم نهائياً من المعرض؟")) {
-    await window.YellowRoseDB.deleteAlbum(id);
+    await window.YellowRoseDB.deleteProduct(id);
     showToast("تم حذف الألبوم بنجاح.");
-    await loadDashboardStatsAndAlbums();
+    await loadDashboardStatsAndProducts();
   }
 };
 
 function resetAlbumForm() {
   currentEditingId = null;
-  currentAlbumImages = [];
+  currentProductImages = [];
   selectedCoverUrl = "";
 
-  document.getElementById("albumForm").reset();
-  document.getElementById("albumFormTitle").textContent = "إضافة صور للقسم";
-  document.getElementById("saveAlbumBtn").innerHTML = '<i class="fas fa-save"></i> حفظ في المعرض';
+  document.getElementById("productForm").reset();
+  document.getElementById("productFormTitle").textContent = "إضافة صور للقسم";
+  document.getElementById("saveProductBtn").innerHTML = '<i class="fas fa-save"></i> حفظ في المعرض';
   document.getElementById("cancelEditBtn").classList.add("hidden");
 
-  const albumModeCheck = document.getElementById("enableAlbumModeCheck");
+  const albumModeCheck = document.getElementById("enableProductModeCheck");
   if (albumModeCheck) {
     albumModeCheck.checked = false;
     albumModeCheck.dispatchEvent(new Event("change"));
@@ -778,3 +770,59 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+
+async function loadCategoriesList() {
+  const categories = await window.YellowRoseDB.getCategories();
+  const listContainer = document.getElementById("adminCategoriesList");
+  if (!listContainer) return;
+  
+  if (categories.length === 0) {
+    listContainer.innerHTML = '<div style="text-align:center; padding: 20px;">لا توجد أقسام حاليا</div>';
+    return;
+  }
+  
+  let html = '';
+  categories.forEach(cat => {
+    html += `
+      <div class="admin-album-row" style="align-items: center; padding: 15px;">
+        <div style="font-size: 24px; color: var(--gold-primary); margin-left: 15px;"><i class="fas ${cat.icon}"></i></div>
+        <div style="flex: 1;">
+          <h4 style="margin: 0; font-size: 16px;">${cat.name}</h4>
+          <span style="font-size: 12px; color: #888;">ترتيب: ${cat.order || 0}</span>
+        </div>
+        <div class="row-actions">
+          <button class="btn-action-edit" onclick="editCategory('${cat.id}')"><i class="fas fa-edit"></i> تعديل</button>
+          <button class="btn-action-delete" onclick="deleteCategory('${cat.id}')"><i class="fas fa-trash-alt"></i> حذف</button>
+        </div>
+      </div>
+    `;
+  });
+  listContainer.innerHTML = html;
+}
+
+window.editCategory = async (id) => {
+  const categories = await window.YellowRoseDB.getCategories();
+  const cat = categories.find(c => c.id === id);
+  if (!cat) return;
+  
+  document.getElementById("categoryIdInput").value = cat.id;
+  document.getElementById("categoryNameInput").value = cat.name;
+  document.getElementById("categoryIconInput").value = cat.icon;
+  document.getElementById("categoryOrderInput").value = cat.order || 0;
+  
+  document.getElementById("categoryFormTitle").textContent = "تعديل القسم";
+  document.getElementById("categoryFormContainer").style.display = "block";
+};
+
+window.deleteCategory = async (id) => {
+  if (confirm("هل أنت متأكد من حذف هذا القسم؟ لا يمكن التراجع!")) {
+    const success = await window.YellowRoseDB.deleteCategory(id);
+    if (success) {
+      showToast("تم حذف القسم");
+      await loadCategoriesList();
+      populateCategorySelect();
+    } else {
+      showToast("حدث خطأ أثناء الحذف");
+    }
+  }
+};

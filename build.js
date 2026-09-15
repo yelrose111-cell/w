@@ -6,7 +6,7 @@ const CleanCSS = require('clean-css');
 const jsFiles = [
   'assets/js/db.js',
   'assets/js/main.js',
-  'assets/js/album.js',
+  'assets/js/catalog.js',
   'assets/js/admin.js'
 ];
 

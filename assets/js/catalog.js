@@ -1,5 +1,5 @@
 /**
- * يلوروز | YELLOW ROSE - Album Details Page Logic (album.html)
+ * يلوروز | YELLOW ROSE - Album Details Page Logic (product.html)
  * Loads selected album photos, full-resolution responsive grid, photo names & codes, lightbox & WhatsApp booking
  */
 
@@ -39,17 +39,17 @@ function setupNavigation() {
 // Load Album by ID or Category
 async function loadAlbumDetails() {
   const params = new URLSearchParams(window.location.search);
-  const albumId = params.get("id");
+  const productId = params.get("id");
   const categoryId = params.get("category");
 
-  if (!albumId && !categoryId) {
+  if (!productId && !categoryId) {
     showNotFound("لم يتم تحديد معرّف الألبوم أو القسم المطلوب.");
     return;
   }
 
   try {
-    if (albumId) {
-      currentAlbum = await window.YellowRoseDB.getAlbumById(albumId);
+    if (productId) {
+      currentAlbum = await window.YellowRoseDB.getProductById(productId);
       if (!currentAlbum) {
         showNotFound("عذراً، لم نتمكن من العثور على الألبوم المطلوب. ربما تم نقله أو حذفه.");
         return;
@@ -105,50 +105,50 @@ function renderAlbumDetails(album) {
   container.style.display = "block";
 
   // Update Page Title
-  document.title = `${album.title} | أعمال يلوروز YELLOW ROSE`;
+  document.title = `${product.title} | أعمال يلوروز YELLOW ROSE`;
 
   // Breadcrumbs
   const breadcrumbCat = document.getElementById("breadcrumbCategory");
   const breadcrumbTitle = document.getElementById("breadcrumbTitle");
-  const catInfo = window.CATEGORIES[album.category] || { name: album.categoryName || "الألبوم", icon: "fa-tag" };
+  const catInfo = window.CATEGORIES[product.category] || { name: product.categoryName || "الألبوم", icon: "fa-tag" };
   
   if (breadcrumbCat) {
     breadcrumbCat.textContent = catInfo.name;
     breadcrumbCat.href = `index.html#gallery`;
   }
   if (breadcrumbTitle) {
-    breadcrumbTitle.textContent = album.title;
+    breadcrumbTitle.textContent = product.title;
   }
 
   // Header Elements
-  const catBadge = document.getElementById("albumCategoryBadge");
-  const titleEl = document.getElementById("albumTitle");
-  const descEl = document.getElementById("albumDescription");
-  const dateEl = document.getElementById("albumDate");
+  const catBadge = document.getElementById("productCategoryBadge");
+  const titleEl = document.getElementById("productTitle");
+  const descEl = document.getElementById("productDescription");
+  const dateEl = document.getElementById("productDate");
   const countEl = document.getElementById("albumPhotoCount");
-  const images = Array.isArray(album.images) && album.images.length > 0 ? album.images : [album.coverUrl];
+  const images = Array.isArray(product.images) && product.images.length > 0 ? product.images : [product.coverUrl];
 
   if (catBadge) {
     catBadge.innerHTML = `<i class="fas ${catInfo.icon || 'fa-gem'}"></i> ${catInfo.name}`;
   }
-  if (titleEl) titleEl.textContent = album.title;
-  if (descEl) descEl.textContent = album.description || "تنسيق متقن يعكس فخامة وأناقة مناسباتكم الخاصة.";
-  if (dateEl) dateEl.textContent = album.createdAt || "2026";
+  if (titleEl) titleEl.textContent = product.title;
+  if (descEl) descEl.textContent = product.description || "تنسيق متقن يعكس فخامة وأناقة مناسباتكم الخاصة.";
+  if (dateEl) dateEl.textContent = product.createdAt || "2026";
   if (countEl) countEl.textContent = `${images.length} ${images.length > 10 ? 'منتج' : 'منتجات'}`;
 
   // Render Sub-Albums
   const subAlbumsSection = document.getElementById("subAlbumsSection");
   const subAlbumsGrid = document.getElementById("subAlbumsGrid");
   
-  if (album.isCategoryView && album.subAlbums && album.subAlbums.length > 0) {
+  if (product.isCategoryView && product.subAlbums && product.subAlbums.length > 0) {
     if (subAlbumsSection) subAlbumsSection.style.display = "block";
     if (subAlbumsGrid) {
       subAlbumsGrid.innerHTML = "";
-      album.subAlbums.forEach(sub => {
+      product.subAlbums.forEach(sub => {
         const cover = sub.coverUrl || (sub.images && (sub.images[0]?.thumbnailUrl || sub.images[0]?.url || sub.images[0])) || "assets/logo.png";
         const imgCount = Array.isArray(sub.images) ? sub.images.length : 1;
         const card = document.createElement("a");
-        card.href = `album.html?id=${sub.id}`;
+        card.href = `product.html?id=${sub.id}`;
         card.className = "gallery-card";
         card.innerHTML = `
           <div class="gallery-img-wrapper">
@@ -177,7 +177,7 @@ function renderAlbumDetails(album) {
   if (!grid) return;
   grid.innerHTML = "";
 
-  if (images.length === 0 && album.isCategoryView) {
+  if (images.length === 0 && product.isCategoryView) {
     if (directImagesSection) directImagesSection.style.display = "none";
     return;
   }
@@ -187,7 +187,7 @@ function renderAlbumDetails(album) {
   images.forEach((photo, index) => {
     const photoUrl = typeof photo === "string" ? photo : photo.url;
     const photoThumbUrl = typeof photo === "object" && photo.thumbnailUrl ? photo.thumbnailUrl : photoUrl;
-    const photoName = typeof photo === "object" && photo.name ? photo.name : `${album.title} (صورة #${index + 1})`;
+    const photoName = typeof photo === "object" && photo.name ? photo.name : `${product.title} (صورة #${index + 1})`;
     const photoCode = typeof photo === "object" && photo.code ? photo.code : `#YR-0${index + 1}`;
 
     const itemCard = document.createElement("div");

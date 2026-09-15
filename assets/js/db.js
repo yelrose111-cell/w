@@ -6,21 +6,8 @@
 
 const WHATSAPP_PHONE = "966582739397";
 
-// 12 Specialized Floral & Event Categories
-const CATEGORIES = {
-  bouquets: { id: "bouquets", name: "باقات ورد", icon: "fa-seedling" },
-  vases: { id: "vases", name: "فازات وتنسيقات طاولة", icon: "fa-wine-bottle" },
-  bridal: { id: "bridal", name: "مسكات عرائس", icon: "fa-female" },
-  entrance_tables: { id: "entrance_tables", name: "طاولات مداخل واستقبال", icon: "fa-archway" },
-  balloon_arch: { id: "balloon_arch", name: "أقواس وديكور بالونات", icon: "fa-circle-notch" },
-  marriage_contracts: { id: "marriage_contracts", name: "عقود زواج وقران", icon: "fa-file-signature" },
-  flower_corners: { id: "flower_corners", name: "ركنيات ورد وزوايا تصوير", icon: "fa-vector-square" },
-  coffee_corners: { id: "coffee_corners", name: "ركن قهوة وضيافة", icon: "fa-coffee" },
-  engagement: { id: "engagement", name: "شبكات وهدايا خطوبة", icon: "fa-ring" },
-  car_decor: { id: "car_decor", name: "تشريع وزينة سيارات", icon: "fa-car-side" },
-  special_events: { id: "special_events", name: "احتفالات خاصة وتخرج", icon: "fa-glass-cheers" },
-  other: { id: "other", name: "تنسيقات حصرية وأخرى", icon: "fa-ellipsis-h" }
-};
+// Legacy CATEGORIES fallback - replaced by API call below.
+const DEFAULT_CATEGORIES = {};
 
 class YellowRoseDBManager {
   constructor() {
@@ -123,94 +110,86 @@ class YellowRoseDBManager {
     });
   }
 
-  // --- Albums Management ---
+  // --- E-Commerce Management ---
 
-  normalizeAlbum(album) {
-    if (!album) return null;
-    const catCode = (album.category || "AL").substring(0, 2).toUpperCase();
-    const numPart = String(album.id || "").replace(/\D/g, "").slice(-2) || "01";
-
-    let images = [];
-    if (Array.isArray(album.images) && album.images.length > 0) {
-      images = album.images.map((img, idx) => {
-        if (typeof img === "string") {
-          return {
-            url: img,
-            name: `${album.title} (لقطة #${idx + 1})`,
-            code: `#YR-${catCode}${numPart}-${idx + 1 < 10 ? '0' + (idx + 1) : idx + 1}`
-          };
-        }
-        return {
-          url: img.url || album.coverUrl,
-          thumbnailUrl: img.thumbnailUrl || img.url,
-          publicId: img.publicId,
-          name: img.name || `${album.title} (لقطة #${idx + 1})`,
-          code: img.code || `#YR-${catCode}${numPart}-${idx + 1 < 10 ? '0' + (idx + 1) : idx + 1}`
-        };
-      });
-    } else {
-      images = [
-        {
-          url: album.coverUrl || "assets/logo.png",
-          name: album.title,
-          code: `#YR-${catCode}${numPart}-01`
-        }
-      ];
-    }
-
-    return {
-      ...album,
-      coverUrl: album.coverUrl || images[0].url,
-      images: images
-    };
-  }
-
-  async getAlbums() {
+  // Categories
+  async getCategories() {
     try {
-      const response = await fetch('/api/albums');
-      if (response.ok) {
-        const data = await response.json();
-        if (Array.isArray(data)) {
-          return data.map(a => this.normalizeAlbum(a));
-        }
-      }
+      const res = await fetch('/api/categories');
+      if (res.ok) return await res.json();
     } catch (err) {
-      console.warn("Failed fetching from API:", err);
+      console.warn("Failed fetching categories:", err);
     }
     return [];
   }
 
-  async getAlbumById(id) {
-    const albums = await this.getAlbums();
-    return albums.find(a => a.id === id) || null;
+  async saveCategory(data) {
+    try {
+      const res = await fetch('/api/categories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      return res.ok;
+    } catch (e) { return false; }
   }
 
-  async saveAlbum(albumData) {
-    const normalized = this.normalizeAlbum(albumData);
-    
+  async deleteCategory(id) {
     try {
-      const response = await fetch('/api/albums', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(normalized)
-      });
-      if (!response.ok) throw new Error("API Save Failed");
-      return true;
-    } catch (err) {
-      console.error("Failed saving to API", err);
-      return false;
-    }
+      const res = await fetch(`/api/categories/${id}`, { method: 'DELETE' });
+      return res.ok;
+    } catch (e) { return false; }
   }
 
-  async deleteAlbum(id) {
+  // Subcategories
+  async getSubcategories() {
     try {
-      const response = await fetch(`/api/albums/${id}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error("API Delete Failed");
-      return true;
+      const res = await fetch('/api/subcategories');
+      if (res.ok) return await res.json();
     } catch (err) {
-      console.error("Failed deleting from API", err);
-      return false;
+      console.warn("Failed fetching subcategories:", err);
     }
+    return [];
+  }
+
+  async saveSubcategory(data) {
+    try {
+      const res = await fetch('/api/subcategories', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      return res.ok;
+    } catch (e) { return false; }
+  }
+
+  async deleteSubcategory(id) {
+    try {
+      const res = await fetch(`/api/subcategories/${id}`, { method: 'DELETE' });
+      return res.ok;
+    } catch (e) { return false; }
+  }
+
+  // Products
+  async getProducts() {
+    try {
+      const res = await fetch('/api/products');
+      if (res.ok) return await res.json();
+    } catch (err) {
+      console.warn("Failed fetching products:", err);
+    }
+    return [];
+  }
+
+  async getProductById(id) {
+    const products = await this.getProducts();
+    return products.find(p => p.id === id) || null;
+  }
+
+  async saveProduct(data) {
+    try {
+      const res = await fetch('/api/products', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+      return res.ok;
+    } catch (e) { return false; }
+  }
+
+  async deleteProduct(id) {
+    try {
+      const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+      return res.ok;
+    } catch (e) { return false; }
   }
 
   // --- Encrypted Admin Auth ---
@@ -267,30 +246,19 @@ class YellowRoseDBManager {
   }
 
   // --- WhatsApp Link Generator ---
-  buildWhatsAppUrl(album, photoItem = null) {
-    const catName = CATEGORIES[album.category]?.name || album.categoryName || "تنسيق زهور";
-    let text = `مرحباً يلوروز 🌸\nأود الاستفسار وحجز التنسيق التالي:\n• الألبوم: ${album.title}\n• التصنيف: ${catName}`;
+  buildWhatsAppUrl(product) {
+    const catName = window.CATEGORIES && window.CATEGORIES[product.categoryId] ? window.CATEGORIES[product.categoryId].name : "تنسيق زهور";
+    let text = `مرحباً يلوروز 🌸\nأود الاستفسار وحجز المنتج التالي:\n• اسم المنتج: ${product.title}\n• القسم: ${catName}`;
 
-    if (photoItem) {
-      if (photoItem.name) {
-        text += `\n• اسم الصورة/النموذج: ${photoItem.name}`;
-      }
-      if (photoItem.code) {
-        text += `\n• كود التنسيق: ${photoItem.code}`;
-      }
-      if (photoItem.url && !photoItem.url.startsWith("data:")) {
-        text += `\n• رابط الصورة: ${photoItem.url}`;
-      }
-    } else if (album.coverUrl && !album.coverUrl.startsWith("data:")) {
-      text += `\n• رابط التنسيق: ${album.coverUrl}`;
+    if (product.images && product.images.length > 0 && product.images[0].url && !product.images[0].url.startsWith("data:")) {
+      text += `\n• رابط الصورة: ${product.images[0].url}`;
     }
 
-    text += `\n\nهل هذا النموذج متاح لموعد مناسبتنا؟ شكراً لكم!`;
+    text += `\n\nهل هذا المنتج متاح لموعد مناسبتنا؟ شكراً لكم!`;
     return `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(text)}`;
   }
 }
 
-// Global DB instance
 window.YellowRoseDB = new YellowRoseDBManager();
-window.CATEGORIES = CATEGORIES;
+window.CATEGORIES = DEFAULT_CATEGORIES; // Will be populated dynamically on load
 window.WHATSAPP_PHONE = WHATSAPP_PHONE;

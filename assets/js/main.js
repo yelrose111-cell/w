@@ -3,7 +3,7 @@
  * Album Grid Showcase, Category Filtering, Dynamic Search & Direct WhatsApp Order
  */
 
-let allAlbums = [];
+let allProducts = [];
 let currentCategory = "all";
 let searchQuery = "";
 
@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await window.YellowRoseDB.syncSiteSettingsToDom();
 
   setupNavigation();
-  await loadAndRenderAlbums();
+  await loadAndRenderProducts();
   setupFilterAndSearch();
 });
 
@@ -36,7 +36,7 @@ function setupNavigation() {
       mobileCats.innerHTML = "";
       Object.values(window.CATEGORIES).forEach(cat => {
         const link = document.createElement("a");
-        link.href = `album.html?category=${cat.id}`;
+        link.href = `catalog.html?category=${cat.id}`;
         link.innerHTML = `<i class="fas ${cat.icon || 'fa-tag'}"></i> ${cat.name}`;
         mobileCats.appendChild(link);
       });
@@ -57,26 +57,55 @@ function setupNavigation() {
 // Removed Admin Indicator
 
 // Load and Render Albums from DB
-async function loadAndRenderAlbums() {
-  const grid = document.getElementById("galleryGrid");
-  if (!grid) return;
 
-  grid.innerHTML = `
-    <div class="loading-state" style="grid-column: 1 / -1; text-align: center; padding: 50px 20px;">
-      <i class="fas fa-spinner fa-spin" style="font-size: 32px; color: var(--gold-primary);"></i>
-      <p style="margin-top: 15px; color: var(--text-muted); font-size: 16px;">جاري تحميل أعمال وألبومات يلوروز الفاخرة...</p>
-    </div>
-  `;
+async function loadAndRenderProducts() {
+  const cats = await window.YellowRoseDB.getCategories();
+  window.CATEGORIES = {};
+  cats.forEach(c => window.CATEGORIES[c.id] = c);
+  
+  const categoryTabs = document.getElementById("categoryTabs");
+  if (categoryTabs) {
+    categoryTabs.innerHTML = `
+      <button class="cat-btn active" data-category="all">
+        <i class="fas fa-th"></i>
+        <span>الكل</span>
+        <span class="cat-count" id="count-all">0</span>
+      </button>
+    `;
+    cats.forEach(cat => {
+      categoryTabs.innerHTML += `
+        <button class="cat-btn" data-category="${cat.id}">
+          <i class="fas ${cat.icon || 'fa-tag'}"></i>
+          <span>${cat.name}</span>
+          <span class="cat-count" id="count-${cat.id}">0</span>
+        </button>
+      `;
+    });
+    
+    // Re-attach listeners for category buttons
+    document.querySelectorAll(".cat-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentCategory = btn.getAttribute("data-category");
+        filterProducts();
+      });
+    });
+  }
+
+  const productsListContainer = document.getElementById("galleryGrid");
+  if (!productsListContainer) return;
+  productsListContainer.innerHTML = '<div class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i> جاري تحميل المنتجات...</div>';
 
   try {
-    allAlbums = await window.YellowRoseDB.getAlbums();
+    allProducts = await window.YellowRoseDB.getProducts();
     updateCategoryCounts();
     renderGallery();
   } catch (err) {
-    console.error("Failed to load albums:", err);
-    grid.innerHTML = `
+    console.error("Failed to load products:", err);
+    productsListContainer.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
-        <p style="color: #c0392b;">حدث خطأ أثناء تحميل الألبومات، يرجى إعادة المحاولة.</p>
+        <p style="color: #c0392b;">حدث خطأ أثناء تحميل المنتجات، يرجى إعادة المحاولة.</p>
       </div>
     `;
   }
@@ -100,7 +129,7 @@ function renderGallery() {
     // Filter by search
     if (searchQuery && !catInfo.name.toLowerCase().includes(searchQuery.toLowerCase())) return;
 
-    const catAlbums = allAlbums.filter(a => a.category === catInfo.id);
+    const catAlbums = allProducts.filter(a => a.category === catInfo.id);
     
     let imagesCount = 0;
     let coverUrl = 'assets/logo.png';
@@ -130,7 +159,7 @@ function renderGallery() {
 
     card.innerHTML = `
       <div class="card-img-wrapper">
-        <a href="album.html?category=${catInfo.id}" class="card-img-link" title="استعراض قسم ${escapeHtml(catInfo.name)}">
+        <a href="catalog.html?category=${catInfo.id}" class="card-img-link" title="استعراض قسم ${escapeHtml(catInfo.name)}">
           <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(catInfo.name)}" class="card-img" loading="lazy" onerror="this.src='assets/logo.png';">
         </a>
         <span class="card-category-badge" style="top: 15px; left: auto; right: 15px; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
@@ -144,12 +173,12 @@ function renderGallery() {
 
       <div class="card-body">
         <h3 class="card-title" style="margin-bottom: 5px;">
-          <a href="album.html?category=${catInfo.id}">${escapeHtml(catInfo.name)}</a>
+          <a href="catalog.html?category=${catInfo.id}">${escapeHtml(catInfo.name)}</a>
         </h3>
         <p class="card-desc">استعرض جميع صور وتنسيقات قسم ${escapeHtml(catInfo.name)} بشكل مباشر.</p>
         
         <div class="card-album-actions" style="margin-top: 15px;">
-          <a href="album.html?category=${catInfo.id}" class="btn-card-album" style="width: 100%; justify-content: center;">
+          <a href="catalog.html?category=${catInfo.id}" class="btn-card-album" style="width: 100%; justify-content: center;">
             <i class="fas fa-images"></i> عرض جميع المنتجات للقسم
           </a>
         </div>
@@ -174,7 +203,7 @@ function updateCategoryCounts() {
   Object.keys(window.CATEGORIES).forEach(cat => {
     const el = document.getElementById(`count-${cat}`);
     if (el) {
-      const count = allAlbums.filter(a => a.category === cat).length;
+      const count = allProducts.filter(a => a.category === cat).length;
       el.textContent = count;
     }
   });
