@@ -27,31 +27,41 @@ if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && proce
 }
 
 // MongoDB Connection
-let isConnected = false;
+let cachedDb = null;
 const connectDB = async () => {
-  if (isConnected) return;
+  if (cachedDb && mongoose.connection.readyState === 1) {
+    return cachedDb;
+  }
   
   if (!process.env.MONGODB_URI) {
-    console.warn('MONGODB_URI is not defined. Database operations will fail.');
-    return;
+    throw new Error('FATAL ERROR: MONGODB_URI is missing in Vercel Environment Variables. Please add it and Redeploy.');
   }
   
   try {
-    const db = await mongoose.connect(process.env.MONGODB_URI);
-    isConnected = db.connections[0].readyState;
+    const db = await mongoose.connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 5000,
+    });
+    cachedDb = db;
     console.log('MongoDB Connected');
+    return db;
   } catch (error) {
     console.error('MongoDB connection error:', error);
+    throw new Error('Failed to connect to MongoDB: ' + error.message);
   }
 };
 
 app.use(async (req, res, next) => {
   if (!process.env.SESSION_SECRET || !process.env.ADMIN_PASSWORD_HASH) {
     console.error('CRITICAL: SESSION_SECRET or ADMIN_PASSWORD_HASH is missing. Refusing to serve requests.');
-    return res.status(500).json({ success: false, error: 'Server misconfiguration' });
+    return res.status(500).json({ success: false, error: 'Server misconfiguration: Secrets missing in Vercel.' });
   }
-  await connectDB();
-  next();
+  
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message });
+  }
 });
 
 // Authentication Middleware
