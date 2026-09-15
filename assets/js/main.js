@@ -69,7 +69,6 @@ async function loadAndRenderProducts() {
       <button class="cat-btn active" data-category="all">
         <i class="fas fa-th"></i>
         <span>الكل</span>
-        <span class="cat-count" id="count-all">0</span>
       </button>
     `;
     cats.forEach(cat => {
@@ -77,7 +76,6 @@ async function loadAndRenderProducts() {
         <button class="cat-btn" data-category="${cat.id}">
           <i class="fas ${cat.icon || 'fa-tag'}"></i>
           <span>${cat.name}</span>
-          <span class="cat-count" id="count-${cat.id}">0</span>
         </button>
       `;
     });
@@ -197,16 +195,7 @@ function renderGallery() {
 
 // Update Counts on Category Tabs
 function updateCategoryCounts() {
-  const countAll = document.getElementById("count-all");
-  if (countAll) countAll.textContent = allAlbums.length;
-
-  Object.keys(window.CATEGORIES).forEach(cat => {
-    const el = document.getElementById(`count-${cat}`);
-    if (el) {
-      const count = allProducts.filter(a => a.category === cat).length;
-      el.textContent = count;
-    }
-  });
+  // Intentionally left empty as per user request to hide counts
 }
 
 // Setup Filters and Search Handlers
