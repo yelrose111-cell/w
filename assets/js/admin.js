@@ -11,12 +11,10 @@ let selectedCoverUrl = "";
 document.addEventListener("DOMContentLoaded", async () => {
   initAdminAuth();
   populateCategorySelect();
+  populateSubcategoryParents();
   setupTabNavigation();
   setupFormHandlers();
   await setupBrandIdentitySettings();
-  populateCategorySelect();
-  populateSubcategoryParents();
-  loadBrandIdentityAdmin();
   await loadDashboardStatsAndProducts();
   checkApiStatus();
 });
