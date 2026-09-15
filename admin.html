@@ -458,6 +458,25 @@
           </div>
         </div>
 
+        <!-- بطاقة رسالة الطلب عبر واتساب -->
+        <div class="admin-card" style="margin-bottom: 25px;">
+          <h3 class="admin-card-title">
+            <i class="fab fa-whatsapp text-gold"></i> إعدادات رسالة واتساب (WhatsApp Order Message)
+          </h3>
+          <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 20px;">
+            يمكنك تخصيص القالب الافتراضي للرسالة التي يقوم العميل بإرسالها عند الطلب عبر الواتساب. استخدم المتغيرات التالية: <br>
+            <code>{product_name}</code> لاسم المنتج، <code>{category_name}</code> للقسم، <code>{product_url}</code> لرابط المنتج
+          </p>
+
+          <div class="admin-input-group">
+            <label class="admin-label" for="cfgWhatsappMessage">
+              <i class="fas fa-comment-dots text-gold"></i> قالب رسالة واتساب:
+            </label>
+            <textarea id="cfgWhatsappMessage" class="admin-input" rows="5" placeholder="مرحباً يلوروز 🌸&#10;أود الاستفسار وحجز التنسيق التالي:&#10;• المنتج: {product_name}&#10;• التصنيف: {category_name}&#10;&#10;الرابط: {product_url}&#10;&#10;هل هذا النموذج متاح لموعد مناسبتنا؟ شكراً لكم!"></textarea>
+            <span style="font-size: 11px; color: #888; display: block; margin-top: 4px;">الرسالة التي ستظهر في واتساب العميل جاهزة للإرسال إليك.</span>
+          </div>
+        </div>
+
         <!-- أزرار حفظ وتطبيق هوية المتجر -->
         <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
           <button type="button" id="saveBrandIdentityBtn" class="btn-card-album" style="padding: 14px 32px; font-size: 16px; font-weight: 800; background: var(--gold-gradient); color: #111; box-shadow: 0 4px 15px rgba(212,175,55,0.4);">

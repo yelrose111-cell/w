@@ -555,6 +555,7 @@ async function setupBrandIdentitySettings() {
   const brandSloganEnInput = document.getElementById("cfgBrandSloganEn");
   const annToggle = document.getElementById("cfgAnnouncementEnabled");
   const annText = document.getElementById("cfgAnnouncementText");
+  const whatsappMessageInput = document.getElementById("cfgWhatsappMessage");
 
   // Control buttons
   const fileInput = document.getElementById("brandLogoFileInput");
@@ -575,6 +576,7 @@ async function setupBrandIdentitySettings() {
   if (brandSloganEnInput) brandSloganEnInput.value = settings.brandSloganEn || "YELLOW ROSE • LUXURY FLORAL & EVENT DESIGN";
   if (annToggle) annToggle.checked = !!settings.announcementBarEnabled;
   if (annText) annText.value = settings.announcementText || "";
+  if (whatsappMessageInput) whatsappMessageInput.value = settings.whatsappMessage || "";
 
   // Helper to update previews live across mockups
   const updatePreviews = (logoUrl, nameAr, nameEn, sloganAr, sloganEn) => {
@@ -725,7 +727,8 @@ async function setupBrandIdentitySettings() {
         brandNameAr: brandNameArInput ? (brandNameArInput.value.trim() || "يلوروز") : "يلوروز",
         brandNameEn: brandNameEnInput ? (brandNameEnInput.value.trim() || "YELLOW ROSE") : "YELLOW ROSE",
         brandSloganAr: brandSloganArInput ? (brandSloganArInput.value.trim() || "للورد والمناسبات") : "للورد والمناسبات",
-        brandSloganEn: brandSloganEnInput ? (brandSloganEnInput.value.trim() || "YELLOW ROSE • LUXURY FLORAL & EVENT DESIGN") : "YELLOW ROSE • LUXURY FLORAL & EVENT DESIGN"
+        brandSloganEn: brandSloganEnInput ? (brandSloganEnInput.value.trim() || "YELLOW ROSE • LUXURY FLORAL & EVENT DESIGN") : "YELLOW ROSE • LUXURY FLORAL & EVENT DESIGN",
+        whatsappMessage: whatsappMessageInput ? (whatsappMessageInput.value.trim() || "") : ""
       };
 
       const success = window.YellowRoseDB.saveSiteSettings(newSettings);

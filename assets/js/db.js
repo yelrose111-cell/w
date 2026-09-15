@@ -25,7 +25,8 @@ class YellowRoseDBManager {
       brandNameAr: "يلوروز",
       brandNameEn: "YELLOW ROSE",
       brandSloganAr: "للورد والمناسبات",
-      brandSloganEn: "YELLOW ROSE • LUXURY FLORAL & EVENT DESIGN"
+      brandSloganEn: "YELLOW ROSE • LUXURY FLORAL & EVENT DESIGN",
+      whatsappMessage: ""
     };
 
     try {
@@ -63,6 +64,7 @@ class YellowRoseDBManager {
 
   async syncSiteSettingsToDom() {
     const settings = await this.getSiteSettings();
+    window.SITE_SETTINGS = settings; // Cache for synchronous access
     const topBar = document.getElementById("siteAnnouncementBar");
     const topBarText = document.getElementById("siteAnnouncementText");
 
@@ -248,13 +250,23 @@ class YellowRoseDBManager {
   // --- WhatsApp Link Generator ---
   buildWhatsAppUrl(product) {
     const catName = window.CATEGORIES && window.CATEGORIES[product.categoryId] ? window.CATEGORIES[product.categoryId].name : "تنسيق زهور";
-    let text = `مرحباً يلوروز 🌸\nأود الاستفسار وحجز المنتج التالي:\n• اسم المنتج: ${product.title}\n• القسم: ${catName}`;
-
-    if (product.images && product.images.length > 0 && product.images[0].url && !product.images[0].url.startsWith("data:")) {
-      text += `\n• رابط الصورة: ${product.images[0].url}`;
+    const productUrl = `${window.location.origin}/catalog.html?id=${product.id}`;
+    
+    let text = "";
+    
+    if (window.SITE_SETTINGS && window.SITE_SETTINGS.whatsappMessage) {
+      text = window.SITE_SETTINGS.whatsappMessage
+        .replace(/{product_name}/g, product.title)
+        .replace(/{category_name}/g, catName)
+        .replace(/{product_url}/g, productUrl);
+    } else {
+      text = `مرحباً يلوروز 🌸\nأود الاستفسار وحجز المنتج التالي:\n• اسم المنتج: ${product.title}\n• القسم: ${catName}`;
+      if (product.images && product.images.length > 0 && product.images[0].url && !product.images[0].url.startsWith("data:")) {
+        text += `\n• رابط الصورة: ${product.images[0].url}`;
+      }
+      text += `\n\nهل هذا المنتج متاح لموعد مناسبتنا؟ شكراً لكم!`;
     }
 
-    text += `\n\nهل هذا المنتج متاح لموعد مناسبتنا؟ شكراً لكم!`;
     return `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(text)}`;
   }
 }
