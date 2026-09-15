@@ -307,6 +307,70 @@
             </form>
           </div>
         </div>
+
+        <div class="admin-card">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <h3 class="admin-card-title" style="margin-bottom: 0; border: none; padding: 0;">إدارة الأقسام الفرعية</h3>
+            <button class="btn-card-album" onclick="document.getElementById('subcategoryFormContainer').style.display='block'" style="padding: 8px 16px;">
+              <i class="fas fa-plus"></i> إضافة قسم فرعي
+            </button>
+          </div>
+
+          <!-- قائمة الأقسام الفرعية -->
+          <div class="admin-albums-list" id="adminSubcategoriesList" style="margin-bottom: 30px;">
+            <!-- يتم التوليد ديناميكيا -->
+          </div>
+
+          <!-- نموذج الإضافة/التعديل للقسم الفرعي -->
+          <div id="subcategoryFormContainer" style="display: none; border-top: 1px dashed var(--border-color); padding-top: 20px;">
+            <h4 style="font-size: 16px; margin-bottom: 15px; color: var(--gold-dark);" id="subcategoryFormTitle">إضافة قسم فرعي جديد</h4>
+            <form id="subcategoryForm">
+              <input type="hidden" id="subcategoryIdInput">
+              
+              <div class="admin-input-group">
+                <label class="admin-label" for="subcatParentSelect">القسم الرئيسي التابع له *</label>
+                <select id="subcatParentSelect" class="admin-select" required>
+                  <!-- Populate dynamically -->
+                </select>
+              </div>
+
+              <div class="admin-input-group">
+                <label class="admin-label" for="subcategoryNameInput">اسم القسم الفرعي *</label>
+                <input type="text" id="subcategoryNameInput" class="admin-input" placeholder="مثال: مسكات عرايس" required>
+              </div>
+
+              <div class="admin-input-group">
+                <label class="admin-label" for="subcategoryIconInput">رمز الأيقونة (اختياري / كبديل للصورة)</label>
+                <input type="text" id="subcategoryIconInput" class="admin-input" placeholder="مثال: fa-leaf">
+              </div>
+
+              <div class="admin-input-group">
+                <label class="admin-label" for="subcategoryImageFile">صورة القسم الفرعي (ملف)</label>
+                <input type="file" id="subcategoryImageFile" class="admin-input" accept="image/*">
+                <small style="color: var(--text-light); margin-top: 5px; display: block;">صورة تبرز جمالية القسم.</small>
+              </div>
+
+              <div class="admin-input-group">
+                <label class="admin-label" for="subcategoryImageUrl">أو رابط صورة القسم الفرعي</label>
+                <input type="url" id="subcategoryImageUrl" class="admin-input" placeholder="https://example.com/image.jpg">
+              </div>
+
+              <div class="admin-input-group">
+                <label class="admin-label" for="subcategoryOrderInput">الترتيب</label>
+                <input type="number" id="subcategoryOrderInput" class="admin-input" value="0">
+              </div>
+
+              <div style="display: flex; gap: 12px; margin-top: 15px;">
+                <button type="submit" class="btn-card-album" style="padding: 10px 20px; font-size: 14px;">
+                  <i class="fas fa-save"></i> حفظ القسم الفرعي
+                </button>
+                <button type="button" onclick="document.getElementById('subcategoryFormContainer').style.display='none'; document.getElementById('subcategoryForm').reset(); document.getElementById('subcategoryIdInput').value='';" class="btn-topbar-link" style="padding: 10px 20px; font-size: 14px;">
+                  إلغاء
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       </section>
 
       <!-- تبويب 4: هوية المتجر والشعار وتعديل الأسماء والسلوجان -->

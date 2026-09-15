@@ -5,6 +5,7 @@ const subcategorySchema = new mongoose.Schema({
   categoryId: { type: String, required: true },
   name: { type: String, required: true },
   coverUrl: { type: String },
+  icon: { type: String },
   order: { type: Number, default: 0 }
 }, { timestamps: true });
 

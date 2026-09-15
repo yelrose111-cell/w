@@ -14,6 +14,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   setupTabNavigation();
   setupFormHandlers();
   await setupBrandIdentitySettings();
+  populateCategorySelect();
+  populateSubcategoryParents();
+  loadBrandIdentityAdmin();
   await loadDashboardStatsAndProducts();
   checkApiStatus();
 });
@@ -123,6 +126,21 @@ async function populateCategorySelect() {
   });
 }
 
+// Populate Subcategory Parent Dropdown
+async function populateSubcategoryParents() {
+  const select = document.getElementById("subcatParentSelect");
+  if (!select) return;
+  
+  const categories = await window.YellowRoseDB.getCategories();
+  select.innerHTML = '<option value="">-- اختر القسم الرئيسي التابع له --</option>';
+  categories.forEach(cat => {
+    const opt = document.createElement("option");
+    opt.value = cat.id;
+    opt.textContent = cat.name;
+    select.appendChild(opt);
+  });
+}
+
 // Load Dashboard Stats and Albums List
 async function loadDashboardStatsAndProducts() {
   const albums = await window.YellowRoseDB.getProducts(true);
@@ -145,6 +163,7 @@ async function loadDashboardStatsAndProducts() {
 
   renderAdminProductsList(albums);
   await loadCategoriesList();
+  await loadSubcategoriesList();
 }
 
 // Render Admin Albums List
@@ -258,6 +277,57 @@ function setupFormHandlers() {
         const imageUrlInput = document.getElementById("categoryImageUrl");
         if (imageUrlInput) imageUrlInput.value = dataUrl;
         showToast("تم تحويل صورة القسم، سيتم حفظها عند ضغط 'حفظ القسم'");
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  // Subcategory Form
+  const subcategoryForm = document.getElementById("subcategoryForm");
+  if (subcategoryForm) {
+    subcategoryForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const id = document.getElementById("subcategoryIdInput").value;
+      const categoryId = document.getElementById("subcatParentSelect").value;
+      const name = document.getElementById("subcategoryNameInput").value;
+      const icon = document.getElementById("subcategoryIconInput").value;
+      const coverUrl = document.getElementById("subcategoryImageUrl").value;
+      const order = document.getElementById("subcategoryOrderInput").value || 0;
+      
+      const subcategoryData = {
+        categoryId: categoryId,
+        name: name,
+        icon: icon,
+        coverUrl: coverUrl,
+        order: parseInt(order)
+      };
+      
+      if (id) subcategoryData.id = id;
+      
+      const success = await window.YellowRoseDB.saveSubcategory(subcategoryData);
+      if (success) {
+        showToast("تم حفظ القسم الفرعي بنجاح!");
+        document.getElementById("subcategoryFormContainer").style.display = "none";
+        subcategoryForm.reset();
+        await loadSubcategoriesList();
+      } else {
+        showToast("خطأ أثناء الحفظ، يرجى المحاولة مرة أخرى.");
+      }
+    });
+  }
+
+  // Handle Subcategory Image File Upload
+  const subcategoryImageFile = document.getElementById("subcategoryImageFile");
+  if (subcategoryImageFile) {
+    subcategoryImageFile.addEventListener("change", (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const dataUrl = ev.target.result;
+        const imageUrlInput = document.getElementById("subcategoryImageUrl");
+        if (imageUrlInput) imageUrlInput.value = dataUrl;
+        showToast("تم تحويل صورة القسم الفرعي، سيتم حفظها عند ضغط 'حفظ القسم الفرعي'");
       };
       reader.readAsDataURL(file);
     });
@@ -844,6 +914,70 @@ window.deleteCategory = async (id) => {
       showToast("تم حذف القسم");
       await loadCategoriesList();
       populateCategorySelect();
+    } else {
+      showToast("حدث خطأ أثناء الحذف");
+    }
+  }
+};
+
+// --- Subcategories Management ---
+async function loadSubcategoriesList() {
+  const subcats = await window.YellowRoseDB.getSubcategories();
+  const cats = await window.YellowRoseDB.getCategories();
+  const listContainer = document.getElementById("adminSubcategoriesList");
+  if (!listContainer) return;
+  
+  if (subcats.length === 0) {
+    listContainer.innerHTML = '<div style="text-align:center; padding: 20px;">لا توجد أقسام فرعية حاليا</div>';
+    return;
+  }
+  
+  let html = '';
+  subcats.forEach(sub => {
+    const parentCat = cats.find(c => c.id === sub.categoryId);
+    const parentName = parentCat ? parentCat.name : "غير معروف";
+    html += `
+      <div class="admin-album-row" style="align-items: center; padding: 15px;">
+        <div style="font-size: 24px; color: var(--gold-primary); margin-left: 15px;">
+          ${sub.coverUrl ? `<img src="${sub.coverUrl}" style="width:40px; height:40px; border-radius:8px; object-fit:cover;">` : `<i class="fas ${sub.icon || 'fa-tag'}"></i>`}
+        </div>
+        <div style="flex: 1;">
+          <h4 style="margin: 0; font-size: 16px;">${sub.name}</h4>
+          <span style="font-size: 12px; color: #888;">يتبع لـ: ${parentName} | ترتيب: ${sub.order || 0}</span>
+        </div>
+        <div class="row-actions">
+          <button class="btn-action-edit" onclick="editSubcategory('${sub.id}')"><i class="fas fa-edit"></i> تعديل</button>
+          <button class="btn-action-delete" onclick="deleteSubcategory('${sub.id}')"><i class="fas fa-trash-alt"></i> حذف</button>
+        </div>
+      </div>
+    `;
+  });
+  listContainer.innerHTML = html;
+}
+
+window.editSubcategory = async (id) => {
+  const subcats = await window.YellowRoseDB.getSubcategories();
+  const sub = subcats.find(s => s.id === id);
+  if (!sub) return;
+  
+  document.getElementById("subcategoryIdInput").value = sub.id;
+  document.getElementById("subcatParentSelect").value = sub.categoryId;
+  document.getElementById("subcategoryNameInput").value = sub.name;
+  document.getElementById("subcategoryIconInput").value = sub.icon || "";
+  document.getElementById("subcategoryImageUrl").value = sub.coverUrl || "";
+  document.getElementById("subcategoryOrderInput").value = sub.order || 0;
+  
+  document.getElementById("subcategoryFormTitle").textContent = "تعديل القسم الفرعي";
+  document.getElementById("subcategoryFormContainer").style.display = "block";
+  document.getElementById("subcategoryFormContainer").scrollIntoView({ behavior: 'smooth' });
+};
+
+window.deleteSubcategory = async (id) => {
+  if (confirm("هل أنت متأكد من حذف هذا القسم الفرعي؟ لا يمكن التراجع!")) {
+    const success = await window.YellowRoseDB.deleteSubcategory(id);
+    if (success) {
+      showToast("تم حذف القسم الفرعي");
+      await loadSubcategoriesList();
     } else {
       showToast("حدث خطأ أثناء الحذف");
     }
