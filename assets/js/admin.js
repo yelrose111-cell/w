@@ -586,7 +586,7 @@ window.removeImage = function(index) {
 };
 
 // Edit Album Action
-window.editAlbum = async function(id) {
+window.editProduct = async function(id) {
   const album = await window.YellowRoseDB.getProductById(id);
   if (!album) return;
 
@@ -622,7 +622,7 @@ window.editAlbum = async function(id) {
 };
 
 // Delete Album Action
-window.deleteAlbum = async function(id) {
+window.deleteProduct = async function(id) {
   if (confirm("هل أنت متأكد من رغبتك في حذف هذا الألبوم نهائياً من المعرض؟")) {
     await window.YellowRoseDB.deleteProduct(id);
     showToast("تم حذف الألبوم بنجاح.");
