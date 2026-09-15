@@ -126,8 +126,6 @@ function renderAlbumDetails(album) {
   const descEl = document.getElementById("albumDescription");
   const dateEl = document.getElementById("albumDate");
   const countEl = document.getElementById("albumPhotoCount");
-  const waBtn = document.getElementById("albumMainWhatsAppBtn");
-
   const images = Array.isArray(album.images) && album.images.length > 0 ? album.images : [album.coverUrl];
 
   if (catBadge) {
@@ -136,10 +134,7 @@ function renderAlbumDetails(album) {
   if (titleEl) titleEl.textContent = album.title;
   if (descEl) descEl.textContent = album.description || "تنسيق متقن يعكس فخامة وأناقة مناسباتكم الخاصة.";
   if (dateEl) dateEl.textContent = album.createdAt || "2026";
-  if (countEl) countEl.textContent = `${images.length} ${images.length > 10 ? 'صورة' : 'صور'}`;
-
-  const waUrl = window.YellowRoseDB.buildWhatsAppUrl(album);
-  if (waBtn) waBtn.href = waUrl;
+  if (countEl) countEl.textContent = `${images.length} ${images.length > 10 ? 'منتج' : 'منتجات'}`;
 
   // Render Sub-Albums
   const subAlbumsSection = document.getElementById("subAlbumsSection");

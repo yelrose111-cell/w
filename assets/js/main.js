@@ -30,6 +30,17 @@ function setupNavigation() {
         navMenu.classList.remove("open");
       });
     });
+
+    const mobileCats = document.getElementById("mobileCategoriesList");
+    if (mobileCats && window.CATEGORIES) {
+      mobileCats.innerHTML = "";
+      Object.values(window.CATEGORIES).forEach(cat => {
+        const link = document.createElement("a");
+        link.href = `album.html?category=${cat.id}`;
+        link.innerHTML = `<i class="fas ${cat.icon || 'fa-tag'}"></i> ${cat.name}`;
+        mobileCats.appendChild(link);
+      });
+    }
   }
 
   window.addEventListener("scroll", () => {
@@ -126,7 +137,7 @@ function renderGallery() {
           <i class="fas ${catInfo.icon || 'fa-tag'}"></i> ${escapeHtml(catInfo.name)}
         </span>
         <span class="card-photo-count">
-          <i class="fas fa-camera"></i> ${imagesCount} ${imagesCount > 10 ? 'صورة' : 'صور'}
+          <i class="fas fa-camera"></i> ${imagesCount} ${imagesCount > 10 ? 'منتج' : 'منتجات'}
         </span>
         ${hasFeatured ? `<span class="card-featured-badge"><i class="fas fa-star"></i> قسم مميز</span>` : ''}
       </div>
@@ -139,7 +150,7 @@ function renderGallery() {
         
         <div class="card-album-actions" style="margin-top: 15px;">
           <a href="album.html?category=${catInfo.id}" class="btn-card-album" style="width: 100%; justify-content: center;">
-            <i class="fas fa-images"></i> عرض جميع الصور
+            <i class="fas fa-images"></i> عرض جميع المنتجات للقسم
           </a>
         </div>
       </div>

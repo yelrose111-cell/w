@@ -43,7 +43,10 @@
       <!-- القائمة الرئيسية (تم تحديث وتصحيح العبارات إملائياً) -->
       <nav class="nav-menu" id="navMenu">
         <a href="#home" class="nav-item active">الرئيسية</a>
-        <a href="#gallery" class="nav-item">أعمالنا</a>
+        <div class="nav-item-wrapper">
+          <a href="#gallery" class="nav-item">أعمالنا</a>
+          <div id="mobileCategoriesList" class="mobile-categories-list"></div>
+        </div>
         <a href="#reviews" class="nav-item">التقييمات والموقع</a>
       </nav>
 
@@ -69,8 +72,8 @@
         <img src="assets/logo.png?v=2" alt="يلوروز" class="hero-logo-img">
       </div>
 
-      <h1 class="hero-title">
-        <span class="hero-title-gold">يلوروز</span> <span class="hero-slogan-ar">للورد والمناسبات</span>
+      <h1 class="hero-title" style="color: #000; text-shadow: none;">
+        يلوروز للورد والمناسبات
       </h1>
       <p class="hero-subtitle-en">YELLOW ROSE • LUXURY FLORAL & EVENT DESIGN</p>
 
@@ -80,17 +83,7 @@
         </a>
       </div>
 
-      <div class="hero-quick-stats">
-        <div class="stat-pill">
-          <i class="fas fa-check-circle"></i> 12 قسماً وتصنيفاً شاملاً
-        </div>
-        <div class="stat-pill">
-          <i class="fas fa-star"></i> تقييم 5 نجوم على Google Maps
-        </div>
-        <div class="stat-pill">
-          <i class="fas fa-clock"></i> تجاوب فوري على الواتساب
-        </div>
-      </div>
+
     </div>
   </section>
 
@@ -99,9 +92,9 @@
     <div class="container">
       <div class="section-heading text-center">
         <span class="heading-badge">كتالوج المعرض</span>
-        <h2 class="heading-title">ألبوم التصنيفات وأعمالنا</h2>
+        <h2 class="heading-title">أعمالنا</h2>
         <div class="heading-divider"></div>
-        <p class="heading-subtitle">تصفح تصنيفاتنا المختارة، واضغط على أي ألبوم للاطلاع على تفاصيل صوره الكاملة وأكوادها</p>
+        <p class="heading-subtitle">تصفح على الاقسام المختارة، واضغط على أي قسم للاطلاع على تفاصيل المنتجات الكاملة الخاصة به</p>
       </div>
 
       <!-- شريط أدوات الفلترة والأقسام الـ 12 -->
@@ -281,7 +274,9 @@
 
       <div class="footer-contact">
         <h4 class="footer-subtitle">الطلب والحجز</h4>
-        <p><i class="fas fa-map-marker-alt text-gold"></i> متواجدون في: حيث يكون الفن والإبداع بالوسقة</p>
+        <p><i class="fas fa-phone-alt text-gold"></i> للطلب والاستفسار: <a href="tel:0582739397" style="color:var(--text-light); text-decoration:none;">0582739397</a></p>
+        <p><i class="fab fa-whatsapp text-gold"></i> واتساب: <a href="https://wa.me/966582739397" target="_blank" style="color:var(--text-light); text-decoration:none;">0582739397</a></p>
+        <p><i class="fas fa-map-marker-alt text-gold"></i> الموقع /الليث - الوسقة</p>
       </div>
     </div>
 
