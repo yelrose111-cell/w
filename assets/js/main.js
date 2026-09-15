@@ -12,7 +12,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   await window.YellowRoseDB.syncSiteSettingsToDom();
 
   setupNavigation();
-  setupAdminIndicator();
   await loadAndRenderAlbums();
   setupFilterAndSearch();
 });
@@ -44,14 +43,7 @@ function setupNavigation() {
   });
 }
 
-// Show Admin Controls ONLY if authenticated
-function setupAdminIndicator() {
-  const isAdmin = window.YellowRoseDB.isAdminAuthenticated();
-  const adminBadge = document.getElementById("adminSecretBadge");
-  if (adminBadge) {
-    adminBadge.style.display = isAdmin ? "inline-flex" : "none";
-  }
-}
+// Removed Admin Indicator
 
 // Load and Render Albums from DB
 async function loadAndRenderAlbums() {
