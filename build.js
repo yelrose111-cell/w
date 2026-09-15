@@ -34,7 +34,7 @@ async function build() {
       const code = fs.readFileSync(file, 'utf8');
       const result = await minify(code, {
         mangle: {
-          toplevel: true, // Mangle top-level variable and function names
+          toplevel: false, // Do not mangle top-level variable to prevent global collisions
         },
         compress: {
           drop_console: true, // Remove console.log
