@@ -66,41 +66,41 @@
     </div>
   </div>
 
-  <!-- حاوية تفاصيل المنتج الرئيسية -->
-  <main id="albumDetailsContainer" style="display: none;">
+  <!-- حاوية تفاصيل القسم أو المنتج -->
+  <main id="catalogMainContainer" style="display: none;">
     
-    <!-- قسم ترويسة الألبوم الفاخرة -->
+    <!-- قسم ترويسة الصفحة -->
     <section class="album-page-hero">
       <div class="container">
         <!-- مسار التنقل Breadcrumb -->
         <nav class="album-breadcrumb" aria-label="مسار التنقل">
           <a href="index.html"><i class="fas fa-home"></i> الرئيسية</a>
           <i class="fas fa-chevron-left"></i>
-          <a href="index.html#gallery" id="breadcrumbCategory">التصنيفات</a>
+          <a href="index.html#gallery" id="breadcrumbCategory">الأقسام</a>
           <i class="fas fa-chevron-left"></i>
-          <span id="breadcrumbTitle">تفاصيل المنتج</span>
+          <span id="breadcrumbSubcategory" style="display:none;"><a href="#" id="breadcrumbSubLink">القسم الفرعي</a> <i class="fas fa-chevron-left"></i></span>
+          <span id="breadcrumbTitle">التفاصيل</span>
         </nav>
 
         <div class="album-hero-content">
           <div class="album-hero-text">
             <div class="album-badge-row">
-              <span class="album-cat-pill" id="albumCategoryBadge">
-                <i class="fas fa-gem"></i> تصنيف
+              <span class="album-cat-pill" id="pageTypeBadge">
+                <i class="fas fa-gem"></i> قسم
               </span>
-              <span class="album-count-pill">
-                <i class="fas fa-camera"></i> <span id="albumPhotoCount">0 صور</span>
+              <span class="album-count-pill" id="pageCountPill" style="display: none;">
+                <i class="fas fa-camera"></i> <span id="pageItemCount">0</span>
               </span>
-              <span class="album-date-pill">
+              <span class="album-date-pill" id="productDatePill" style="display: none;">
                 <i class="far fa-calendar-alt"></i> <span id="productDate">2026</span>
               </span>
             </div>
 
-            <h1 class="album-hero-title" id="productTitle">عنوان الألبوم الفاخر</h1>
-            <p class="album-hero-desc" id="albumDescription">تفاصيل التنسيق ومكونات الزهور الطبيعية والخامات الراقية.</p>
+            <h1 class="album-hero-title" id="pageTitle">عنوان القسم أو المنتج</h1>
+            <p class="album-hero-desc" id="pageDescription">وصف القسم أو تفاصيل التنسيق.</p>
           </div>
 
           <div class="album-hero-actions">
-            <!-- Removed WhatsApp Album order button as requested -->
             <a href="index.html#gallery" class="btn-topbar-link" style="justify-content: center;">
               <i class="fas fa-th-large"></i> تصفح باقي أعمالنا
             </a>
@@ -109,21 +109,38 @@
       </div>
     </section>
 
-    <!-- قسم المجلدات الفرعية (الألبومات) في حال عرض القسم -->
-    <section class="sub-albums-section" id="subAlbumsSection" style="display: none; padding: 40px 0; background: var(--bg-alt);">
+    <!-- قسم الأقسام الفرعية (يظهر فقط في عرض القسم الرئيسي) -->
+    <section class="subcategories-section" id="subcategoriesSection" style="display: none; padding: 40px 0; background: var(--bg-alt);">
       <div class="container">
         <div class="section-heading text-center" style="margin-bottom: 30px;">
-          <h2 class="heading-title" style="font-size: 24px;">ألبومات وتنسيقات متكاملة</h2>
+          <h2 class="heading-title" style="font-size: 24px;">الأقسام الفرعية</h2>
           <div class="heading-divider"></div>
         </div>
-        <div class="gallery-grid" id="subAlbumsGrid">
-          <!-- يتم توليد كروت الألبومات ديناميكياً -->
+        <div class="gallery-grid" id="subcategoriesGrid">
+          <!-- يتم توليد كروت الأقسام الفرعية ديناميكياً -->
         </div>
       </div>
     </section>
 
-    <!-- شبكة صور الألبوم الفردية بدقة عالية مع الاسم ورقم الكود -->
-    <section class="album-grid-section" id="directImagesSection">
+    <!-- قسم منتجات القسم أو القسم الفرعي -->
+    <section class="products-section" id="productsSection" style="display: none; padding: 40px 0;">
+      <div class="container">
+        <div class="section-heading text-center" style="margin-bottom: 30px;">
+          <h2 class="heading-title" style="font-size: 24px;">المنتجات والأعمال</h2>
+          <div class="heading-divider"></div>
+        </div>
+        <div class="gallery-grid" id="productsGrid">
+          <!-- يتم توليد كروت المنتجات ديناميكياً -->
+        </div>
+        <div id="noProductsMessage" class="hidden text-center" style="padding: 30px; color: var(--text-muted);">
+          <i class="fas fa-box-open" style="font-size: 40px; margin-bottom: 15px; opacity: 0.5;"></i>
+          <p>لا توجد منتجات مسجلة في هذا القسم حالياً.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- شبكة صور الألبوم الفردية بدقة عالية (تظهر فقط في عرض المنتج) -->
+    <section class="album-grid-section" id="productImagesSection" style="display: none;">
       <div class="container">
         <div class="section-heading text-center" style="margin-bottom: 40px;">
           <span class="heading-badge">صور بدقة كاملة</span>
@@ -133,7 +150,7 @@
         </div>
 
         <div class="album-photos-grid" id="albumPhotosGrid">
-          <!-- يتم توليد كروت الصور ديناميكياً مع الاسم ورقم الكود بواسطة album.js -->
+          <!-- يتم توليد كروت الصور ديناميكياً بواسطة catalog.js -->
         </div>
       </div>
     </section>

@@ -1,24 +1,32 @@
 /**
- * يلوروز | YELLOW ROSE - Album Details Page Logic (product.html)
- * Loads selected album photos, full-resolution responsive grid, photo names & codes, lightbox & WhatsApp booking
+ * يلوروز | YELLOW ROSE - Catalog Page Logic (catalog.html)
+ * Handles Category views, Subcategory views, and individual Product details (Lightbox)
  */
 
-let currentAlbum = null;
+let currentAlbum = null; // Used for Product view lightbox
 let currentLightboxIndex = 0;
 
 document.addEventListener("DOMContentLoaded", async () => {
   // Sync Site Settings (Announcement Bar & Logo)
   await window.YellowRoseDB.syncSiteSettingsToDom();
   
-  // Load dynamic categories
+  // Load dynamic categories & subcategories
   const categories = await window.YellowRoseDB.getCategories();
   if (categories && categories.length > 0) {
     window.CATEGORIES = {};
     categories.forEach(c => window.CATEGORIES[c.id] = c);
   }
 
+  const subcategories = await window.YellowRoseDB.getSubcategories();
+  if (subcategories && subcategories.length > 0) {
+    window.SUBCATEGORIES = {};
+    subcategories.forEach(c => window.SUBCATEGORIES[c.id] = c);
+  } else {
+    window.SUBCATEGORIES = {};
+  }
+
   setupNavigation();
-  await loadAlbumDetails();
+  await loadPageContent();
   setupLightboxListeners();
 });
 
@@ -43,59 +51,34 @@ function setupNavigation() {
   });
 }
 
-// Load Album by ID or Category
-async function loadAlbumDetails() {
+// Route the page based on query parameters
+async function loadPageContent() {
   const params = new URLSearchParams(window.location.search);
   const productId = params.get("id");
   const categoryId = params.get("category");
+  const subcategoryId = params.get("subcategory");
 
-  if (!productId && !categoryId) {
-    showNotFound("لم يتم تحديد معرّف الألبوم أو القسم المطلوب.");
+  if (!productId && !categoryId && !subcategoryId) {
+    showNotFound("لم يتم تحديد معرّف القسم أو الألبوم المطلوب.");
     return;
   }
 
   try {
     if (productId) {
-      currentAlbum = await window.YellowRoseDB.getProductById(productId);
-      if (!currentAlbum) {
-        showNotFound("عذراً، لم نتمكن من العثور على الألبوم المطلوب. ربما تم نقله أو حذفه.");
-        return;
-      }
-      renderAlbumDetails(currentAlbum);
+      await renderProductView(productId);
+    } else if (subcategoryId) {
+      await renderSubcategoryView(subcategoryId);
     } else if (categoryId) {
-      const allAlbums = await window.YellowRoseDB.getProducts();
-      const catAlbums = allAlbums.filter(a => a.categoryId === categoryId);
-      const catInfo = window.CATEGORIES[categoryId];
-
-      if (!catInfo) {
-        showNotFound("عذراً، لم نتمكن من العثور على القسم المطلوب.");
-        return;
-      }
-
-      const subAlbums = catAlbums.filter(a => !a.isDirectMode);
-      const directAlbum = catAlbums.find(a => a.isDirectMode);
-      
-      const syntheticAlbum = {
-        title: `قسم ${catInfo.name}`,
-        description: `تصفح جميع المجلدات والصور الخاصة بقسم ${catInfo.name} من يلوروز.`,
-        categoryId: categoryId,
-        categoryName: catInfo.name,
-        images: directAlbum ? directAlbum.images : [],
-        createdAt: new Date().toISOString().split('T')[0],
-        isCategoryView: true,
-        subAlbums: subAlbums
-      };
-      currentAlbum = syntheticAlbum;
-      renderAlbumDetails(currentAlbum);
+      await renderCategoryView(categoryId);
     }
   } catch (err) {
-    console.error("Error loading album details:", err);
-    showNotFound("حدث خطأ أثناء جلب تفاصيل الألبوم.");
+    console.error("Error loading page content:", err);
+    showNotFound("حدث خطأ أثناء جلب التفاصيل.");
   }
 }
 
 function showNotFound(message) {
-  const container = document.getElementById("albumDetailsContainer");
+  const container = document.getElementById("catalogMainContainer");
   const notFoundBox = document.getElementById("albumNotFound");
   const notFoundMsg = document.getElementById("notFoundMessage");
   if (container) container.style.display = "none";
@@ -105,102 +88,219 @@ function showNotFound(message) {
   }
 }
 
-// Render Album Header and Photo Gallery Grid
-function renderAlbumDetails(product) {
-  const container = document.getElementById("albumDetailsContainer");
-  if (!container) return;
-  container.style.display = "block";
+// -------------------------------------------------------------
+// 1. CATEGORY VIEW
+// -------------------------------------------------------------
+async function renderCategoryView(categoryId) {
+  const catInfo = window.CATEGORIES[categoryId];
+  if (!catInfo) {
+    showNotFound("عذراً، لم نتمكن من العثور على القسم المطلوب.");
+    return;
+  }
 
-  // Update Page Title
-  document.title = `${product.title} | أعمال يلوروز YELLOW ROSE`;
+  document.getElementById("catalogMainContainer").style.display = "block";
+  document.title = `قسم ${catInfo.name} | أعمال يلوروز YELLOW ROSE`;
 
-  // Breadcrumbs
-  const breadcrumbCat = document.getElementById("breadcrumbCategory");
-  const breadcrumbTitle = document.getElementById("breadcrumbTitle");
-  const catInfo = window.CATEGORIES[product.categoryId] || { name: product.categoryName || "الألبوم", icon: "fa-tag" };
+  // Breadcrumbs & Header
+  document.getElementById("breadcrumbCategory").textContent = catInfo.name;
+  document.getElementById("breadcrumbCategory").href = `catalog.html?category=${categoryId}`;
+  document.getElementById("breadcrumbTitle").textContent = "عرض القسم";
   
-  if (breadcrumbCat) {
-    breadcrumbCat.textContent = catInfo.name;
-    breadcrumbCat.href = `index.html#gallery`;
-  }
-  if (breadcrumbTitle) {
-    breadcrumbTitle.textContent = product.title;
-  }
+  document.getElementById("pageTypeBadge").innerHTML = `<i class="fas ${catInfo.icon || 'fa-gem'}"></i> قسم`;
+  document.getElementById("pageTitle").textContent = catInfo.name;
+  document.getElementById("pageDescription").textContent = `تصفح جميع الأقسام الفرعية والمنتجات الخاصة بقسم ${catInfo.name}.`;
 
-  // Header Elements
-  const catBadge = document.getElementById("productCategoryBadge");
-  const titleEl = document.getElementById("productTitle");
-  const descEl = document.getElementById("productDescription");
-  const dateEl = document.getElementById("productDate");
-  const countEl = document.getElementById("albumPhotoCount");
-  const images = Array.isArray(product.images) && product.images.length > 0 ? product.images : [product.coverUrl];
+  // Find Subcategories for this Category
+  const subcats = Object.values(window.SUBCATEGORIES).filter(s => s.categoryId === categoryId);
+  const subcatsSection = document.getElementById("subcategoriesSection");
+  const subcatsGrid = document.getElementById("subcategoriesGrid");
 
-  if (catBadge) {
-    catBadge.innerHTML = `<i class="fas ${catInfo.icon || 'fa-gem'}"></i> ${catInfo.name}`;
-  }
-  if (titleEl) titleEl.textContent = product.title;
-  if (descEl) descEl.textContent = product.description || "تنسيق متقن يعكس فخامة وأناقة مناسباتكم الخاصة.";
-  if (dateEl) dateEl.textContent = product.createdAt || "2026";
-  if (countEl) countEl.textContent = `${images.length} ${images.length > 10 ? 'منتج' : 'منتجات'}`;
-
-  // Render Sub-Albums
-  const subAlbumsSection = document.getElementById("subAlbumsSection");
-  const subAlbumsGrid = document.getElementById("subAlbumsGrid");
-  
-  if (product.isCategoryView && product.subAlbums && product.subAlbums.length > 0) {
-    if (subAlbumsSection) subAlbumsSection.style.display = "block";
-    if (subAlbumsGrid) {
-      subAlbumsGrid.innerHTML = "";
-      product.subAlbums.forEach(sub => {
-        const cover = sub.coverUrl || (sub.images && (sub.images[0]?.thumbnailUrl || sub.images[0]?.url || sub.images[0])) || "assets/logo.png";
-        const imgCount = Array.isArray(sub.images) ? sub.images.length : 1;
-        const card = document.createElement("a");
-        card.href = `catalog.html?id=${sub.id}`;
-        card.className = "gallery-card";
-        card.innerHTML = `
-          <div class="gallery-img-wrapper">
-            <img src="${window.escapeHtml(cover)}" alt="${window.escapeHtml(sub.title)}" loading="lazy" onerror="this.src='assets/logo.png';">
-            <div class="gallery-overlay">
-              <span class="gallery-btn"><i class="fas fa-eye"></i> استعرض الألبوم</span>
-            </div>
-            <div class="gallery-badge"><i class="fas fa-images"></i> ${imgCount} صورة</div>
-            ${sub.featured ? '<div class="gallery-featured-badge"><i class="fas fa-star"></i> مميز</div>' : ''}
+  if (subcats.length > 0) {
+    subcatsSection.style.display = "block";
+    subcatsGrid.innerHTML = "";
+    subcats.forEach(sub => {
+      const cover = sub.coverUrl || "assets/logo.png";
+      const card = document.createElement("div");
+      card.className = "album-card category-card";
+      card.innerHTML = `
+        <div class="card-img-wrapper">
+          <a href="catalog.html?subcategory=${sub.id}" class="card-img-link">
+            <img src="${escapeHtml(cover)}" alt="${escapeHtml(sub.name)}" class="card-img" loading="lazy" onerror="this.src='assets/logo.png';">
+          </a>
+          <span class="card-category-badge" style="top: 15px; left: auto; right: 15px; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
+            <i class="fas ${sub.icon || 'fa-folder'}"></i> ${escapeHtml(sub.name)}
+          </span>
+        </div>
+        <div class="card-body">
+          <h3 class="card-title" style="margin-bottom: 5px;">
+            <a href="catalog.html?subcategory=${sub.id}">${escapeHtml(sub.name)}</a>
+          </h3>
+          <p class="card-desc">استعرض منتجات وتنسيقات القسم الفرعي.</p>
+          <div class="card-album-actions" style="margin-top: 15px;">
+            <a href="catalog.html?subcategory=${sub.id}" class="btn-card-album" style="width: 100%; justify-content: center;">
+              <i class="fas fa-images"></i> عرض المنتجات
+            </a>
           </div>
-          <div class="gallery-card-content">
-            <h3 class="gallery-title">${window.escapeHtml(sub.title)}</h3>
-            <p class="gallery-category">${catInfo.name}</p>
-          </div>
-        `;
-        subAlbumsGrid.appendChild(card);
-      });
-    }
+        </div>
+      `;
+      subcatsGrid.appendChild(card);
+    });
   } else {
-    if (subAlbumsSection) subAlbumsSection.style.display = "none";
+    subcatsSection.style.display = "none";
   }
 
-  // Render Images Grid
-  const grid = document.getElementById("albumPhotosGrid");
-  const directImagesSection = document.getElementById("directImagesSection");
-  if (!grid) return;
-  grid.innerHTML = "";
+  // Find Products that belong directly to this category
+  const allProducts = await window.YellowRoseDB.getProducts();
+  const catProducts = allProducts.filter(p => p.categoryId === categoryId && !p.subcategoryId);
+  
+  const normalProducts = catProducts.filter(p => !p.isDirectMode);
+  const directAlbums = catProducts.filter(p => p.isDirectMode);
 
-  if (images.length === 0 && product.isCategoryView) {
-    if (directImagesSection) directImagesSection.style.display = "none";
+  renderProductsGrid(normalProducts, catInfo);
+  renderDirectImagesGrid(directAlbums, catInfo);
+}
+
+// -------------------------------------------------------------
+// 2. SUBCATEGORY VIEW
+// -------------------------------------------------------------
+async function renderSubcategoryView(subcategoryId) {
+  const subInfo = window.SUBCATEGORIES[subcategoryId];
+  if (!subInfo) {
+    showNotFound("عذراً، لم نتمكن من العثور على القسم الفرعي المطلوب.");
+    return;
+  }
+  const catInfo = window.CATEGORIES[subInfo.categoryId] || { name: "القسم الرئيسي", id: subInfo.categoryId };
+
+  document.getElementById("catalogMainContainer").style.display = "block";
+  document.title = `${subInfo.name} | أعمال يلوروز YELLOW ROSE`;
+
+  // Breadcrumbs & Header
+  document.getElementById("breadcrumbCategory").textContent = catInfo.name;
+  document.getElementById("breadcrumbCategory").href = `catalog.html?category=${catInfo.id}`;
+  
+  const breadcrumbSub = document.getElementById("breadcrumbSubcategory");
+  breadcrumbSub.style.display = "inline";
+  document.getElementById("breadcrumbSubLink").textContent = subInfo.name;
+  document.getElementById("breadcrumbSubLink").href = `catalog.html?subcategory=${subInfo.id}`;
+  
+  document.getElementById("breadcrumbTitle").textContent = "عرض المنتجات";
+  
+  document.getElementById("pageTypeBadge").innerHTML = `<i class="fas ${subInfo.icon || 'fa-folder-open'}"></i> قسم فرعي`;
+  document.getElementById("pageTitle").textContent = subInfo.name;
+  document.getElementById("pageDescription").textContent = `تصفح جميع المنتجات الخاصة بـ ${subInfo.name}.`;
+
+  // Hide subcategories section
+  document.getElementById("subcategoriesSection").style.display = "none";
+
+  // Find Products
+  const allProducts = await window.YellowRoseDB.getProducts();
+  const subProducts = allProducts.filter(p => p.subcategoryId === subcategoryId);
+  
+  const normalProducts = subProducts.filter(p => !p.isDirectMode);
+  const directAlbums = subProducts.filter(p => p.isDirectMode);
+
+  renderProductsGrid(normalProducts, catInfo);
+  renderDirectImagesGrid(directAlbums, catInfo);
+}
+
+// Render the products grid for Category/Subcategory views
+function renderProductsGrid(products, catInfo) {
+  const productsSection = document.getElementById("productsSection");
+  const productsGrid = document.getElementById("productsGrid");
+  const noProducts = document.getElementById("noProductsMessage");
+
+  productsSection.style.display = "block";
+  productsGrid.innerHTML = "";
+
+  if (products.length === 0) {
+    noProducts.classList.remove("hidden");
+    return;
+  } else {
+    noProducts.classList.add("hidden");
+  }
+
+  // Update header count
+  const countPill = document.getElementById("pageCountPill");
+  countPill.style.display = "inline-flex";
+  document.getElementById("pageItemCount").textContent = `${products.length} ${products.length > 10 ? 'منتج' : 'منتجات'}`;
+
+  products.forEach(p => {
+    const cover = p.coverUrl || (p.images && p.images.length > 0 && (p.images[0].thumbnailUrl || p.images[0].url)) || "assets/logo.png";
+    const imgCount = Array.isArray(p.images) ? p.images.length : 1;
+    const card = document.createElement("a");
+    card.href = `catalog.html?id=${p.id}`;
+    card.className = "gallery-card";
+    card.innerHTML = `
+      <div class="gallery-img-wrapper">
+        <img src="${escapeHtml(cover)}" alt="${escapeHtml(p.title)}" loading="lazy" onerror="this.src='assets/logo.png';">
+        <div class="gallery-overlay">
+          <span class="gallery-btn"><i class="fas fa-eye"></i> تفاصيل العمل</span>
+        </div>
+        <div class="gallery-badge"><i class="fas fa-images"></i> ${imgCount} صورة</div>
+        ${p.featured ? '<div class="gallery-featured-badge"><i class="fas fa-star"></i> مميز</div>' : ''}
+      </div>
+      <div class="gallery-card-content">
+        <h3 class="gallery-title">${escapeHtml(p.title)}</h3>
+        <p class="gallery-category">${escapeHtml(catInfo.name)}</p>
+      </div>
+    `;
+    productsGrid.appendChild(card);
+  });
+}
+
+// Render the unpacked images for direct albums
+function renderDirectImagesGrid(directAlbums, catInfo) {
+  const imagesSection = document.getElementById("productImagesSection");
+  const grid = document.getElementById("albumPhotosGrid");
+  
+  if (!directAlbums || directAlbums.length === 0) {
+    if (!currentAlbum) { // only hide if not in product view
+      imagesSection.style.display = "none";
+    }
     return;
   }
   
-  if (directImagesSection) directImagesSection.style.display = "block";
+  imagesSection.style.display = "block";
+  // We don't clear the grid because maybe it was cleared already, but just to be safe
+  grid.innerHTML = "";
 
-  images.forEach((photo, index) => {
+  // Combine all images from all direct albums
+  let allDirectImages = [];
+  directAlbums.forEach(album => {
+    if (album.images && album.images.length > 0) {
+      album.images.forEach(img => {
+        allDirectImages.push({
+          photo: img,
+          albumTitle: album.title,
+          album: album
+        });
+      });
+    } else if (album.coverUrl) {
+      allDirectImages.push({
+        photo: album.coverUrl,
+        albumTitle: album.title,
+        album: album
+      });
+    }
+  });
+  
+  // Set global currentAlbum to a synthetic one so lightbox works
+  currentAlbum = {
+    title: catInfo.name,
+    images: allDirectImages.map(item => item.photo)
+  };
+
+  allDirectImages.forEach((item, index) => {
+    const photo = item.photo;
     const photoUrl = typeof photo === "string" ? photo : photo.url;
     const photoThumbUrl = typeof photo === "object" && photo.thumbnailUrl ? photo.thumbnailUrl : photoUrl;
-    const photoName = typeof photo === "object" && photo.name ? photo.name : `${product.title} (صورة #${index + 1})`;
+    const photoName = typeof photo === "object" && photo.name ? photo.name : `${item.albumTitle} (صورة #${index + 1})`;
     const photoCode = typeof photo === "object" && photo.code ? photo.code : `#YR-0${index + 1}`;
 
     const itemCard = document.createElement("div");
     itemCard.className = "album-photo-card";
 
-    const photoWaUrl = window.YellowRoseDB.buildWhatsAppUrl(product, { url: photoUrl, name: photoName, code: photoCode });
+    const photoWaUrl = window.YellowRoseDB.buildWhatsAppUrl(item.album, { url: photoUrl, name: photoName, code: photoCode });
 
     itemCard.innerHTML = `
       <div class="album-photo-inner" onclick="openLightbox(${index})" title="اضغط للتكبير الكامل">
@@ -234,7 +334,111 @@ function renderAlbumDetails(product) {
   });
 }
 
+// -------------------------------------------------------------
+// 3. PRODUCT VIEW
+// -------------------------------------------------------------
+async function renderProductView(productId) {
+  currentAlbum = await window.YellowRoseDB.getProductById(productId);
+  if (!currentAlbum) {
+    showNotFound("عذراً، لم نتمكن من العثور على المنتج المطلوب.");
+    return;
+  }
+
+  document.getElementById("catalogMainContainer").style.display = "block";
+  document.title = `${currentAlbum.title} | أعمال يلوروز YELLOW ROSE`;
+
+  const catInfo = window.CATEGORIES[currentAlbum.categoryId] || { name: currentAlbum.categoryName || "الأقسام", id: currentAlbum.categoryId };
+  const subInfo = currentAlbum.subcategoryId ? window.SUBCATEGORIES[currentAlbum.subcategoryId] : null;
+
+  // Breadcrumbs
+  document.getElementById("breadcrumbCategory").textContent = catInfo.name;
+  document.getElementById("breadcrumbCategory").href = `catalog.html?category=${catInfo.id}`;
+  
+  if (subInfo) {
+    const breadcrumbSub = document.getElementById("breadcrumbSubcategory");
+    breadcrumbSub.style.display = "inline";
+    document.getElementById("breadcrumbSubLink").textContent = subInfo.name;
+    document.getElementById("breadcrumbSubLink").href = `catalog.html?subcategory=${subInfo.id}`;
+  }
+  
+  document.getElementById("breadcrumbTitle").textContent = currentAlbum.title;
+
+  // Header Elements
+  document.getElementById("pageTypeBadge").innerHTML = `<i class="fas ${catInfo.icon || 'fa-gem'}"></i> ${catInfo.name}`;
+  document.getElementById("pageTitle").textContent = currentAlbum.title;
+  document.getElementById("pageDescription").textContent = currentAlbum.description || "تنسيق متقن يعكس فخامة وأناقة مناسباتكم الخاصة.";
+  
+  const datePill = document.getElementById("productDatePill");
+  datePill.style.display = "inline-flex";
+  document.getElementById("productDate").textContent = currentAlbum.createdAt || "2026";
+  
+  const images = Array.isArray(currentAlbum.images) && currentAlbum.images.length > 0 ? currentAlbum.images : (currentAlbum.coverUrl ? [currentAlbum.coverUrl] : []);
+  const countPill = document.getElementById("pageCountPill");
+  countPill.style.display = "inline-flex";
+  document.getElementById("pageItemCount").textContent = `${images.length} ${images.length > 10 ? 'صورة' : 'صور'}`;
+
+  // Hide unnecessary sections
+  document.getElementById("subcategoriesSection").style.display = "none";
+  document.getElementById("productsSection").style.display = "none";
+
+  // Show and Render Images Grid
+  const imagesSection = document.getElementById("productImagesSection");
+  const grid = document.getElementById("albumPhotosGrid");
+  
+  if (images.length === 0) {
+    imagesSection.style.display = "none";
+    return;
+  }
+  
+  imagesSection.style.display = "block";
+  grid.innerHTML = "";
+
+  images.forEach((photo, index) => {
+    const photoUrl = typeof photo === "string" ? photo : photo.url;
+    const photoThumbUrl = typeof photo === "object" && photo.thumbnailUrl ? photo.thumbnailUrl : photoUrl;
+    const photoName = typeof photo === "object" && photo.name ? photo.name : `${currentAlbum.title} (صورة #${index + 1})`;
+    const photoCode = typeof photo === "object" && photo.code ? photo.code : `#YR-0${index + 1}`;
+
+    const itemCard = document.createElement("div");
+    itemCard.className = "album-photo-card";
+
+    const photoWaUrl = window.YellowRoseDB.buildWhatsAppUrl(currentAlbum, { url: photoUrl, name: photoName, code: photoCode });
+
+    itemCard.innerHTML = `
+      <div class="album-photo-inner" onclick="openLightbox(${index})" title="اضغط للتكبير الكامل">
+        <img src="${escapeHtml(photoThumbUrl)}" alt="${escapeHtml(photoName)}" class="album-photo-img" loading="lazy" onerror="this.src='assets/logo.png';">
+        <div class="album-photo-overlay">
+          <button class="btn-zoom-photo" title="عرض بدقة كاملة">
+            <i class="fas fa-search-plus"></i>
+          </button>
+        </div>
+        <span class="photo-code-badge"><i class="fas fa-hashtag"></i> ${escapeHtml(photoCode)}</span>
+      </div>
+
+      <div class="album-photo-info-box">
+        <div class="photo-name-row">
+          <h4 class="photo-title-text">${escapeHtml(photoName)}</h4>
+          <span class="photo-code-pill">${escapeHtml(photoCode)}</span>
+        </div>
+        
+        <div class="album-photo-footer">
+          <button class="btn-open-lightbox-small" onclick="openLightbox(${index})">
+            <i class="fas fa-expand"></i> معاينة مكبرة
+          </button>
+          <a href="${photoWaUrl}" target="_blank" rel="noopener" class="btn-photo-whatsapp" title="طلب هذا النموذج بالاسم والكود">
+            <i class="fab fa-whatsapp"></i> طلب بالواتساب
+          </a>
+        </div>
+      </div>
+    `;
+
+    grid.appendChild(itemCard);
+  });
+}
+
+// -------------------------------------------------------------
 // Lightbox Logic
+// -------------------------------------------------------------
 window.openLightbox = function(index) {
   if (!currentAlbum || !currentAlbum.images) return;
   currentLightboxIndex = index;
