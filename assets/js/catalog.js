@@ -85,8 +85,8 @@ async function loadAlbumDetails() {
         isCategoryView: true,
         subAlbums: subAlbums
       };
-      
-      renderAlbumDetails(syntheticAlbum);
+      currentAlbum = syntheticAlbum;
+      renderAlbumDetails(currentAlbum);
     }
   } catch (err) {
     console.error("Error loading album details:", err);
@@ -200,7 +200,7 @@ function renderAlbumDetails(product) {
     const itemCard = document.createElement("div");
     itemCard.className = "album-photo-card";
 
-    const photoWaUrl = window.YellowRoseDB.buildWhatsAppUrl(album, { url: photoUrl, name: photoName, code: photoCode });
+    const photoWaUrl = window.YellowRoseDB.buildWhatsAppUrl(product, { url: photoUrl, name: photoName, code: photoCode });
 
     itemCard.innerHTML = `
       <div class="album-photo-inner" onclick="openLightbox(${index})" title="اضغط للتكبير الكامل">
