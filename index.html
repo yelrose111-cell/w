@@ -87,117 +87,90 @@
     </div>
   </section>
 
-  <!-- ألبوم التصنيفات وأعمالنا (Gallery Section) -->
+  <!-- قسم المعرض والكتالوج العصري المستوحى من الطراز العالمي -->
   <section class="gallery-section" id="gallery">
     <div class="container">
-      <div class="section-heading text-center">
-        <span class="heading-badge">كتالوج المعرض</span>
-        <h2 class="heading-title">أعمالنا</h2>
-        <div class="heading-divider"></div>
-        <p class="heading-subtitle">تصفح على الاقسام المختارة، واضغط على أي قسم للاطلاع على تفاصيل المنتجات الكاملة الخاصة به</p>
-      </div>
+      
+      <!-- 1. شريط الأقسام والمناسبات الدائري (Carousel) -->
+      <div class="occasions-section-wrapper" id="mainShowcaseUI">
+        <div class="section-heading text-center" style="margin-bottom: 25px;">
+          <span class="heading-badge">تصفح حسب القسم</span>
+          <h2 class="heading-title">أقسام ومناسبات <span class="gold-text">يلوروز</span></h2>
+          <div class="heading-divider"></div>
+        </div>
 
-      <!-- شريط أدوات الفلترة والأقسام الـ 12 -->
-      <div class="categories-bar-wrapper">
-        <div class="categories-bar" id="categoryTabs">
-          <button class="cat-btn active" data-category="all">
-            <i class="fas fa-th"></i>
-            <span>الكل</span>
-            <span class="cat-count" id="count-all">0</span>
-          </button>
-          
-          <button class="cat-btn" data-category="bouquets">
-            <i class="fas fa-seedling"></i>
-            <span>باقات</span>
-            <span class="cat-count" id="count-bouquets">0</span>
-          </button>
-
-          <button class="cat-btn" data-category="vases">
-            <i class="fas fa-wine-bottle"></i>
-            <span>فازات</span>
-            <span class="cat-count" id="count-vases">0</span>
-          </button>
-
-          <button class="cat-btn" data-category="bridal">
-            <i class="fas fa-female"></i>
-            <span>مسكات عرائس</span>
-            <span class="cat-count" id="count-bridal">0</span>
-          </button>
-
-          <button class="cat-btn" data-category="entrance_tables">
-            <i class="fas fa-archway"></i>
-            <span>طاولات مداخل</span>
-            <span class="cat-count" id="count-entrance_tables">0</span>
-          </button>
-
-          <button class="cat-btn" data-category="balloon_arch">
-            <i class="fas fa-circle-notch"></i>
-            <span>قوس بالونات</span>
-            <span class="cat-count" id="count-balloon_arch">0</span>
-          </button>
-
-          <button class="cat-btn" data-category="marriage_contracts">
-            <i class="fas fa-file-signature"></i>
-            <span>عقود زواج</span>
-            <span class="cat-count" id="count-marriage_contracts">0</span>
-          </button>
-
-          <button class="cat-btn" data-category="flower_corners">
-            <i class="fas fa-vector-square"></i>
-            <span>ركنية ورد</span>
-            <span class="cat-count" id="count-flower_corners">0</span>
-          </button>
-
-          <button class="cat-btn" data-category="coffee_corners">
-            <i class="fas fa-coffee"></i>
-            <span>ركن قهوة</span>
-            <span class="cat-count" id="count-coffee_corners">0</span>
-          </button>
-
-          <button class="cat-btn" data-category="engagement">
-            <i class="fas fa-ring"></i>
-            <span>شبكات خطوبة</span>
-            <span class="cat-count" id="count-engagement">0</span>
-          </button>
-
-          <button class="cat-btn" data-category="car_decor">
-            <i class="fas fa-car-side"></i>
-            <span>تشريع وزينة سيارات</span>
-            <span class="cat-count" id="count-car_decor">0</span>
-          </button>
-
-          <button class="cat-btn" data-category="special_events">
-            <i class="fas fa-glass-cheers"></i>
-            <span>احتفالات خاصة</span>
-            <span class="cat-count" id="count-special_events">0</span>
-          </button>
-
-          <button class="cat-btn" data-category="other">
-            <i class="fas fa-ellipsis-h"></i>
-            <span>أخرى</span>
-            <span class="cat-count" id="count-other">0</span>
-          </button>
+        <!-- شريط التمرير الأفقي للأقسام الدائرية -->
+        <div class="circular-categories-container">
+          <div class="circular-categories-track" id="circularCategoriesTrack">
+            <!-- يتم حقن الأقسام الدائرية ديناميكياً بواسطة main.js -->
+            <div class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i> جاري تحميل الأقسام...</div>
+          </div>
         </div>
       </div>
 
-      <!-- شريط البحث السريع المخصص للزوار -->
-      <div class="gallery-controls">
-        <div class="search-box" style="max-width: 550px; margin: 0 auto;">
+      <!-- 2. شريط البحث السريع المخصص للزوار -->
+      <div class="gallery-controls" style="margin: 35px auto; max-width: 600px;">
+        <div class="search-box">
           <i class="fas fa-search"></i>
-          <input type="text" id="gallerySearchInput" placeholder="ابحث باسم التنسيق أو القسم (مثال: مسكة عروس، باقة روز)...">
+          <input type="text" id="gallerySearchInput" placeholder="ابحث باسم التنسيق، الورد، أو المناسبة...">
         </div>
       </div>
 
-      <!-- شبكة عرض بطاقات الألبومات -->
-      <div class="gallery-grid" id="galleryGrid">
-        <!-- يتم توليد كروت الألبومات ديناميكياً بواسطة assets/js/main.js -->
+      <div id="defaultTracksUI">
+        <!-- 3. قسم التنسيقات المميزة والأكثر طلباً (Top Seller / Featured) -->
+        <div class="showcase-block" id="featuredSection">
+          <div class="showcase-header">
+            <div class="showcase-title-box">
+              <span class="showcase-mini-tag"><i class="fas fa-crown"></i> مختارات النخبة</span>
+              <h3 class="showcase-main-title">التنسيقات الأكثر طلباً</h3>
+            </div>
+            <a href="catalog.html" class="btn-view-all">
+              <span>عرض الكل</span>
+              <i class="fas fa-arrow-left"></i>
+            </a>
+          </div>
+
+          <div class="horizontal-cards-track" id="featuredProductsTrack">
+            <!-- يتم توليد البطاقات ديناميكياً بواسطة main.js -->
+          </div>
+        </div>
+
+        <!-- 4. قسم وصل حديثاً (New Arrivals) -->
+        <div class="showcase-block" id="newArrivalsSection" style="margin-top: 50px;">
+          <div class="showcase-header">
+            <div class="showcase-title-box">
+              <span class="showcase-mini-tag"><i class="fas fa-sparkles"></i> إبداع مستمر</span>
+              <h3 class="showcase-main-title">وصل حديثاً لمعرضنا</h3>
+            </div>
+            <a href="catalog.html" class="btn-view-all">
+              <span>عرض الكل</span>
+              <i class="fas fa-arrow-left"></i>
+            </a>
+          </div>
+
+          <div class="horizontal-cards-track" id="newArrivalsTrack">
+            <!-- يتم توليد البطاقات ديناميكياً بواسطة main.js -->
+          </div>
+        </div>
       </div>
 
-      <!-- رسالة في حال عدم وجود نتائج -->
-      <div class="no-items-message hidden" id="noItemsMessage">
-        <i class="fas fa-box-open"></i>
-        <p>لا توجد ألبومات مطابقة لهذا التصنيف حالياً.</p>
+      <!-- شبكة عرض نتائج البحث المخفية افتراضياً -->
+      <div id="searchResultsUI" class="hidden">
+        <div class="section-heading text-center" style="margin-bottom: 25px;">
+          <h2 class="heading-title">نتائج البحث</h2>
+          <div class="heading-divider"></div>
+        </div>
+        <div class="gallery-grid" id="searchResultsGrid">
+          <!-- يتم توليد نتائج البحث كبطاقات عصرية هنا -->
+        </div>
+        
+        <!-- رسالة في حال عدم وجود نتائج بحث -->
+        <div class="no-items-message hidden" id="noItemsMessage">
+          <i class="fas fa-search"></i>
+          <p>لم نتمكن من إيجاد نتائج مطابقة لبحثك.</p>
+        </div>
       </div>
+
     </div>
   </section>
 

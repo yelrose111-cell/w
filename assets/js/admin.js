@@ -462,7 +462,6 @@ function setupFormHandlers() {
       const subcatSelect = document.getElementById("productSubcategorySelect");
       const titleInput = document.getElementById("productTitleInput");
       const descInput = document.getElementById("productDescInput");
-      const priceInput = document.getElementById("productPriceInput");
       const featuredCheck = document.getElementById("productFeaturedCheck");
       const directModeCheck = document.getElementById("enableProductModeCheck");
 
@@ -472,7 +471,6 @@ function setupFormHandlers() {
         subcategoryId: subcatSelect ? subcatSelect.value : "",
         title: titleInput ? titleInput.value.trim() : "",
         description: descInput ? descInput.value.trim() : "",
-        price: priceInput ? priceInput.value.trim() : "",
         featured: featuredCheck ? featuredCheck.checked : false,
         isDirectMode: directModeCheck ? directModeCheck.checked : true,
         coverUrl: selectedCoverUrl || (currentProductImages[0] ? currentProductImages[0].url : ""),

@@ -12,8 +12,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   await window.YellowRoseDB.syncSiteSettingsToDom();
 
   setupNavigation();
-  await loadAndRenderProducts();
-  setupFilterAndSearch();
+  await loadAndRenderModernShowcase();
+  setupSearchFilter();
 });
 
 // Setup Mobile Nav and Header Shadow
@@ -47,198 +47,191 @@ function setupNavigation() {
 
 // Load and Render Albums from DB
 
-async function loadAndRenderProducts() {
-  const cats = await window.YellowRoseDB.getCategories();
-  window.CATEGORIES = {};
-  cats.forEach(c => window.CATEGORIES[c.id] = c);
-  
-  const categoryTabs = document.getElementById("categoryTabs");
-  if (categoryTabs) {
-    categoryTabs.innerHTML = `
-      <button class="cat-btn active" data-category="all">
-        <div class="cat-img-wrapper">
-          <i class="fas fa-th cat-fallback-icon"></i>
-        </div>
-        <span>الكل</span>
-      </button>
-    `;
-    cats.forEach(cat => {
-      const mediaHtml = cat.coverUrl 
-        ? `<img src="${cat.coverUrl}" alt="${cat.name}" class="cat-img" loading="lazy">` 
-        : `<i class="fas ${cat.icon || 'fa-tag'} cat-fallback-icon"></i>`;
-      
-      categoryTabs.innerHTML += `
-        <button class="cat-btn" data-category="${cat.id}">
-          <div class="cat-img-wrapper">
-            ${mediaHtml}
-          </div>
-          <span>${cat.name}</span>
-        </button>
-      `;
-    });
-    
-    // Re-attach listeners for category buttons
-    document.querySelectorAll(".cat-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        currentCategory = btn.getAttribute("data-category");
-        renderGallery();
-      });
-    });
-  }
-  
-  // Populate footer categories dynamically
-  const footerGrid = document.getElementById("footerCategoriesGrid");
-  if (footerGrid) {
-    footerGrid.innerHTML = "";
-    cats.forEach(cat => {
-      const link = document.createElement("a");
-      link.href = `catalog.html?category=${cat.id}`;
-      link.textContent = cat.name;
-      footerGrid.appendChild(link);
-    });
-  }
+let allCategories = [];
 
-  // Populate mobile categories menu
-  const mobileCats = document.getElementById("mobileCategoriesList");
-  if (mobileCats) {
-    mobileCats.innerHTML = "";
-    cats.forEach(cat => {
-      const link = document.createElement("a");
-      link.href = `catalog.html?category=${cat.id}`;
-      link.innerHTML = `<i class="fas ${cat.icon || 'fa-tag'}"></i> ${cat.name}`;
-      mobileCats.appendChild(link);
-    });
-  }
-
-  const productsListContainer = document.getElementById("galleryGrid");
-  if (!productsListContainer) return;
-  productsListContainer.innerHTML = '<div class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i> جاري تحميل المنتجات...</div>';
-
+// دالة جلب وعرض الأقسام والمنتجات بالنظام الحديث
+async function loadAndRenderModernShowcase() {
   try {
+    // 1. جلب الأقسام والمنتجات من قاعدة البيانات
+    allCategories = await window.YellowRoseDB.getCategories();
     allProducts = await window.YellowRoseDB.getProducts();
-    updateCategoryCounts();
-    renderGallery();
-  } catch (err) {
-    console.error("Failed to load products:", err);
-    productsListContainer.innerHTML = `
-      <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
-        <p style="color: #c0392b;">حدث خطأ أثناء تحميل المنتجات، يرجى إعادة المحاولة.</p>
-      </div>
-    `;
-  }
-}
 
-// Filter and Render Gallery
-function renderGallery() {
-  const grid = document.getElementById("galleryGrid");
-  const noItemsMsg = document.getElementById("noItemsMessage");
-  if (!grid) return;
+    // تحديث كاش الأقسام العام
+    window.CATEGORIES = {};
+    allCategories.forEach(c => window.CATEGORIES[c.id] = c);
 
-  grid.innerHTML = "";
+    // 2. رندرة شريط الأقسام الدائري
+    renderCircularCategories(allCategories);
 
-  const cats = Object.values(window.CATEGORIES);
-  let renderedCount = 0;
+    // 3. رندرة الأقسام المميزة ووصل حديثاً
+    renderProductTracks(allProducts);
 
-  cats.forEach(catInfo => {
-    // Filter by tab
-    if (currentCategory !== "all" && catInfo.id !== currentCategory) return;
-
-    // Filter by search
-    if (searchQuery && !catInfo.name.toLowerCase().includes(searchQuery.toLowerCase())) return;
-
-    const catAlbums = allProducts.filter(a => a.categoryId === catInfo.id);
-    
-    let imagesCount = 0;
-    let coverUrl = 'assets/logo.png';
-    let hasFeatured = false;
-
-    if (catAlbums.length > 0) {
-      catAlbums.forEach(a => {
-        if (a.images && a.images.length > 0) imagesCount += a.images.length;
-        if (a.featured) hasFeatured = true;
+    // Populate footer categories dynamically
+    const footerGrid = document.getElementById("footerCategoriesGrid");
+    if (footerGrid) {
+      footerGrid.innerHTML = "";
+      allCategories.forEach(cat => {
+        const link = document.createElement("a");
+        link.href = `catalog.html?category=${cat.id}`;
+        link.textContent = cat.name;
+        footerGrid.appendChild(link);
       });
-      // Try to find cover url from the newest album
-      for (let i = catAlbums.length - 1; i >= 0; i--) {
-        const a = catAlbums[i];
-        if (a.coverUrl) { coverUrl = a.coverUrl; break; }
-        if (a.images && a.images.length > 0) { coverUrl = a.images[0].thumbnailUrl || a.images[0].url; break; }
-      }
-    } else {
-      // Don't show empty categories on the home page
-      return; 
     }
 
-    renderedCount++;
+    // Populate mobile categories menu
+    const mobileCats = document.getElementById("mobileCategoriesList");
+    if (mobileCats) {
+      mobileCats.innerHTML = "";
+      allCategories.forEach(cat => {
+        const link = document.createElement("a");
+        link.href = `catalog.html?category=${cat.id}`;
+        link.innerHTML = `<i class="fas ${cat.icon || 'fa-tag'}"></i> ${cat.name}`;
+        mobileCats.appendChild(link);
+      });
+    }
 
-    const card = document.createElement("div");
-    card.className = "album-card category-card";
-    card.setAttribute("data-id", catInfo.id);
+  } catch (err) {
+    console.error("فشل تحميل البيانات:", err);
+  }
+}
 
-    card.innerHTML = `
-      <div class="card-img-wrapper">
-        <a href="catalog.html?category=${catInfo.id}" class="card-img-link" title="استعراض قسم ${escapeHtml(catInfo.name)}">
-          <img src="${escapeHtml(coverUrl)}" alt="${escapeHtml(catInfo.name)}" class="card-img" loading="lazy" onerror="this.src='assets/logo.png';">
-        </a>
-        <span class="card-category-badge" style="top: 15px; left: auto; right: 15px; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
-          <i class="fas ${catInfo.icon || 'fa-tag'}"></i> ${escapeHtml(catInfo.name)}
-        </span>
-        <span class="card-photo-count">
-          <i class="fas fa-camera"></i> ${imagesCount} ${imagesCount > 10 ? 'منتج' : 'منتجات'}
-        </span>
-        ${hasFeatured ? `<span class="card-featured-badge"><i class="fas fa-star"></i> قسم مميز</span>` : ''}
-      </div>
+// 1. بناء شريط الأقسام الدائري
+function renderCircularCategories(cats) {
+  const track = document.getElementById("circularCategoriesTrack");
+  if (!track) return;
 
-      <div class="card-body">
-        <h3 class="card-title" style="margin-bottom: 5px;">
-          <a href="catalog.html?category=${catInfo.id}">${escapeHtml(catInfo.name)}</a>
-        </h3>
-        <p class="card-desc">استعرض جميع صور وتنسيقات قسم ${escapeHtml(catInfo.name)} بشكل مباشر.</p>
-        
-        <div class="card-album-actions" style="margin-top: 15px;">
-          <a href="catalog.html?category=${catInfo.id}" class="btn-card-album" style="width: 100%; justify-content: center;">
-            <i class="fas fa-images"></i> عرض جميع المنتجات للقسم
-          </a>
+  track.innerHTML = `
+    <a href="catalog.html" class="category-circle-item active" title="عرض كل الأقسام">
+      <div class="category-circle-img-box">
+        <div class="category-circle-img" style="display:flex;align-items:center;justify-content:center;background:#F5EBD4;color:var(--gold-dark);font-size:22px;">
+          <i class="fas fa-th-large"></i>
         </div>
       </div>
+      <span class="category-circle-name">الكل</span>
+    </a>
+  `;
+
+  cats.forEach(cat => {
+    const cover = cat.coverUrl || 'assets/logo.png';
+    const item = document.createElement("a");
+    item.href = `catalog.html?category=${cat.id}`;
+    item.className = "category-circle-item";
+    item.innerHTML = `
+      <div class="category-circle-img-box">
+        <img src="${cover}" alt="${cat.name}" class="category-circle-img" loading="lazy" onerror="this.src='assets/logo.png';">
+      </div>
+      <span class="category-circle-name">${cat.name}</span>
     `;
-
-    grid.appendChild(card);
+    track.appendChild(item);
   });
+}
 
-  if (renderedCount === 0) {
-    if (noItemsMsg) noItemsMsg.classList.remove("hidden");
-  } else {
-    if (noItemsMsg) noItemsMsg.classList.add("hidden");
+// 2. بناء شريطي المنتجات (الأكثر طلباً + وصل حديثاً)
+function renderProductTracks(products) {
+  const featuredTrack = document.getElementById("featuredProductsTrack");
+  const newArrivalsTrack = document.getElementById("newArrivalsTrack");
+
+  // تصفية المنتجات المميزة (featured) أو أخذ أول 8 منتجات
+  const featured = products.filter(p => p.featured);
+  const featuredList = featured.length > 0 ? featured : products.slice(0, 8);
+
+  // ترتيب المنتجات حسب الأحدث لوصل حديثاً
+  const newArrivalsList = [...products].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).slice(0, 8);
+
+  if (featuredTrack) {
+    featuredTrack.innerHTML = "";
+    featuredList.forEach(prod => featuredTrack.appendChild(createProductCard(prod)));
+  }
+
+  if (newArrivalsTrack) {
+    newArrivalsTrack.innerHTML = "";
+    newArrivalsList.forEach(prod => newArrivalsTrack.appendChild(createProductCard(prod)));
   }
 }
 
-// Update Counts on Category Tabs
-function updateCategoryCounts() {
-  // Intentionally left empty as per user request to hide counts
+// دالة مساعدة لتوليد قالب البطاقة الخالي من الأسعار
+function createProductCard(product) {
+  const catName = window.CATEGORIES[product.categoryId]?.name || "تنسيق فاخر";
+  const cover = product.coverUrl || (product.images && product.images[0]?.url) || 'assets/logo.png';
+  const waUrl = window.YellowRoseDB.buildWhatsAppUrl(product);
+
+  const card = document.createElement("div");
+  card.className = "modern-showcase-card";
+  card.innerHTML = `
+    <div class="card-media-box">
+      <a href="catalog.html?id=${product.id}">
+        <img src="${cover}" alt="${escapeHtml(product.title)}" class="card-media-img" loading="lazy" onerror="this.src='assets/logo.png';">
+      </a>
+      <span class="card-category-tag"><i class="fas fa-gem"></i> ${escapeHtml(catName)}</span>
+    </div>
+
+    <div class="card-details-box">
+      <h4 class="card-product-title">
+        <a href="catalog.html?id=${product.id}">${escapeHtml(product.title)}</a>
+      </h4>
+      <p class="card-product-desc">${escapeHtml(product.description) || "تنسيق متقن يعكس فخامة وأناقة مناسباتكم الراقية."}</p>
+      
+      <!-- أزرار الإجراءات دون أسعار ودون سلة -->
+      <div class="card-dual-actions">
+        <a href="catalog.html?id=${product.id}" class="btn-card-view">
+          <i class="fas fa-eye"></i> تفاصيل العمل
+        </a>
+        <a href="${waUrl}" target="_blank" rel="noopener" class="btn-card-order">
+          <i class="fab fa-whatsapp"></i> طلب بالواتساب
+        </a>
+      </div>
+    </div>
+  `;
+  return card;
 }
 
-// Setup Filters and Search Handlers
-function setupFilterAndSearch() {
-  // Category tabs
-  document.querySelectorAll(".cat-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("active"));
-      btn.classList.add("active");
-      currentCategory = btn.getAttribute("data-category");
-      renderGallery();
-    });
-  });
-
-  // Search input
+// 3. البحث السريع
+function setupSearchFilter() {
   const searchInput = document.getElementById("gallerySearchInput");
-  if (searchInput) {
-    searchInput.addEventListener("input", (e) => {
-      searchQuery = e.target.value.trim();
-      renderGallery();
-    });
-  }
+  const mainShowcaseUI = document.getElementById("mainShowcaseUI");
+  const defaultTracksUI = document.getElementById("defaultTracksUI");
+  const searchResultsUI = document.getElementById("searchResultsUI");
+  const searchResultsGrid = document.getElementById("searchResultsGrid");
+  const noItems = document.getElementById("noItemsMessage");
+
+  if (!searchInput) return;
+
+  searchInput.addEventListener("input", (e) => {
+    const q = e.target.value.trim().toLowerCase();
+    
+    if (q === "") {
+      // إخفاء نتائج البحث والعودة للواجهة الأصلية
+      mainShowcaseUI.classList.remove("hidden");
+      defaultTracksUI.classList.remove("hidden");
+      searchResultsUI.classList.add("hidden");
+    } else {
+      // إظهار شبكة البحث
+      mainShowcaseUI.classList.add("hidden");
+      defaultTracksUI.classList.add("hidden");
+      searchResultsUI.classList.remove("hidden");
+
+      const filtered = allProducts.filter(p => 
+        (p.title && p.title.toLowerCase().includes(q)) || 
+        (p.description && p.description.toLowerCase().includes(q)) ||
+        (window.CATEGORIES[p.categoryId] && window.CATEGORIES[p.categoryId].name.toLowerCase().includes(q))
+      );
+      
+      searchResultsGrid.innerHTML = "";
+      filtered.forEach(prod => {
+        // إنشاء بطاقة لكن نضيف لها تنسيق يناسب الشبكة بدلاً من الشريط الأفقي
+        const card = createProductCard(prod);
+        card.style.flex = "none";
+        card.style.width = "100%";
+        searchResultsGrid.appendChild(card);
+      });
+
+      if (filtered.length === 0) {
+        noItems.classList.remove("hidden");
+      } else {
+        noItems.classList.add("hidden");
+      }
+    }
+  });
 }
 
 // Helper: Escape HTML

@@ -119,25 +119,32 @@ async function renderCategoryView(categoryId) {
     if (subcats.length > 0) {
       tabsWrapper.style.display = "block";
       tabsContainer.innerHTML = `
-        <button class="cat-btn ${activeSubcategoryId === 'all' ? 'active' : ''}" data-subcategory="all">
-          <i class="fas fa-th"></i>
-          <span>الكل</span>
+        <button class="category-circle-item ${activeSubcategoryId === 'all' ? 'active' : ''}" data-subcategory="all" style="border:none; background:transparent; padding:0; outline:none;">
+          <div class="category-circle-img-box">
+            <div class="category-circle-img" style="display:flex;align-items:center;justify-content:center;background:#F5EBD4;color:var(--gold-dark);font-size:22px;">
+              <i class="fas fa-th-large"></i>
+            </div>
+          </div>
+          <span class="category-circle-name">الكل</span>
         </button>
       `;
       
       subcats.forEach(sub => {
+        const cover = sub.coverUrl || 'assets/logo.png';
         tabsContainer.innerHTML += `
-          <button class="cat-btn ${activeSubcategoryId === sub.id ? 'active' : ''}" data-subcategory="${sub.id}">
-            <i class="fas ${sub.icon || 'fa-folder'}"></i>
-            <span>${escapeHtml(sub.name)}</span>
+          <button class="category-circle-item ${activeSubcategoryId === sub.id ? 'active' : ''}" data-subcategory="${sub.id}" style="border:none; background:transparent; padding:0; outline:none;">
+            <div class="category-circle-img-box">
+              <img src="${escapeHtml(cover)}" alt="${escapeHtml(sub.name)}" class="category-circle-img" loading="lazy" onerror="this.src='assets/logo.png';">
+            </div>
+            <span class="category-circle-name">${escapeHtml(sub.name)}</span>
           </button>
         `;
       });
 
       // Add click listeners to tabs
-      document.querySelectorAll("#subcategoryTabs .cat-btn").forEach(btn => {
+      document.querySelectorAll("#subcategoryTabs .category-circle-item").forEach(btn => {
         btn.addEventListener("click", () => {
-          document.querySelectorAll("#subcategoryTabs .cat-btn").forEach(b => b.classList.remove("active"));
+          document.querySelectorAll("#subcategoryTabs .category-circle-item").forEach(b => b.classList.remove("active"));
           btn.classList.add("active");
           
           // Update URL without reloading page
@@ -227,22 +234,36 @@ function renderProductsGrid(products, catInfo, hasDirectAlbums = false) {
 
   products.forEach(p => {
     const cover = p.coverUrl || (p.images && p.images.length > 0 && (p.images[0].thumbnailUrl || p.images[0].url)) || "assets/logo.png";
-    const imgCount = Array.isArray(p.images) ? p.images.length : 1;
-    const card = document.createElement("a");
-    card.href = `catalog.html?id=${p.id}`;
-    card.className = "gallery-card";
+    const waUrl = window.YellowRoseDB.buildWhatsAppUrl(p);
+
+    const card = document.createElement("div");
+    card.className = "modern-showcase-card";
+    
+    // override width and flex to fit naturally in a grid instead of horizontal scroll
+    card.style.flex = "none";
+    card.style.width = "100%";
+
     card.innerHTML = `
-      <div class="gallery-img-wrapper">
-        <img src="${escapeHtml(cover)}" alt="${escapeHtml(p.title)}" loading="lazy" onerror="this.src='assets/logo.png';">
-        <div class="gallery-overlay">
-          <span class="gallery-btn"><i class="fas fa-eye"></i> تفاصيل العمل</span>
-        </div>
-        <div class="gallery-badge"><i class="fas fa-images"></i> ${imgCount} صورة</div>
-        ${p.featured ? '<div class="gallery-featured-badge"><i class="fas fa-star"></i> مميز</div>' : ''}
+      <div class="card-media-box">
+        <a href="catalog.html?id=${p.id}">
+          <img src="${escapeHtml(cover)}" alt="${escapeHtml(p.title)}" class="card-media-img" loading="lazy" onerror="this.src='assets/logo.png';">
+        </a>
+        <span class="card-category-tag"><i class="fas fa-gem"></i> ${escapeHtml(catInfo.name)}</span>
+        ${p.featured ? '<div class="gallery-featured-badge" style="top:auto;bottom:12px;right:12px;"><i class="fas fa-star"></i> مميز</div>' : ''}
       </div>
-      <div class="gallery-card-content">
-        <h3 class="gallery-title">${escapeHtml(p.title)}</h3>
-        <p class="gallery-category">${escapeHtml(catInfo.name)}</p>
+      <div class="card-details-box">
+        <h4 class="card-product-title">
+          <a href="catalog.html?id=${p.id}">${escapeHtml(p.title)}</a>
+        </h4>
+        <p class="card-product-desc">${escapeHtml(p.description) || "تنسيق متقن يعكس فخامة وأناقة مناسباتكم الراقية."}</p>
+        <div class="card-dual-actions">
+          <a href="catalog.html?id=${p.id}" class="btn-card-view">
+            <i class="fas fa-eye"></i> تفاصيل العمل
+          </a>
+          <a href="${waUrl}" target="_blank" rel="noopener" class="btn-card-order">
+            <i class="fab fa-whatsapp"></i> طلب بالواتساب
+          </a>
+        </div>
       </div>
     `;
     productsGrid.appendChild(card);
