@@ -57,7 +57,7 @@ async function loadAlbumDetails() {
       renderAlbumDetails(currentAlbum);
     } else if (categoryId) {
       const allAlbums = await window.YellowRoseDB.getAlbums();
-      const catAlbums = allAlbums.filter(a => a.category === categoryId);
+      const catAlbums = allAlbums.filter(a => a.categoryId === categoryId);
       const catInfo = window.CATEGORIES[categoryId];
 
       if (!catInfo) {
@@ -71,7 +71,7 @@ async function loadAlbumDetails() {
       const syntheticAlbum = {
         title: `قسم ${catInfo.name}`,
         description: `تصفح جميع المجلدات والصور الخاصة بقسم ${catInfo.name} من يلوروز.`,
-        category: categoryId,
+        categoryId: categoryId,
         categoryName: catInfo.name,
         images: directAlbum ? directAlbum.images : [],
         createdAt: new Date().toISOString().split('T')[0],
@@ -99,7 +99,7 @@ function showNotFound(message) {
 }
 
 // Render Album Header and Photo Gallery Grid
-function renderAlbumDetails(album) {
+function renderAlbumDetails(product) {
   const container = document.getElementById("albumDetailsContainer");
   if (!container) return;
   container.style.display = "block";
@@ -110,7 +110,7 @@ function renderAlbumDetails(album) {
   // Breadcrumbs
   const breadcrumbCat = document.getElementById("breadcrumbCategory");
   const breadcrumbTitle = document.getElementById("breadcrumbTitle");
-  const catInfo = window.CATEGORIES[product.category] || { name: product.categoryName || "الألبوم", icon: "fa-tag" };
+  const catInfo = window.CATEGORIES[product.categoryId] || { name: product.categoryName || "الألبوم", icon: "fa-tag" };
   
   if (breadcrumbCat) {
     breadcrumbCat.textContent = catInfo.name;
@@ -148,7 +148,7 @@ function renderAlbumDetails(album) {
         const cover = sub.coverUrl || (sub.images && (sub.images[0]?.thumbnailUrl || sub.images[0]?.url || sub.images[0])) || "assets/logo.png";
         const imgCount = Array.isArray(sub.images) ? sub.images.length : 1;
         const card = document.createElement("a");
-        card.href = `product.html?id=${sub.id}`;
+        card.href = `catalog.html?id=${sub.id}`;
         card.className = "gallery-card";
         card.innerHTML = `
           <div class="gallery-img-wrapper">

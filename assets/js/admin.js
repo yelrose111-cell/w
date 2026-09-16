@@ -152,7 +152,7 @@ async function loadDashboardStatsAndProducts() {
 
   albums.forEach(a => {
     totalPhotos += (Array.isArray(a.images) ? a.images.length : 1);
-    if (a.category) activeCats.add(a.category);
+    if (a.categoryId) activeCats.add(a.categoryId);
   });
 
   if (statProductsCount) statProductsCount.textContent = albums.length;
@@ -185,7 +185,7 @@ function renderAdminProductsList(albums) {
     const item = document.createElement("div");
     item.className = "admin-album-row";
 
-    const catName = window.CATEGORIES[album.category]?.name || album.categoryName || "تنسيق";
+    const catName = window.CATEGORIES[album.categoryId]?.name || album.categoryName || "تنسيق";
     const imgCount = Array.isArray(album.images) ? album.images.length : 1;
     const cover = album.coverUrl || (album.images && (album.images[0]?.url || album.images[0])) || "assets/logo.png";
 
@@ -380,19 +380,23 @@ function setupFormHandlers() {
       }
 
       const catSelect = document.getElementById("productCategorySelect");
+      const subcatSelect = document.getElementById("productSubcategorySelect");
       const titleInput = document.getElementById("productTitleInput");
       const descInput = document.getElementById("productDescInput");
       const priceInput = document.getElementById("productPriceInput");
       const featuredCheck = document.getElementById("productFeaturedCheck");
+      const directModeCheck = document.getElementById("enableProductModeCheck");
 
       const productData = {
         id: currentEditingId || `pr_${Date.now()}`,
-        categoryId: catSelect.value,
-        title: titleInput.value.trim(),
+        categoryId: catSelect ? catSelect.value : "",
+        subcategoryId: subcatSelect ? subcatSelect.value : "",
+        title: titleInput ? titleInput.value.trim() : "",
         description: descInput ? descInput.value.trim() : "",
         price: priceInput ? priceInput.value.trim() : "",
         featured: featuredCheck ? featuredCheck.checked : false,
-        coverUrl: selectedCoverUrl || currentProductImages[0].url,
+        isDirectMode: directModeCheck ? directModeCheck.checked : true,
+        coverUrl: selectedCoverUrl || (currentProductImages[0] ? currentProductImages[0].url : ""),
         images: currentProductImages,
         createdAt: new Date().toISOString()
       };
@@ -601,9 +605,9 @@ window.editProduct = async function(id) {
   });
   selectedCoverUrl = album.coverUrl || (currentProductImages[0] ? currentProductImages[0].url : "");
 
-  document.getElementById("productFormTitle").textContent = album.isDirectMode ? `إدارة الصور المباشرة: ${window.CATEGORIES[album.category]?.name || album.category}` : `تعديل ألبوم: ${album.title}`;
+  document.getElementById("productFormTitle").textContent = album.isDirectMode ? `إدارة الصور المباشرة: ${window.CATEGORIES[album.categoryId]?.name || album.categoryId}` : `تعديل منتج: ${album.title}`;
   document.getElementById("productTitleInput").value = album.title;
-  document.getElementById("productCategorySelect").value = album.category;
+  document.getElementById("productCategorySelect").value = album.categoryId;
   document.getElementById("productDescInput").value = album.description || "";
   document.getElementById("productFeaturedCheck").checked = !!album.featured;
   document.getElementById("saveProductBtn").innerHTML = '<i class="fas fa-save"></i> حفظ التحديثات';

@@ -135,7 +135,7 @@ function renderGallery() {
     // Filter by search
     if (searchQuery && !catInfo.name.toLowerCase().includes(searchQuery.toLowerCase())) return;
 
-    const catAlbums = allProducts.filter(a => a.category === catInfo.id);
+    const catAlbums = allProducts.filter(a => a.categoryId === catInfo.id);
     
     let imagesCount = 0;
     let coverUrl = 'assets/logo.png';

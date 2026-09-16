@@ -13,6 +13,8 @@ const productSchema = new mongoose.Schema({
   categoryId: { type: String, required: true },
   subcategoryId: { type: String },
   images: [imageSchema],
+  coverUrl: { type: String },
+  isDirectMode: { type: Boolean, default: false },
   featured: { type: Boolean, default: false }
 }, { timestamps: true });
 
