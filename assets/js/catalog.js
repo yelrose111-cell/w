@@ -120,27 +120,20 @@ async function renderCategoryView(categoryId) {
     subcatsGrid.innerHTML = "";
     subcats.forEach(sub => {
       const cover = sub.coverUrl || "assets/logo.png";
-      const card = document.createElement("div");
-      card.className = "album-card category-card";
+      const card = document.createElement("a");
+      card.href = `catalog.html?subcategory=${sub.id}`;
+      card.className = "gallery-card";
       card.innerHTML = `
-        <div class="card-img-wrapper">
-          <a href="catalog.html?subcategory=${sub.id}" class="card-img-link">
-            <img src="${escapeHtml(cover)}" alt="${escapeHtml(sub.name)}" class="card-img" loading="lazy" onerror="this.src='assets/logo.png';">
-          </a>
-          <span class="card-category-badge" style="top: 15px; left: auto; right: 15px; background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);">
-            <i class="fas ${sub.icon || 'fa-folder'}"></i> ${escapeHtml(sub.name)}
-          </span>
-        </div>
-        <div class="card-body">
-          <h3 class="card-title" style="margin-bottom: 5px;">
-            <a href="catalog.html?subcategory=${sub.id}">${escapeHtml(sub.name)}</a>
-          </h3>
-          <p class="card-desc">استعرض منتجات وتنسيقات القسم الفرعي.</p>
-          <div class="card-album-actions" style="margin-top: 15px;">
-            <a href="catalog.html?subcategory=${sub.id}" class="btn-card-album" style="width: 100%; justify-content: center;">
-              <i class="fas fa-images"></i> عرض المنتجات
-            </a>
+        <div class="gallery-img-wrapper">
+          <img src="${escapeHtml(cover)}" alt="${escapeHtml(sub.name)}" loading="lazy" onerror="this.src='assets/logo.png';">
+          <div class="gallery-overlay">
+            <span class="gallery-btn"><i class="fas fa-folder-open"></i> الدخول للقسم</span>
           </div>
+          <div class="gallery-badge"><i class="fas ${sub.icon || 'fa-folder'}"></i> قسم فرعي</div>
+        </div>
+        <div class="gallery-card-content">
+          <h3 class="gallery-title">${escapeHtml(sub.name)}</h3>
+          <p class="gallery-category">استعرض منتجات وتنسيقات القسم</p>
         </div>
       `;
       subcatsGrid.appendChild(card);
@@ -156,7 +149,7 @@ async function renderCategoryView(categoryId) {
   const normalProducts = catProducts.filter(p => !p.isDirectMode);
   const directAlbums = catProducts.filter(p => p.isDirectMode);
 
-  renderProductsGrid(normalProducts, catInfo);
+  renderProductsGrid(normalProducts, catInfo, directAlbums.length > 0);
   renderDirectImagesGrid(directAlbums, catInfo);
 }
 
@@ -199,25 +192,31 @@ async function renderSubcategoryView(subcategoryId) {
   const normalProducts = subProducts.filter(p => !p.isDirectMode);
   const directAlbums = subProducts.filter(p => p.isDirectMode);
 
-  renderProductsGrid(normalProducts, catInfo);
+  renderProductsGrid(normalProducts, catInfo, directAlbums.length > 0);
   renderDirectImagesGrid(directAlbums, catInfo);
 }
 
 // Render the products grid for Category/Subcategory views
-function renderProductsGrid(products, catInfo) {
+function renderProductsGrid(products, catInfo, hasDirectAlbums = false) {
   const productsSection = document.getElementById("productsSection");
   const productsGrid = document.getElementById("productsGrid");
   const noProducts = document.getElementById("noProductsMessage");
 
-  productsSection.style.display = "block";
   productsGrid.innerHTML = "";
 
   if (products.length === 0) {
-    noProducts.classList.remove("hidden");
+    if (!hasDirectAlbums) {
+      productsSection.style.display = "block";
+      noProducts.classList.remove("hidden");
+    } else {
+      productsSection.style.display = "none";
+      noProducts.classList.add("hidden");
+    }
     return;
-  } else {
-    noProducts.classList.add("hidden");
   }
+  
+  productsSection.style.display = "block";
+  noProducts.classList.add("hidden");
 
   // Update header count
   const countPill = document.getElementById("pageCountPill");
