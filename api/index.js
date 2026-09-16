@@ -291,6 +291,7 @@ app.delete('/api/subcategories/:id', authMiddleware, async (req, res) => {
 // --- Products ---
 app.get('/api/products', async (req, res) => {
   try {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
     const items = await Product.find().sort({ createdAt: -1 }).lean();
     res.json(items);
   } catch (error) {

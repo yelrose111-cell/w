@@ -30,7 +30,7 @@ class YellowRoseDBManager {
     };
 
     try {
-      const response = await fetch('/api/settings');
+      const response = await fetch('/api/settings?t=' + Date.now());
       if (response.ok) {
         const data = await response.json();
         if (Object.keys(data).length > 0) {
@@ -117,7 +117,7 @@ class YellowRoseDBManager {
   // Categories
   async getCategories() {
     try {
-      const res = await fetch('/api/categories');
+      const res = await fetch('/api/categories?t=' + Date.now());
       if (res.ok) return await res.json();
     } catch (err) {
       console.warn("Failed fetching categories:", err);
@@ -142,7 +142,7 @@ class YellowRoseDBManager {
   // Subcategories
   async getSubcategories() {
     try {
-      const res = await fetch('/api/subcategories');
+      const res = await fetch('/api/subcategories?t=' + Date.now());
       if (res.ok) return await res.json();
     } catch (err) {
       console.warn("Failed fetching subcategories:", err);
@@ -167,7 +167,7 @@ class YellowRoseDBManager {
   // Products
   async getProducts() {
     try {
-      const res = await fetch('/api/products');
+      const res = await fetch('/api/products?t=' + Date.now());
       if (res.ok) return await res.json();
     } catch (err) {
       console.warn("Failed fetching products:", err);

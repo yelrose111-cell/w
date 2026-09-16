@@ -9,6 +9,13 @@ let currentLightboxIndex = 0;
 document.addEventListener("DOMContentLoaded", async () => {
   // Sync Site Settings (Announcement Bar & Logo)
   await window.YellowRoseDB.syncSiteSettingsToDom();
+  
+  // Load dynamic categories
+  const categories = await window.YellowRoseDB.getCategories();
+  if (categories && categories.length > 0) {
+    window.CATEGORIES = {};
+    categories.forEach(c => window.CATEGORIES[c.id] = c);
+  }
 
   setupNavigation();
   await loadAlbumDetails();
@@ -56,7 +63,7 @@ async function loadAlbumDetails() {
       }
       renderAlbumDetails(currentAlbum);
     } else if (categoryId) {
-      const allAlbums = await window.YellowRoseDB.getAlbums();
+      const allAlbums = await window.YellowRoseDB.getProducts();
       const catAlbums = allAlbums.filter(a => a.categoryId === categoryId);
       const catInfo = window.CATEGORIES[categoryId];
 
