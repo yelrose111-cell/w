@@ -298,7 +298,11 @@ function setupFormHandlers() {
       categoryImageFile.parentNode.appendChild(uploadStatus);
 
       try {
-        const signRes = await fetch('/api/cloudinary/sign', { method: 'POST' });
+        const signRes = await fetch('/api/cloudinary/sign', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ folder: "yellowrose/categories" })
+        });
         if (!signRes.ok) throw new Error("فشل في استخراج التوقيع الرقمي");
         const signData = await signRes.json();
         if (!signData.success) throw new Error(signData.error);
@@ -377,7 +381,11 @@ function setupFormHandlers() {
       subcategoryImageFile.parentNode.appendChild(uploadStatus);
 
       try {
-        const signRes = await fetch('/api/cloudinary/sign', { method: 'POST' });
+        const signRes = await fetch('/api/cloudinary/sign', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ folder: "yellowrose/categories" })
+        });
         if (!signRes.ok) throw new Error("فشل في استخراج التوقيع الرقمي");
         const signData = await signRes.json();
         if (!signData.success) throw new Error(signData.error);
@@ -544,7 +552,11 @@ async function handleSingleFileUpload(file, currentIdx, totalCount) {
   const photoCode = `#YR-${Date.now().toString().slice(-4)}-${numIdx < 10 ? '0' + numIdx : numIdx}`;
 
   try {
-    const signRes = await fetch('/api/cloudinary/sign', { method: 'POST' });
+    const signRes = await fetch('/api/cloudinary/sign', { 
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ folder: "yellowrose" })
+    });
     if (!signRes.ok) throw new Error("فشل في استخراج التوقيع الرقمي");
     const signData = await signRes.json();
     if (!signData.success) throw new Error(signData.error);
@@ -848,7 +860,11 @@ async function setupBrandIdentitySettings() {
 
       // Upload securely to Cloudinary using Signed URLs
       try {
-        const signRes = await fetch('/api/cloudinary/sign', { method: 'POST' });
+        const signRes = await fetch('/api/cloudinary/sign', { 
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ folder: "yellowrose" })
+        });
         if (!signRes.ok) throw new Error("فشل في استخراج التوقيع الرقمي");
         const signData = await signRes.json();
         if (!signData.success) throw new Error(signData.error);

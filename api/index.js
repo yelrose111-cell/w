@@ -187,10 +187,11 @@ app.post('/api/cloudinary/sign', authMiddleware, (req, res) => {
     return res.status(500).json({ success: false, error: 'Cloudinary is not configured.' });
   }
   
+  const folder = req.body.folder || 'yellowrose';
   const timestamp = Math.round((new Date).getTime()/1000);
   const signature = cloudinary.utils.api_sign_request({
     timestamp: timestamp,
-    folder: 'yellowrose'
+    folder: folder
   }, process.env.CLOUDINARY_API_SECRET);
 
   res.json({ 
