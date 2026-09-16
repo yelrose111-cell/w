@@ -738,7 +738,7 @@ button {
 /* Gallery Grid & Cards */
 .gallery-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 28px;
 }
 
@@ -1714,8 +1714,12 @@ button {
   }
 
   .gallery-grid {
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 16px;
+  }
+  
+  .modern-showcase-img-wrap {
+    height: 200px;
   }
 
   .floating-quick-bar {
@@ -3093,7 +3097,7 @@ button {
 
 /* 3. Modern Showcase Card (No prices) */
 .modern-showcase-card {
-  width: 280px; /* Fixed width for horizontal track */
+  width: 100%; /* Changed from fixed width for grid layout */
   background: #fff;
   border-radius: 16px;
   overflow: hidden;

@@ -91,7 +91,7 @@ function showNotFound(message) {
 // -------------------------------------------------------------
 // 1. CATEGORY VIEW
 // -------------------------------------------------------------
-async function renderCategoryView(categoryId) {
+async function renderCategoryView(categoryId, activeSubcategoryId = "all") {
   const catInfo = window.CATEGORIES[categoryId];
   if (!catInfo) {
     showNotFound("عذراً، لم نتمكن من العثور على القسم المطلوب.");
@@ -179,17 +179,26 @@ async function renderProductsForCategoryTab(categoryId, subcategoryId) {
   let catProducts = [];
   if (subcategoryId === "all") {
     // "الكل": جلب المنتجات المباشرة للقسم الرئيسي بالإضافة لمنتجات الأقسام الفرعية التابعة له
-    catProducts = allProducts.filter(p => p.categoryId === categoryId);
+    const allSubcats = Object.values(window.SUBCATEGORIES || {}).filter(s => s.categoryId === categoryId).map(s => s.id);
+    catProducts = allProducts.filter(p => p.categoryId === categoryId || allSubcats.includes(p.subcategoryId));
   } else {
     // جلب منتجات القسم الفرعي المحدد فقط
     catProducts = allProducts.filter(p => p.subcategoryId === subcategoryId);
   }
 
+  // توحيد عرض المنتجات لعدم الخلط بين الألبومات المباشرة والمنتجات العادية
+  // بما أن المستخدم يريد استخدام شكل البطاقات العصرية دائماً
   const normalProducts = catProducts.filter(p => !p.isDirectMode);
   const directAlbums = catProducts.filter(p => p.isDirectMode);
 
-  renderProductsGrid(normalProducts, catInfo, directAlbums.length > 0);
-  renderDirectImagesGrid(directAlbums, catInfo);
+  // دمجها معاً في شبكة واحدة أو عرضها بطريقتها المخصصة حسب الإعدادات
+  renderProductsGrid(catProducts, catInfo, false);
+  const directGrid = document.getElementById("directImagesGrid");
+  const directSection = document.getElementById("directImagesSection");
+  if (directGrid && directSection) {
+     directGrid.innerHTML = "";
+     directSection.style.display = "none";
+  }
 }
 
 // -------------------------------------------------------------

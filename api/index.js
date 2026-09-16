@@ -257,6 +257,10 @@ app.get('/api/categories', async (req, res) => {
 app.post('/api/categories', authMiddleware, async (req, res) => {
   try {
     const data = req.body;
+    if (data.order !== undefined) {
+      const order = parseInt(data.order);
+      data.order = (isNaN(order) || order < 0) ? 0 : order;
+    }
     if (!data.id) data.id = `cat_${Date.now()}`;
     const saved = await Category.findOneAndUpdate({ id: data.id }, data, { new: true, upsert: true });
     res.status(201).json({ success: true, category: saved });
@@ -269,7 +273,11 @@ app.post('/api/categories', authMiddleware, async (req, res) => {
 
 app.delete('/api/categories/:id', authMiddleware, async (req, res) => {
   try {
-    await Category.findOneAndDelete({ id: req.params.id });
+    const categoryId = req.params.id;
+    await Category.findOneAndDelete({ id: categoryId });
+    // Cascading delete
+    await Subcategory.deleteMany({ categoryId: categoryId });
+    await Product.deleteMany({ categoryId: categoryId });
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -289,6 +297,10 @@ app.get('/api/subcategories', async (req, res) => {
 app.post('/api/subcategories', authMiddleware, async (req, res) => {
   try {
     const data = req.body;
+    if (data.order !== undefined) {
+      const order = parseInt(data.order);
+      data.order = (isNaN(order) || order < 0) ? 0 : order;
+    }
     if (!data.id) data.id = `subcat_${Date.now()}`;
     const saved = await Subcategory.findOneAndUpdate({ id: data.id }, data, { new: true, upsert: true });
     res.status(201).json({ success: true, subcategory: saved });
@@ -299,7 +311,10 @@ app.post('/api/subcategories', authMiddleware, async (req, res) => {
 
 app.delete('/api/subcategories/:id', authMiddleware, async (req, res) => {
   try {
-    await Subcategory.findOneAndDelete({ id: req.params.id });
+    const subcategoryId = req.params.id;
+    await Subcategory.findOneAndDelete({ id: subcategoryId });
+    // Cascading delete
+    await Product.deleteMany({ subcategoryId: subcategoryId });
     res.json({ success: true });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });

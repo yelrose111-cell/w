@@ -63,8 +63,8 @@ async function loadAndRenderModernShowcase() {
     // 2. رندرة شريط الأقسام الدائري
     renderCircularCategories(allCategories);
 
-    // 3. رندرة الأقسام المميزة ووصل حديثاً
-    renderProductTracks(allProducts);
+    // 3. رندرة الأقسام    // 4. بناء شبكة المنتجات الرئيسية
+    renderHomeProductsGrid(allProducts);
 
     // Populate footer categories dynamically
     const footerGrid = document.getElementById("footerCategoriesGrid");
@@ -73,7 +73,7 @@ async function loadAndRenderModernShowcase() {
       allCategories.forEach(cat => {
         const link = document.createElement("a");
         link.href = `catalog.html?category=${cat.id}`;
-        link.textContent = cat.name;
+        link.textContent = cat.name; // textContent handles escaping automatically
         footerGrid.appendChild(link);
       });
     }
@@ -85,7 +85,7 @@ async function loadAndRenderModernShowcase() {
       allCategories.forEach(cat => {
         const link = document.createElement("a");
         link.href = `catalog.html?category=${cat.id}`;
-        link.innerHTML = `<i class="fas ${cat.icon || 'fa-tag'}"></i> ${cat.name}`;
+        link.innerHTML = `<i class="fas ${escapeHtml(cat.icon || 'fa-tag')}"></i> ${escapeHtml(cat.name)}`;
         mobileCats.appendChild(link);
       });
     }
@@ -118,35 +118,27 @@ function renderCircularCategories(cats) {
     item.className = "category-circle-item";
     item.innerHTML = `
       <div class="category-circle-img-box">
-        <img src="${cover}" alt="${cat.name}" class="category-circle-img" loading="lazy" onerror="this.src='assets/logo.png';">
+        <img src="${escapeHtml(cover)}" alt="${escapeHtml(cat.name)}" class="category-circle-img" loading="lazy" onerror="this.src='assets/logo.png';">
       </div>
-      <span class="category-circle-name">${cat.name}</span>
+      <span class="category-circle-name">${escapeHtml(cat.name)}</span>
     `;
     track.appendChild(item);
   });
 }
 
-// 2. بناء شريطي المنتجات (الأكثر طلباً + وصل حديثاً)
-function renderProductTracks(products) {
-  const featuredTrack = document.getElementById("featuredProductsTrack");
-  const newArrivalsTrack = document.getElementById("newArrivalsTrack");
-
-  // تصفية المنتجات المميزة (featured) أو أخذ أول 8 منتجات
-  const featured = products.filter(p => p.featured);
-  const featuredList = featured.length > 0 ? featured : products.slice(0, 8);
-
-  // ترتيب المنتجات حسب الأحدث لوصل حديثاً
-  const newArrivalsList = [...products].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).slice(0, 8);
-
-  if (featuredTrack) {
-    featuredTrack.innerHTML = "";
-    featuredList.forEach(prod => featuredTrack.appendChild(createProductCard(prod)));
-  }
-
-  if (newArrivalsTrack) {
-    newArrivalsTrack.innerHTML = "";
-    newArrivalsList.forEach(prod => newArrivalsTrack.appendChild(createProductCard(prod)));
-  }
+// 2. بناء شبكة المنتجات الرئيسية (بدلاً من الأشرطة الأفقية)
+function renderHomeProductsGrid(products) {
+  const homeGrid = document.getElementById("homeProductsGrid");
+  if (!homeGrid) return;
+  
+  homeGrid.innerHTML = "";
+  
+  // ترتيب المنتجات حسب الأحدث
+  const sortedProducts = [...products].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  
+  sortedProducts.forEach(prod => {
+    homeGrid.appendChild(createProductCard(prod));
+  });
 }
 
 // دالة مساعدة لتوليد قالب البطاقة الخالي من الأسعار
@@ -188,11 +180,11 @@ function createProductCard(product) {
 // 3. البحث السريع
 function setupSearchFilter() {
   const searchInput = document.getElementById("gallerySearchInput");
-  const mainShowcaseUI = document.getElementById("mainShowcaseUI");
-  const defaultTracksUI = document.getElementById("defaultTracksUI");
   const searchResultsUI = document.getElementById("searchResultsUI");
   const searchResultsGrid = document.getElementById("searchResultsGrid");
-  const noItems = document.getElementById("noItemsMessage");
+  const mainShowcaseUI = document.getElementById("mainShowcaseUI");
+  const homeProductsGridContainer = document.getElementById("homeProductsGridContainer");
+  const noItemsMessage = document.getElementById("noItemsMessage");
 
   if (!searchInput) return;
 
@@ -200,14 +192,14 @@ function setupSearchFilter() {
     const q = e.target.value.trim().toLowerCase();
     
     if (q === "") {
-      // إخفاء نتائج البحث والعودة للواجهة الأصلية
-      mainShowcaseUI.classList.remove("hidden");
-      defaultTracksUI.classList.remove("hidden");
+      // إخفاء نتائج البحث وإعادة إظهار الأقسام الدائرية والشبكة الرئيسية
+      if (mainShowcaseUI) mainShowcaseUI.classList.remove("hidden");
+      if (homeProductsGridContainer) homeProductsGridContainer.classList.remove("hidden");
       searchResultsUI.classList.add("hidden");
     } else {
-      // إظهار شبكة البحث
-      mainShowcaseUI.classList.add("hidden");
-      defaultTracksUI.classList.add("hidden");
+      // إظهار نتائج البحث وإخفاء الأقسام الدائرية والشبكة الرئيسية
+      if (mainShowcaseUI) mainShowcaseUI.classList.add("hidden");
+      if (homeProductsGridContainer) homeProductsGridContainer.classList.add("hidden");
       searchResultsUI.classList.remove("hidden");
 
       const filtered = allProducts.filter(p => 

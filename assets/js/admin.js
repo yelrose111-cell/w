@@ -472,7 +472,7 @@ function setupFormHandlers() {
         title: titleInput ? titleInput.value.trim() : "",
         description: descInput ? descInput.value.trim() : "",
         featured: featuredCheck ? featuredCheck.checked : false,
-        isDirectMode: directModeCheck ? directModeCheck.checked : true,
+        isDirectMode: directModeCheck ? directModeCheck.checked : false,
         coverUrl: selectedCoverUrl || (currentProductImages[0] ? currentProductImages[0].url : ""),
         images: currentProductImages,
         createdAt: new Date().toISOString()
