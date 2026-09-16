@@ -30,17 +30,6 @@ function setupNavigation() {
         navMenu.classList.remove("open");
       });
     });
-
-    const mobileCats = document.getElementById("mobileCategoriesList");
-    if (mobileCats && window.CATEGORIES) {
-      mobileCats.innerHTML = "";
-      Object.values(window.CATEGORIES).forEach(cat => {
-        const link = document.createElement("a");
-        link.href = `catalog.html?category=${cat.id}`;
-        link.innerHTML = `<i class="fas ${cat.icon || 'fa-tag'}"></i> ${cat.name}`;
-        mobileCats.appendChild(link);
-      });
-    }
   }
 
   window.addEventListener("scroll", () => {
@@ -96,6 +85,30 @@ async function loadAndRenderProducts() {
         currentCategory = btn.getAttribute("data-category");
         filterProducts();
       });
+    });
+  }
+  
+  // Populate footer categories dynamically
+  const footerGrid = document.getElementById("footerCategoriesGrid");
+  if (footerGrid) {
+    footerGrid.innerHTML = "";
+    cats.forEach(cat => {
+      const link = document.createElement("a");
+      link.href = `catalog.html?category=${cat.id}`;
+      link.textContent = cat.name;
+      footerGrid.appendChild(link);
+    });
+  }
+
+  // Populate mobile categories menu
+  const mobileCats = document.getElementById("mobileCategoriesList");
+  if (mobileCats) {
+    mobileCats.innerHTML = "";
+    cats.forEach(cat => {
+      const link = document.createElement("a");
+      link.href = `catalog.html?category=${cat.id}`;
+      link.innerHTML = `<i class="fas ${cat.icon || 'fa-tag'}"></i> ${cat.name}`;
+      mobileCats.appendChild(link);
     });
   }
 

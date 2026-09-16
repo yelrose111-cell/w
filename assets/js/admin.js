@@ -122,6 +122,26 @@ async function populateCategorySelect() {
     opt.textContent = cat.name;
     select.appendChild(opt);
   });
+
+  // Add event listener to populate subcategories
+  select.addEventListener("change", async (e) => {
+    const categoryId = e.target.value;
+    const subcatSelect = document.getElementById("productSubcategorySelect");
+    if (!subcatSelect) return;
+    
+    subcatSelect.innerHTML = '<option value="">-- اختر القسم الفرعي (اختياري) --</option>';
+    if (!categoryId) return;
+    
+    const subcats = await window.YellowRoseDB.getSubcategories();
+    const filteredSubcats = subcats.filter(sub => sub.categoryId === categoryId);
+    
+    filteredSubcats.forEach(sub => {
+      const opt = document.createElement("option");
+      opt.value = sub.id;
+      opt.textContent = sub.name;
+      subcatSelect.appendChild(opt);
+    });
+  });
 }
 
 // Populate Subcategory Parent Dropdown
@@ -141,23 +161,26 @@ async function populateSubcategoryParents() {
 
 // Load Dashboard Stats and Albums List
 async function loadDashboardStatsAndProducts() {
-  const albums = await window.YellowRoseDB.getProducts(true);
+  const albums = await window.YellowRoseDB.getProducts();
+  const categories = await window.YellowRoseDB.getCategories();
+  
+  // Update global categories cache
+  window.CATEGORIES = {};
+  categories.forEach(c => window.CATEGORIES[c.id] = c);
 
   const statProductsCount = document.getElementById("statProductsCount");
   const statPhotosCount = document.getElementById("statPhotosCount");
   const statCategoriesCount = document.getElementById("statCategoriesCount");
 
   let totalPhotos = 0;
-  const activeCats = new Set();
 
   albums.forEach(a => {
     totalPhotos += (Array.isArray(a.images) ? a.images.length : 1);
-    if (a.categoryId) activeCats.add(a.categoryId);
   });
 
   if (statProductsCount) statProductsCount.textContent = albums.length;
   if (statPhotosCount) statPhotosCount.textContent = totalPhotos;
-  if (statCategoriesCount) statCategoriesCount.textContent = activeCats.size;
+  if (statCategoriesCount) statCategoriesCount.textContent = categories.length;
 
   renderAdminProductsList(albums);
   await loadCategoriesList();
@@ -607,7 +630,21 @@ window.editProduct = async function(id) {
 
   document.getElementById("productFormTitle").textContent = album.isDirectMode ? `إدارة الصور المباشرة: ${window.CATEGORIES[album.categoryId]?.name || album.categoryId}` : `تعديل منتج: ${album.title}`;
   document.getElementById("productTitleInput").value = album.title;
-  document.getElementById("productCategorySelect").value = album.categoryId;
+  
+  const catSelect = document.getElementById("productCategorySelect");
+  catSelect.value = album.categoryId;
+  
+  // Trigger change event to populate subcategories
+  catSelect.dispatchEvent(new Event("change"));
+  
+  // Wait for the async change listener to finish populating before setting subcat value
+  setTimeout(() => {
+    const subcatSelect = document.getElementById("productSubcategorySelect");
+    if (subcatSelect && album.subcategoryId) {
+      subcatSelect.value = album.subcategoryId;
+    }
+  }, 100);
+
   document.getElementById("productDescInput").value = album.description || "";
   document.getElementById("productFeaturedCheck").checked = !!album.featured;
   document.getElementById("saveProductBtn").innerHTML = '<i class="fas fa-save"></i> حفظ التحديثات';
