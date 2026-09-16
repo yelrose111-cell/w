@@ -289,17 +289,45 @@ function setupFormHandlers() {
   // Handle Category Image File Upload
   const categoryImageFile = document.getElementById("categoryImageFile");
   if (categoryImageFile) {
-    categoryImageFile.addEventListener("change", (e) => {
+    categoryImageFile.addEventListener("change", async (e) => {
       const file = e.target.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const dataUrl = ev.target.result;
-        const imageUrlInput = document.getElementById("categoryImageUrl");
-        if (imageUrlInput) imageUrlInput.value = dataUrl;
-        showToast("تم تحويل صورة القسم، سيتم حفظها عند ضغط 'حفظ القسم'");
-      };
-      reader.readAsDataURL(file);
+      const uploadStatus = document.createElement("span");
+      uploadStatus.innerHTML = ' <i class="fas fa-spinner fa-spin"></i> جاري الرفع...';
+      uploadStatus.style.color = "var(--gold)";
+      categoryImageFile.parentNode.appendChild(uploadStatus);
+
+      try {
+        const signRes = await fetch('/api/cloudinary/sign', { method: 'POST' });
+        if (!signRes.ok) throw new Error("فشل في استخراج التوقيع الرقمي");
+        const signData = await signRes.json();
+        if (!signData.success) throw new Error(signData.error);
+        
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("api_key", signData.apiKey);
+        formData.append("timestamp", signData.timestamp);
+        formData.append("signature", signData.signature);
+        formData.append("folder", "yellowrose/categories");
+
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${signData.cloudName}/image/upload`, {
+          method: "POST",
+          body: formData
+        });
+
+        if (response.ok) {
+           const data = await response.json();
+           const imageUrlInput = document.getElementById("categoryImageUrl");
+           if (imageUrlInput) imageUrlInput.value = data.secure_url;
+           showToast("تم رفع صورة القسم بنجاح!");
+        } else {
+           throw new Error("فشل الرفع إلى Cloudinary");
+        }
+      } catch (err) {
+        showToast("خطأ أثناء الرفع: " + err.message);
+      } finally {
+        if(uploadStatus.parentNode) uploadStatus.parentNode.removeChild(uploadStatus);
+      }
     });
   }
 
@@ -340,17 +368,45 @@ function setupFormHandlers() {
   // Handle Subcategory Image File Upload
   const subcategoryImageFile = document.getElementById("subcategoryImageFile");
   if (subcategoryImageFile) {
-    subcategoryImageFile.addEventListener("change", (e) => {
+    subcategoryImageFile.addEventListener("change", async (e) => {
       const file = e.target.files[0];
       if (!file) return;
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const dataUrl = ev.target.result;
-        const imageUrlInput = document.getElementById("subcategoryImageUrl");
-        if (imageUrlInput) imageUrlInput.value = dataUrl;
-        showToast("تم تحويل صورة القسم الفرعي، سيتم حفظها عند ضغط 'حفظ القسم الفرعي'");
-      };
-      reader.readAsDataURL(file);
+      const uploadStatus = document.createElement("span");
+      uploadStatus.innerHTML = ' <i class="fas fa-spinner fa-spin"></i> جاري الرفع...';
+      uploadStatus.style.color = "var(--gold)";
+      subcategoryImageFile.parentNode.appendChild(uploadStatus);
+
+      try {
+        const signRes = await fetch('/api/cloudinary/sign', { method: 'POST' });
+        if (!signRes.ok) throw new Error("فشل في استخراج التوقيع الرقمي");
+        const signData = await signRes.json();
+        if (!signData.success) throw new Error(signData.error);
+        
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("api_key", signData.apiKey);
+        formData.append("timestamp", signData.timestamp);
+        formData.append("signature", signData.signature);
+        formData.append("folder", "yellowrose/categories");
+
+        const response = await fetch(`https://api.cloudinary.com/v1_1/${signData.cloudName}/image/upload`, {
+          method: "POST",
+          body: formData
+        });
+
+        if (response.ok) {
+           const data = await response.json();
+           const imageUrlInput = document.getElementById("subcategoryImageUrl");
+           if (imageUrlInput) imageUrlInput.value = data.secure_url;
+           showToast("تم رفع صورة القسم الفرعي بنجاح!");
+        } else {
+           throw new Error("فشل الرفع إلى Cloudinary");
+        }
+      } catch (err) {
+        showToast("خطأ أثناء الرفع: " + err.message);
+      } finally {
+        if(uploadStatus.parentNode) uploadStatus.parentNode.removeChild(uploadStatus);
+      }
     });
   }
 
@@ -455,9 +511,9 @@ function setupFormHandlers() {
 
 // Reset Product Form
 function resetProductForm() {
-  const form = document.getElementById("albumForm");
+  const form = document.getElementById("productForm");
   if (form) form.reset();
-  editingAlbumId = null;
+  currentEditingId = null;
   currentProductImages = [];
   selectedCoverUrl = "";
   
@@ -467,7 +523,7 @@ function resetProductForm() {
   const cancelBtn = document.getElementById("cancelEditBtn");
   if (cancelBtn) cancelBtn.classList.add("hidden");
   
-  const formTitle = document.getElementById("albumFormTitle");
+  const formTitle = document.getElementById("productFormTitle");
   if (formTitle) formTitle.innerHTML = '<i class="fas fa-plus-circle"></i> إضافة منتج جديد';
 }
 

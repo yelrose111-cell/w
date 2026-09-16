@@ -369,7 +369,16 @@ async function renderProductView(productId) {
   
   const datePill = document.getElementById("productDatePill");
   datePill.style.display = "inline-flex";
-  document.getElementById("productDate").textContent = currentAlbum.createdAt || "2026";
+  let dateStr = "2026";
+  if (currentAlbum.createdAt) {
+    try {
+       const d = new Date(currentAlbum.createdAt);
+       dateStr = !isNaN(d.getTime()) ? d.toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }) : currentAlbum.createdAt;
+    } catch(e) {
+       dateStr = currentAlbum.createdAt;
+    }
+  }
+  document.getElementById("productDate").textContent = dateStr;
   
   const images = Array.isArray(currentAlbum.images) && currentAlbum.images.length > 0 ? currentAlbum.images : (currentAlbum.coverUrl ? [currentAlbum.coverUrl] : []);
   const countPill = document.getElementById("pageCountPill");

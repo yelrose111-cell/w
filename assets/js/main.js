@@ -83,7 +83,7 @@ async function loadAndRenderProducts() {
         document.querySelectorAll(".cat-btn").forEach(b => b.classList.remove("active"));
         btn.classList.add("active");
         currentCategory = btn.getAttribute("data-category");
-        filterProducts();
+        renderGallery();
       });
     });
   }

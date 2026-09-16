@@ -248,22 +248,34 @@ class YellowRoseDBManager {
   }
 
   // --- WhatsApp Link Generator ---
-  buildWhatsAppUrl(product) {
+  buildWhatsAppUrl(product, photo = null) {
     const catName = window.CATEGORIES && window.CATEGORIES[product.categoryId] ? window.CATEGORIES[product.categoryId].name : "تنسيق زهور";
     const productUrl = `${window.location.origin}/catalog.html?id=${product.id}`;
     
     let text = "";
     
     if (window.SITE_SETTINGS && window.SITE_SETTINGS.whatsappMessage) {
-      text = window.SITE_SETTINGS.whatsappMessage
+      let customMsg = window.SITE_SETTINGS.whatsappMessage
         .replace(/{product_name}/g, product.title)
         .replace(/{category_name}/g, catName)
         .replace(/{product_url}/g, productUrl);
-    } else {
-      text = `مرحباً يلوروز 🌸\nأود الاستفسار وحجز المنتج التالي:\n• اسم المنتج: ${product.title}\n• القسم: ${catName}`;
-      if (product.images && product.images.length > 0 && product.images[0].url && !product.images[0].url.startsWith("data:")) {
-        text += `\n• رابط الصورة: ${product.images[0].url}`;
+      if (photo && photo.url) {
+        customMsg += `\n\nصورة محددة: ${photo.url}`;
       }
+      text = customMsg;
+    } else {
+      let photoName = photo && photo.name ? photo.name : product.title;
+      text = `مرحباً يلوروز 🌸\nأود الاستفسار وحجز المنتج التالي:\n• اسم المنتج: ${photoName}\n• القسم: ${catName}`;
+      
+      const imgUrl = photo && photo.url ? photo.url : (product.images && product.images.length > 0 ? product.images[0].url : "");
+      if (imgUrl && !imgUrl.startsWith("data:")) {
+        text += `\n• رابط الصورة: ${imgUrl}`;
+      }
+      
+      if (photo && photo.code) {
+         text += `\n• كود المنتج: ${photo.code}`;
+      }
+      
       text += `\n\nهل هذا المنتج متاح لموعد مناسبتنا؟ شكراً لكم!`;
     }
 

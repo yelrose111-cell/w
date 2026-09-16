@@ -4,6 +4,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const cloudinary = require('cloudinary').v2;
 const crypto = require('crypto');
+const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const Album = require('../models/Album');
@@ -86,7 +87,10 @@ const authMiddleware = (req, res, next) => {
       .update(payload)
       .digest('hex');
 
-    if (signature !== expectedSignature) {
+    const signatureBuffer = Buffer.from(signature);
+    const expectedSignatureBuffer = Buffer.from(expectedSignature);
+
+    if (signatureBuffer.length !== expectedSignatureBuffer.length || !crypto.timingSafeEqual(signatureBuffer, expectedSignatureBuffer)) {
       return res.status(401).json({ success: false, error: 'Unauthorized: Invalid token signature' });
     }
 
@@ -107,15 +111,26 @@ const authMiddleware = (req, res, next) => {
 
 // ---------------- Auth Endpoints ----------------
 
-app.post('/api/auth/login', (req, res) => {
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 10, // Limit each IP to 10 login requests per `window` (here, per 15 minutes)
+  message: { success: false, error: 'Too many login attempts, please try again after 15 minutes' },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+app.post('/api/auth/login', loginLimiter, (req, res) => {
   const { pin } = req.body;
   
   // Hash the incoming PIN with SHA-256 to compare with ADMIN_PASSWORD_HASH
   const hashedPin = crypto.createHash('sha256').update(pin || '').digest('hex');
   
-  const storedHash = process.env.ADMIN_PASSWORD_HASH;
+  const storedHash = process.env.ADMIN_PASSWORD_HASH || '';
 
-  if (hashedPin === storedHash) {
+  const hashedPinBuffer = Buffer.from(hashedPin);
+  const storedHashBuffer = Buffer.from(storedHash);
+
+  if (hashedPinBuffer.length === storedHashBuffer.length && crypto.timingSafeEqual(hashedPinBuffer, storedHashBuffer)) {
     const payloadBase64 = Buffer.from(JSON.stringify({
       role: 'admin',
       exp: Date.now() + 24 * 60 * 60 * 1000 // 24 hours
@@ -232,6 +247,7 @@ app.delete('/api/albums/:id', authMiddleware, async (req, res) => {
 app.get('/api/categories', async (req, res) => {
   try {
     const items = await Category.find().sort({ order: 1, createdAt: 1 }).lean();
+    res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
     res.json(items);
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -249,15 +265,7 @@ app.post('/api/categories', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/migrate-categories', async (req, res) => {
-  try {
-    const cats = await Category.find().lean();
-    const prods = await Product.find().lean();
-    res.json({ cats, prods });
-  } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
-  }
-});
+
 
 app.delete('/api/categories/:id', authMiddleware, async (req, res) => {
   try {
@@ -334,6 +342,7 @@ app.delete('/api/products/:id', authMiddleware, async (req, res) => {
 app.get('/api/settings', async (req, res) => {
   try {
     const settingsDoc = await Settings.findOne({ key: 'site_settings' });
+    res.setHeader('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
     if (settingsDoc && settingsDoc.value) {
       // Don't expose sensitive info if they accidentally saved it, though new structure shouldn't have any
       const val = settingsDoc.value;
