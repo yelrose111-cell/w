@@ -15,6 +15,30 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (categories && categories.length > 0) {
     window.CATEGORIES = {};
     categories.forEach(c => window.CATEGORIES[c.id] = c);
+    
+    // Populate footer categories dynamically
+    const footerGrid = document.getElementById("footerCategoriesGrid");
+    if (footerGrid) {
+      footerGrid.innerHTML = "";
+      categories.forEach(cat => {
+        const link = document.createElement("a");
+        link.href = `catalog.html?category=${cat.id}`;
+        link.textContent = cat.name;
+        footerGrid.appendChild(link);
+      });
+    }
+
+    // Populate mobile categories menu
+    const mobileCats = document.getElementById("mobileCategoriesList");
+    if (mobileCats) {
+      mobileCats.innerHTML = "";
+      categories.forEach(cat => {
+        const link = document.createElement("a");
+        link.href = `catalog.html?category=${cat.id}`;
+        link.innerHTML = `<i class="fas ${cat.icon ? cat.icon.replace(/["&<>]/g, '') : 'fa-tag'}"></i> ${cat.name.replace(/["&<>]/g, '')}`;
+        mobileCats.appendChild(link);
+      });
+    }
   }
 
   const subcategories = await window.YellowRoseDB.getSubcategories();
