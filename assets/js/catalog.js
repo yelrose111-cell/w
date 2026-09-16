@@ -84,6 +84,7 @@ async function loadPageContent() {
 
   if (!productId && !categoryId && !subcategoryId) {
     showNotFound("لم يتم تحديد معرّف القسم أو الألبوم المطلوب.");
+    if (window.hideGlobalPreloader) window.hideGlobalPreloader();
     return;
   }
 
@@ -95,8 +96,10 @@ async function loadPageContent() {
     } else if (categoryId) {
       await renderCategoryView(categoryId);
     }
+    if (window.hideGlobalPreloader) window.hideGlobalPreloader();
   } catch (err) {
     console.error("Error loading page content:", err);
+    if (window.hideGlobalPreloader) window.hideGlobalPreloader();
     showNotFound("حدث خطأ أثناء جلب التفاصيل.");
   }
 }

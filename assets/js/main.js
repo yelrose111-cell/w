@@ -90,8 +90,11 @@ async function loadAndRenderModernShowcase() {
       });
     }
 
+    if (window.hideGlobalPreloader) window.hideGlobalPreloader();
+
   } catch (err) {
     console.error("فشل تحميل البيانات:", err);
+    if (window.hideGlobalPreloader) window.hideGlobalPreloader();
   }
 }
 

@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   await setupBrandIdentitySettings();
   await loadDashboardStatsAndProducts();
   checkApiStatus();
+  if (window.hideGlobalPreloader) window.hideGlobalPreloader();
 });
 
 // Check API Status

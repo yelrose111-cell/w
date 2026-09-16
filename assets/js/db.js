@@ -283,6 +283,14 @@ class YellowRoseDBManager {
   }
 }
 
+window.hideGlobalPreloader = function() {
+  const p = document.getElementById('globalPreloader');
+  if (p) {
+    p.classList.add('hidden');
+    setTimeout(() => p.remove(), 500);
+  }
+};
+
 window.YellowRoseDB = new YellowRoseDBManager();
 window.CATEGORIES = DEFAULT_CATEGORIES; // Will be populated dynamically on load
 window.WHATSAPP_PHONE = WHATSAPP_PHONE;
