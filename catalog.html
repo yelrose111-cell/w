@@ -109,25 +109,19 @@
       </div>
     </section>
 
-    <!-- قسم الأقسام الفرعية (يظهر فقط في عرض القسم الرئيسي) -->
-    <section class="subcategories-section" id="subcategoriesSection" style="display: none; padding: 40px 0; background: var(--bg-alt);">
-      <div class="container">
-        <div class="section-heading text-center" style="margin-bottom: 30px;">
-          <h2 class="heading-title" style="font-size: 24px;">الأقسام الفرعية</h2>
-          <div class="heading-divider"></div>
-        </div>
-        <div class="gallery-grid" id="subcategoriesGrid">
-          <!-- يتم توليد كروت الأقسام الفرعية ديناميكياً -->
-        </div>
-      </div>
-    </section>
-
     <!-- قسم منتجات القسم أو القسم الفرعي -->
     <section class="products-section" id="productsSection" style="display: none; padding: 40px 0;">
       <div class="container">
         <div class="section-heading text-center" style="margin-bottom: 30px;">
           <h2 class="heading-title" style="font-size: 24px;">المنتجات والأعمال</h2>
           <div class="heading-divider"></div>
+        </div>
+
+        <!-- شريط أدوات فلترة الأقسام الفرعية (مخفي افتراضياً، يظهر إذا كان القسم يحتوي على أقسام فرعية) -->
+        <div class="categories-bar-wrapper" id="subcategoryTabsWrapper" style="display: none; margin-bottom: 30px;">
+          <div class="categories-bar" id="subcategoryTabs">
+            <!-- يتم توليد Tabs الأقسام الفرعية ديناميكياً -->
+          </div>
         </div>
         <div class="gallery-grid" id="productsGrid">
           <!-- يتم توليد كروت المنتجات ديناميكياً -->
@@ -228,6 +222,14 @@
       </div>
     </div>
   </footer>
+
+  <!-- الزر العائم المباشر للواتساب -->
+  <div class="floating-quick-bar">
+    <a href="https://wa.me/966582739397" target="_blank" rel="noopener" class="float-btn float-whatsapp" title="تواصل واتساب مباشر">
+      <i class="fab fa-whatsapp"></i>
+      <span class="float-tooltip">تواصل واتساب مباشر</span>
+    </a>
+  </div>
 
   <!-- Minified Scripts -->
   <script src="assets/dist/js/db.min.js"></script>

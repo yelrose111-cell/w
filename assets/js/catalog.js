@@ -112,40 +112,72 @@ async function renderCategoryView(categoryId) {
 
   // Find Subcategories for this Category
   const subcats = Object.values(window.SUBCATEGORIES).filter(s => s.categoryId === categoryId);
-  const subcatsSection = document.getElementById("subcategoriesSection");
-  const subcatsGrid = document.getElementById("subcategoriesGrid");
+  const tabsWrapper = document.getElementById("subcategoryTabsWrapper");
+  const tabsContainer = document.getElementById("subcategoryTabs");
 
-  if (subcats.length > 0) {
-    subcatsSection.style.display = "block";
-    subcatsGrid.innerHTML = "";
-    subcats.forEach(sub => {
-      const cover = sub.coverUrl || "assets/logo.png";
-      const card = document.createElement("a");
-      card.href = `catalog.html?subcategory=${sub.id}`;
-      card.className = "gallery-card";
-      card.innerHTML = `
-        <div class="gallery-img-wrapper">
-          <img src="${escapeHtml(cover)}" alt="${escapeHtml(sub.name)}" loading="lazy" onerror="this.src='assets/logo.png';">
-          <div class="gallery-overlay">
-            <span class="gallery-btn"><i class="fas fa-folder-open"></i> الدخول للقسم</span>
-          </div>
-          <div class="gallery-badge"><i class="fas ${sub.icon || 'fa-folder'}"></i> قسم فرعي</div>
-        </div>
-        <div class="gallery-card-content">
-          <h3 class="gallery-title">${escapeHtml(sub.name)}</h3>
-          <p class="gallery-category">استعرض منتجات وتنسيقات القسم</p>
-        </div>
+  if (tabsWrapper && tabsContainer) {
+    if (subcats.length > 0) {
+      tabsWrapper.style.display = "block";
+      tabsContainer.innerHTML = `
+        <button class="cat-btn ${activeSubcategoryId === 'all' ? 'active' : ''}" data-subcategory="all">
+          <i class="fas fa-th"></i>
+          <span>الكل</span>
+        </button>
       `;
-      subcatsGrid.appendChild(card);
-    });
-  } else {
-    subcatsSection.style.display = "none";
+      
+      subcats.forEach(sub => {
+        tabsContainer.innerHTML += `
+          <button class="cat-btn ${activeSubcategoryId === sub.id ? 'active' : ''}" data-subcategory="${sub.id}">
+            <i class="fas ${sub.icon || 'fa-folder'}"></i>
+            <span>${escapeHtml(sub.name)}</span>
+          </button>
+        `;
+      });
+
+      // Add click listeners to tabs
+      document.querySelectorAll("#subcategoryTabs .cat-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          document.querySelectorAll("#subcategoryTabs .cat-btn").forEach(b => b.classList.remove("active"));
+          btn.classList.add("active");
+          
+          // Update URL without reloading page
+          const subId = btn.dataset.subcategory;
+          const url = new URL(window.location);
+          if (subId === 'all') {
+            url.searchParams.delete('subcategory');
+            url.searchParams.set('category', categoryId);
+          } else {
+            url.searchParams.delete('category');
+            url.searchParams.set('subcategory', subId);
+          }
+          window.history.pushState({}, '', url);
+
+          renderProductsForCategoryTab(categoryId, subId);
+        });
+      });
+    } else {
+      tabsWrapper.style.display = "none";
+    }
   }
 
-  // Find Products that belong directly to this category
+  // Render initial products
+  await renderProductsForCategoryTab(categoryId, activeSubcategoryId);
+}
+
+// Helper to filter and render products based on selected Tab
+async function renderProductsForCategoryTab(categoryId, subcategoryId) {
+  const catInfo = window.CATEGORIES[categoryId];
   const allProducts = await window.YellowRoseDB.getProducts();
-  const catProducts = allProducts.filter(p => p.categoryId === categoryId && !p.subcategoryId);
   
+  let catProducts = [];
+  if (subcategoryId === "all") {
+    // "الكل": جلب المنتجات المباشرة للقسم الرئيسي بالإضافة لمنتجات الأقسام الفرعية التابعة له
+    catProducts = allProducts.filter(p => p.categoryId === categoryId);
+  } else {
+    // جلب منتجات القسم الفرعي المحدد فقط
+    catProducts = allProducts.filter(p => p.subcategoryId === subcategoryId);
+  }
+
   const normalProducts = catProducts.filter(p => !p.isDirectMode);
   const directAlbums = catProducts.filter(p => p.isDirectMode);
 
@@ -162,40 +194,10 @@ async function renderSubcategoryView(subcategoryId) {
     showNotFound("عذراً، لم نتمكن من العثور على القسم الفرعي المطلوب.");
     return;
   }
-  const catInfo = window.CATEGORIES[subInfo.categoryId] || { name: "القسم الرئيسي", id: subInfo.categoryId };
 
-  document.getElementById("catalogMainContainer").style.display = "block";
-  document.title = `${subInfo.name} | أعمال يلوروز YELLOW ROSE`;
-
-  // Breadcrumbs & Header
-  document.getElementById("breadcrumbCategory").textContent = catInfo.name;
-  document.getElementById("breadcrumbCategory").href = `catalog.html?category=${catInfo.id}`;
-  
-  const breadcrumbSub = document.getElementById("breadcrumbSubcategory");
-  breadcrumbSub.style.display = "inline";
-  document.getElementById("breadcrumbSubLink").textContent = subInfo.name;
-  document.getElementById("breadcrumbSubLink").href = `catalog.html?subcategory=${subInfo.id}`;
-  
-  document.getElementById("breadcrumbTitle").textContent = "عرض المنتجات";
-  
-  document.getElementById("pageTypeBadge").innerHTML = `<i class="fas ${subInfo.icon || 'fa-folder-open'}"></i> قسم فرعي`;
-  document.getElementById("pageTitle").textContent = subInfo.name;
-  document.getElementById("pageDescription").textContent = `تصفح جميع المنتجات الخاصة بـ ${subInfo.name}.`;
-
-  // Hide subcategories section
-  document.getElementById("subcategoriesSection").style.display = "none";
-
-  // Find Products
-  const allProducts = await window.YellowRoseDB.getProducts();
-  const subProducts = allProducts.filter(p => p.subcategoryId === subcategoryId);
-  
-  const normalProducts = subProducts.filter(p => !p.isDirectMode);
-  const directAlbums = subProducts.filter(p => p.isDirectMode);
-
-  renderProductsGrid(normalProducts, catInfo, directAlbums.length > 0);
-  renderDirectImagesGrid(directAlbums, catInfo);
+  // Redirect to Category view and auto-activate the Subcategory tab
+  await renderCategoryView(subInfo.categoryId, subcategoryId);
 }
-
 // Render the products grid for Category/Subcategory views
 function renderProductsGrid(products, catInfo, hasDirectAlbums = false) {
   const productsSection = document.getElementById("productsSection");
@@ -386,7 +388,6 @@ async function renderProductView(productId) {
   document.getElementById("pageItemCount").textContent = `${images.length} ${images.length > 10 ? 'صورة' : 'صور'}`;
 
   // Hide unnecessary sections
-  document.getElementById("subcategoriesSection").style.display = "none";
   document.getElementById("productsSection").style.display = "none";
 
   // Show and Render Images Grid
