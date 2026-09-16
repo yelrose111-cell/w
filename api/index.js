@@ -249,6 +249,42 @@ app.post('/api/categories', authMiddleware, async (req, res) => {
   }
 });
 
+app.get('/api/migrate-categories', async (req, res) => {
+  try {
+    const cats = await Category.find().lean();
+    const prods = await Product.find();
+    let updated = 0;
+    
+    for (const p of prods) {
+      if (!p.categoryId || !p.categoryId.startsWith('cat_')) {
+        let newCat;
+        if (p.categoryId === 'bouquets') newCat = cats.find(c => c.name.includes('باقات') || c.name.includes('ورد'));
+        if (p.categoryId === 'vases') newCat = cats.find(c => c.name.includes('فازات'));
+        if (p.categoryId === 'bridal') newCat = cats.find(c => c.name.includes('مسكات'));
+        if (p.categoryId === 'entrance_tables') newCat = cats.find(c => c.name.includes('طاولات'));
+        if (p.categoryId === 'balloon_arch') newCat = cats.find(c => c.name.includes('بالون'));
+        if (p.categoryId === 'marriage_contracts') newCat = cats.find(c => c.name.includes('عقود'));
+        if (p.categoryId === 'flower_corners') newCat = cats.find(c => c.name.includes('ركنية'));
+        if (p.categoryId === 'coffee_corners') newCat = cats.find(c => c.name.includes('قهوة'));
+        if (p.categoryId === 'engagement') newCat = cats.find(c => c.name.includes('شبكات') || c.name.includes('خطوبة'));
+        if (p.categoryId === 'car_decor') newCat = cats.find(c => c.name.includes('سيارات'));
+        if (p.categoryId === 'special_events') newCat = cats.find(c => c.name.includes('احتفالات') || c.name.includes('خاصة'));
+        if (p.categoryId === 'other') newCat = cats.find(c => c.name.includes('أخرى'));
+        
+        if (newCat) {
+          p.categoryId = newCat.id;
+          await p.save();
+          updated++;
+        }
+      }
+    }
+    
+    res.json({ success: true, updated, message: `Migrated ${updated} products` });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 app.delete('/api/categories/:id', authMiddleware, async (req, res) => {
   try {
     await Category.findOneAndDelete({ id: req.params.id });
