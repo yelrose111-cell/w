@@ -105,12 +105,15 @@
         </div>
 
         <!-- شريط التمرير الأفقي للأقسام الدائرية -->
-        <div class="circular-categories-container">
+        <div class="circular-categories-container" id="categoriesSlider">
           <div class="circular-categories-track" id="circularCategoriesTrack">
             <!-- يتم حقن الأقسام الدائرية ديناميكياً بواسطة main.js -->
             <div class="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i> جاري تحميل الأقسام...</div>
           </div>
         </div>
+        
+        <!-- 2. شريط التنقل النقطي (Dots Indicator) -->
+        <div id="sliderDots" class="slider-dots-container"></div>
       </div>
 
       <!-- 2. شريط البحث السريع المخصص للزوار -->

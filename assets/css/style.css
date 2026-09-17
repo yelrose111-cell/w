@@ -3361,3 +3361,30 @@ button {
     font-size: 13px;
   }
 }
+
+/* Slider Dots Indicator */
+.slider-dots-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 20px;
+}
+.slider-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #d1d5db; /* gray-300 */
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.slider-dot:hover {
+  background-color: #9ca3af; /* gray-400 */
+}
+.slider-dot.active {
+  width: 20px;
+  border-radius: 4px;
+  background-color: var(--gold-primary);
+}

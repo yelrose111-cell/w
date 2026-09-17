@@ -127,6 +127,69 @@ function renderCircularCategories(cats) {
     `;
     track.appendChild(item);
   });
+
+  // تهيئة نقاط التمرير
+  setTimeout(setupSliderDots, 100);
+}
+
+// 1.5. إعداد شريط النقاط الخاص بالأقسام
+function setupSliderDots() {
+  const slider = document.getElementById('categoriesSlider');
+  const dotsContainer = document.getElementById('sliderDots');
+  
+  if (!slider || !dotsContainer) return;
+
+  const calculateDots = () => {
+      dotsContainer.innerHTML = '';
+      
+      const totalScrollableWidth = slider.scrollWidth - slider.clientWidth;
+      if (totalScrollableWidth <= 0) return;
+
+      const pages = Math.ceil(slider.scrollWidth / slider.clientWidth); 
+
+      for (let i = 0; i < pages; i++) {
+          const dot = document.createElement('button');
+          dot.className = 'slider-dot';
+          dot.setAttribute('aria-label', `انتقل للصفحة ${i + 1}`);
+          
+          dot.addEventListener('click', () => {
+              const scrollAmount = i * slider.clientWidth;
+              const isRTL = document.dir === 'rtl' || getComputedStyle(document.body).direction === 'rtl';
+              
+              slider.scrollTo({
+                  left: isRTL ? -scrollAmount : scrollAmount,
+                  behavior: 'smooth'
+              });
+          });
+          
+          dotsContainer.appendChild(dot);
+      }
+  };
+
+  const updateActiveDot = () => {
+      const dots = dotsContainer.children;
+      if (dots.length === 0) return;
+
+      const scrollPosition = Math.abs(slider.scrollLeft);
+      const activeIndex = Math.round(scrollPosition / slider.clientWidth);
+
+      Array.from(dots).forEach((dot, index) => {
+          if (index === activeIndex) {
+              dot.classList.add('active');
+          } else {
+              dot.classList.remove('active');
+          }
+      });
+  };
+
+  calculateDots();
+  updateActiveDot();
+
+  slider.addEventListener('scroll', updateActiveDot);
+  window.addEventListener('resize', () => {
+      calculateDots();
+      updateActiveDot();
+  });
 }
 
 // 2. بناء شبكة المنتجات الرئيسية (بدلاً من الأشرطة الأفقية)
