@@ -82,19 +82,16 @@ async function loadPageContent() {
   const categoryId = params.get("category");
   const subcategoryId = params.get("subcategory");
 
-  if (!productId && !categoryId && !subcategoryId) {
-    showNotFound("لم يتم تحديد معرّف القسم أو الألبوم المطلوب.");
-    if (window.hideGlobalPreloader) window.hideGlobalPreloader();
-    return;
-  }
-
   try {
     if (productId) {
       await renderProductView(productId);
-    } else if (subcategoryId) {
+    } else if (subcategoryId && subcategoryId !== 'all') {
       await renderSubcategoryView(subcategoryId);
-    } else if (categoryId) {
+    } else if (categoryId && categoryId !== 'all') {
       await renderCategoryView(categoryId);
+    } else {
+      // If no valid param or category='all' or subcategory='all'
+      await renderAllProductsView();
     }
     if (window.hideGlobalPreloader) window.hideGlobalPreloader();
   } catch (err) {
@@ -102,6 +99,93 @@ async function loadPageContent() {
     if (window.hideGlobalPreloader) window.hideGlobalPreloader();
     showNotFound("حدث خطأ أثناء جلب التفاصيل.");
   }
+}
+
+// -------------------------------------------------------------
+// ALL PRODUCTS VIEW (Search & Filter)
+// -------------------------------------------------------------
+let allGlobalProducts = [];
+
+async function renderAllProductsView() {
+  document.getElementById("catalogMainContainer").style.display = "block";
+  document.title = `جميع المنتجات | أعمال يلوروز YELLOW ROSE`;
+
+  // Breadcrumbs & Header
+  document.getElementById("breadcrumbCategory").textContent = "جميع المنتجات";
+  document.getElementById("breadcrumbCategory").href = `catalog.html`;
+  document.getElementById("breadcrumbTitle").textContent = "الكل";
+  
+  document.getElementById("pageTypeBadge").innerHTML = `<i class="fas fa-gem"></i> تشكيلة`;
+  document.getElementById("pageTitle").textContent = "جميع المنتجات";
+  document.getElementById("pageDescription").textContent = "تصفح وابحث في جميع منتجات وتنسيقات يلوروز.";
+
+  const grid = document.getElementById("productsGrid");
+  const filterBar = document.getElementById("productsFilterBar");
+  const searchInput = document.getElementById("searchInput");
+  const categoryFilter = document.getElementById("categoryFilter");
+  
+  grid.innerHTML = "";
+  
+  // Show filter bar
+  if (filterBar) filterBar.classList.remove("hidden");
+  
+  // Hide subcategories tab
+  const tabsWrapper = document.getElementById("subcategoryTabsWrapper");
+  if (tabsWrapper) tabsWrapper.style.display = "none";
+  
+  document.getElementById("productsSection").style.display = "block";
+  document.getElementById("productImagesSection").style.display = "none";
+
+  // Fetch all products
+  allGlobalProducts = await window.YellowRoseDB.getProducts();
+
+  if (allGlobalProducts.length === 0) {
+    document.getElementById("noProductsMessage").classList.remove("hidden");
+    return;
+  }
+  document.getElementById("noProductsMessage").classList.add("hidden");
+
+  // Populate Categories Filter
+  if (categoryFilter && window.CATEGORIES) {
+    categoryFilter.innerHTML = '<option value="all">جميع الأقسام</option>';
+    Object.values(window.CATEGORIES).forEach(cat => {
+      const opt = document.createElement("option");
+      opt.value = cat.id;
+      opt.textContent = cat.name;
+      categoryFilter.appendChild(opt);
+    });
+  }
+
+  const renderFilteredGrid = () => {
+    const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : "";
+    const selectedCat = categoryFilter ? categoryFilter.value : "all";
+
+    const filtered = allGlobalProducts.filter(p => {
+      const matchSearch = p.title.toLowerCase().includes(searchTerm) || (p.code && p.code.toLowerCase().includes(searchTerm));
+      const matchCat = selectedCat === "all" || p.categoryId === selectedCat;
+      return matchSearch && matchCat;
+    });
+
+    grid.innerHTML = "";
+    if (filtered.length === 0) {
+      document.getElementById("noProductsMessage").classList.remove("hidden");
+    } else {
+      document.getElementById("noProductsMessage").classList.add("hidden");
+      filtered.forEach(p => {
+        grid.appendChild(createProductCard(p));
+      });
+    }
+  };
+
+  if (searchInput) {
+    searchInput.addEventListener("input", renderFilteredGrid);
+  }
+  if (categoryFilter) {
+    categoryFilter.addEventListener("change", renderFilteredGrid);
+  }
+
+  // Initial render
+  renderFilteredGrid();
 }
 
 function showNotFound(message) {

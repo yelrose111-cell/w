@@ -131,6 +131,22 @@
             <!-- يتم توليد الأقسام الفرعية الدائرية ديناميكياً -->
           </div>
         </div>
+
+        <!-- شريط البحث والفلترة (يظهر في صفحة كل المنتجات) -->
+        <div class="products-filter-bar hidden" id="productsFilterBar">
+          <div class="filter-group">
+            <i class="fas fa-search filter-icon"></i>
+            <input type="text" id="searchInput" class="filter-input" placeholder="ابحث باسم المنتج أو الكود...">
+          </div>
+          <div class="filter-group">
+            <i class="fas fa-filter filter-icon"></i>
+            <select id="categoryFilter" class="filter-select">
+              <option value="all">جميع الأقسام</option>
+              <!-- يتم توليد الخيارات ديناميكياً -->
+            </select>
+          </div>
+        </div>
+
         <div class="gallery-grid" id="productsGrid">
           <!-- يتم توليد كروت المنتجات ديناميكياً -->
         </div>
