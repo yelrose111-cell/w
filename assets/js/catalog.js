@@ -171,8 +171,49 @@ async function renderAllProductsView() {
       document.getElementById("noProductsMessage").classList.remove("hidden");
     } else {
       document.getElementById("noProductsMessage").classList.add("hidden");
+      
+      // Update header count
+      const countPill = document.getElementById("pageCountPill");
+      if (countPill) {
+        countPill.style.display = "inline-flex";
+        const countText = document.getElementById("pageItemCount");
+        if (countText) countText.textContent = `${filtered.length} ${filtered.length > 10 ? 'منتج' : 'منتجات'}`;
+      }
+
       filtered.forEach(p => {
-        grid.appendChild(createProductCard(p));
+        const catInfo = (window.CATEGORIES && window.CATEGORIES[p.categoryId]) || { name: 'قسم عام' };
+        const cover = p.coverUrl || (p.images && p.images.length > 0 && (p.images[0].thumbnailUrl || p.images[0].url)) || "assets/logo.png";
+        const waUrl = window.YellowRoseDB.buildWhatsAppUrl(p);
+
+        const card = document.createElement("div");
+        card.className = "modern-showcase-card";
+        card.style.flex = "none";
+        card.style.width = "100%";
+
+        card.innerHTML = `
+          <div class="card-media-box">
+            <a href="catalog.html?id=${p.id}">
+              <img src="${escapeHtml(cover)}" alt="${escapeHtml(p.title)}" class="card-media-img" loading="lazy" onerror="this.src='assets/logo.png';">
+            </a>
+            <span class="card-category-tag"><i class="fas fa-gem"></i> ${escapeHtml(catInfo.name)}</span>
+            ${p.featured ? '<div class="gallery-featured-badge" style="top:auto;bottom:12px;right:12px;"><i class="fas fa-star"></i> مميز</div>' : ''}
+          </div>
+          <div class="card-details-box">
+            <h4 class="card-product-title">
+              <a href="catalog.html?id=${p.id}">${escapeHtml(p.title)}</a>
+            </h4>
+            <p class="card-product-desc">${escapeHtml(p.description) || "تنسيق متقن يعكس فخامة وأناقة مناسباتكم الراقية."}</p>
+            <div class="card-dual-actions">
+              <a href="catalog.html?id=${p.id}" class="btn-card-view">
+                <i class="fas fa-eye"></i> تفاصيل العمل
+              </a>
+              <a href="${waUrl}" target="_blank" rel="noopener" class="btn-card-order">
+                <i class="fab fa-whatsapp"></i> طلب بالواتساب
+              </a>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
       });
     }
   };
