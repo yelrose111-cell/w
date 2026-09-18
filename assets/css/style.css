@@ -3388,3 +3388,88 @@ button {
   border-radius: 4px;
   background-color: var(--gold-primary);
 }
+
+/* Gift Option Styling */
+.gift-option-wrapper {
+  background-color: #fcfcfc;
+  border: 1px solid #eaeaea;
+  border-radius: var(--radius-md);
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto 30px auto;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+}
+
+.gift-toggle-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.gift-checkbox {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--gold-primary);
+  cursor: pointer;
+}
+
+.gift-label {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+  cursor: pointer;
+  margin: 0;
+}
+
+.gift-details-form {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px dashed #ddd;
+  animation: fadeInDown 0.3s ease;
+}
+
+.gift-input-group {
+  margin-bottom: 15px;
+}
+
+.gift-input-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.gift-input-group input[type="tel"] {
+  width: 100%;
+  padding: 10px 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-family: var(--font-primary);
+  font-size: 14px;
+  transition: border-color 0.3s ease;
+}
+
+.gift-input-group input[type="tel"]:focus {
+  border-color: var(--gold-primary);
+  outline: none;
+}
+
+.gift-radio-group {
+  display: flex;
+  gap: 20px;
+}
+
+.gift-radio-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.gift-radio-label input[type="radio"] {
+  accent-color: var(--gold-primary);
+}

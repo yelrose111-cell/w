@@ -248,7 +248,7 @@ class YellowRoseDBManager {
   }
 
   // --- WhatsApp Link Generator ---
-  buildWhatsAppUrl(product, photo = null) {
+  buildWhatsAppUrl(product, photo = null, giftData = null) {
     const catName = window.CATEGORIES && window.CATEGORIES[product.categoryId] ? window.CATEGORIES[product.categoryId].name : "تنسيق زهور";
     const productUrl = `${window.location.origin}/catalog.html?id=${product.id}`;
     
@@ -277,6 +277,10 @@ class YellowRoseDBManager {
       }
       
       text += `\n\nهل هذا المنتج متاح لموعد مناسبتنا؟ شكراً لكم!`;
+    }
+
+    if (giftData && giftData.isGift) {
+      text += `\n\n🎁 طلب إهداء:\n• رقم جوال المهدى إليه: ${giftData.recipientPhone}\n• طريقة الاستلام: ${giftData.deliveryMethod}`;
     }
 
     return `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(text)}`;

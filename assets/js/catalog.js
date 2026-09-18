@@ -447,6 +447,32 @@ async function renderProductView(productId) {
   // Hide unnecessary sections
   document.getElementById("productsSection").style.display = "none";
 
+  // Show Gift Option Container
+  const giftContainer = document.getElementById("giftOptionContainer");
+  const giftCheck = document.getElementById("enableGiftCheck");
+  const giftForm = document.getElementById("giftDetailsForm");
+  const giftPhone = document.getElementById("giftRecipientPhone");
+  const giftDeliveryRadios = document.getElementsByName("giftDelivery");
+
+  if (giftContainer && giftCheck && giftForm) {
+    giftContainer.style.display = "block";
+    
+    // Reset form state on new product load
+    giftCheck.checked = false;
+    giftForm.classList.add("hidden");
+    if(giftPhone) giftPhone.value = "";
+    if(giftDeliveryRadios && giftDeliveryRadios.length > 0) giftDeliveryRadios[0].checked = true;
+
+    // Toggle form visibility
+    giftCheck.onchange = function() {
+      if (this.checked) {
+        giftForm.classList.remove("hidden");
+      } else {
+        giftForm.classList.add("hidden");
+      }
+    };
+  }
+
   // Show and Render Images Grid
   const imagesSection = document.getElementById("productImagesSection");
   const grid = document.getElementById("albumPhotosGrid");
@@ -467,8 +493,6 @@ async function renderProductView(productId) {
 
     const itemCard = document.createElement("div");
     itemCard.className = "album-photo-card";
-
-    const photoWaUrl = window.YellowRoseDB.buildWhatsAppUrl(currentAlbum, { url: photoUrl, name: photoName, code: photoCode });
 
     itemCard.innerHTML = `
       <div class="album-photo-inner" onclick="openLightbox(${index})" title="اضغط للتكبير الكامل">
@@ -491,7 +515,7 @@ async function renderProductView(productId) {
           <button class="btn-open-lightbox-small" onclick="openLightbox(${index})">
             <i class="fas fa-expand"></i> معاينة مكبرة
           </button>
-          <a href="${photoWaUrl}" target="_blank" rel="noopener" class="btn-photo-whatsapp" title="طلب هذا النموذج بالاسم والكود">
+          <a href="#" onclick="handleGiftWhatsAppOrder(event, ${index})" class="btn-photo-whatsapp" title="طلب هذا النموذج بالاسم والكود">
             <i class="fab fa-whatsapp"></i> طلب بالواتساب
           </a>
         </div>
@@ -501,6 +525,52 @@ async function renderProductView(productId) {
     grid.appendChild(itemCard);
   });
 }
+
+// -------------------------------------------------------------
+// WhatsApp Order Handler with Gift Support
+// -------------------------------------------------------------
+window.handleGiftWhatsAppOrder = function(e, index) {
+  e.preventDefault();
+  
+  if (!currentAlbum) return;
+
+  const images = Array.isArray(currentAlbum.images) && currentAlbum.images.length > 0 ? currentAlbum.images : (currentAlbum.coverUrl ? [currentAlbum.coverUrl] : []);
+  const photo = images[index];
+  
+  const photoUrl = typeof photo === "string" ? photo : photo.url;
+  const photoName = typeof photo === "object" && photo.name ? photo.name : `${currentAlbum.title} (صورة #${index + 1})`;
+  const photoCode = typeof photo === "object" && photo.code ? photo.code : `#YR-0${index + 1}`;
+
+  let giftData = null;
+  const giftCheck = document.getElementById("enableGiftCheck");
+  
+  if (giftCheck && giftCheck.checked) {
+    const phone = document.getElementById("giftRecipientPhone") ? document.getElementById("giftRecipientPhone").value.trim() : "";
+    
+    if (!phone) {
+      alert("الرجاء إدخال رقم جوال المهدى إليه لتقديم الهدية.");
+      return;
+    }
+
+    let delivery = "توصيل";
+    const deliveryRadios = document.getElementsByName("giftDelivery");
+    for (let r of deliveryRadios) {
+      if (r.checked) {
+        delivery = r.value;
+        break;
+      }
+    }
+
+    giftData = {
+      isGift: true,
+      recipientPhone: phone,
+      deliveryMethod: delivery
+    };
+  }
+
+  const finalWaUrl = window.YellowRoseDB.buildWhatsAppUrl(currentAlbum, { url: photoUrl, name: photoName, code: photoCode }, giftData);
+  window.open(finalWaUrl, "_blank", "noopener");
+};
 
 // -------------------------------------------------------------
 // Lightbox Logic

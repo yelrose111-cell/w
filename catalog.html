@@ -151,6 +151,34 @@
           <p class="heading-subtitle">كل صورة تحمل اسماً ورمز كود خاصاً؛ يمكنك الضغط للتكبير أو طلب نفس النموذج عبر الواتساب</p>
         </div>
 
+        <!-- إضافة خيار تقديم كهدية -->
+        <div id="giftOptionContainer" class="gift-option-wrapper" style="display: none;">
+          <div class="gift-toggle-box">
+            <input type="checkbox" id="enableGiftCheck" class="gift-checkbox">
+            <label for="enableGiftCheck" class="gift-label">
+              <i class="fas fa-gift text-gold"></i> تقديم هذا المنتج كهدية لشخص آخر
+            </label>
+          </div>
+          
+          <div id="giftDetailsForm" class="gift-details-form hidden">
+            <div class="gift-input-group">
+              <label for="giftRecipientPhone">رقم جوال المهدى إليه:</label>
+              <input type="tel" id="giftRecipientPhone" placeholder="مثال: 05XXXXXXXX">
+            </div>
+            <div class="gift-input-group">
+              <label>طريقة الاستلام:</label>
+              <div class="gift-radio-group">
+                <label class="gift-radio-label">
+                  <input type="radio" name="giftDelivery" value="توصيل" checked> توصيل
+                </label>
+                <label class="gift-radio-label">
+                  <input type="radio" name="giftDelivery" value="استلام من الفرع"> استلام من الفرع
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="album-photos-grid" id="albumPhotosGrid">
           <!-- يتم توليد كروت الصور ديناميكياً بواسطة catalog.js -->
         </div>
