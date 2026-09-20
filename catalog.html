@@ -12,7 +12,7 @@
   <!-- Google Fonts: Tajawal & Playfair Display -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,500&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&family=Playfair+Display:ital,wght@0,600;1,500&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
   
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -283,6 +283,87 @@
       <span class="float-tooltip">تواصل واتساب مباشر</span>
     </a>
   </div>
+
+  
+  <!-- استوديو كروت الإهداء -->
+  <div class="gift-studio-modal hidden" id="giftStudioModal" role="dialog" aria-modal="true">
+    <div class="gift-studio-container">
+      <button class="studio-close-btn" id="closeStudioBtn" aria-label="إغلاق الاستوديو">
+        <i class="fas fa-times"></i>
+      </button>
+      
+      <div class="studio-header">
+        <h2>استوديو الإهداء</h2>
+        <p>صمم كارت الإهداء الخاص بك لمعاينة الشكل النهائي</p>
+      </div>
+
+      <div class="studio-body">
+        <div class="studio-controls">
+          <div class="form-group">
+            <label>إلى (اسم المهدى إليه):</label>
+            <input type="text" id="studioRecipient" placeholder="مثال: حبيبتي الغالية" class="studio-input">
+          </div>
+          <div class="form-group">
+            <label>نص الإهداء:</label>
+            <textarea id="studioMessage" rows="4" maxlength="200" placeholder="اكتب مشاعرك هنا..." class="studio-input"></textarea>
+            <div class="char-counter" style="text-align: left; font-size: 12px; color: #666; margin-top: 5px;"><span id="msgCharCount">0</span>/200</div>
+          </div>
+          <div class="form-group">
+            <label>من (اسم المهدي):</label>
+            <input type="text" id="studioSender" placeholder="مثال: محبك فلان" class="studio-input">
+          </div>
+          
+          <div class="formatting-tools">
+            <div class="tool-group">
+              <label>الخط:</label>
+              <select id="studioFont" class="studio-input">
+                <option value="Tajawal">تجوال (عصري)</option>
+                <option value="'Aref Ruqaa'">رقعة (ملكي)</option>
+                <option value="'Noto Naskh Arabic'">نسخ (كلاسيكي)</option>
+                <option value="Amiri">ديواني / ثلث</option>
+                <option value="Cairo">كايرو (ناعم)</option>
+              </select>
+            </div>
+            <div class="tool-group">
+              <label>الحجم:</label>
+              <div class="size-btns">
+                <button type="button" class="studio-btn size-btn" data-size="12pt">صغير</button>
+                <button type="button" class="studio-btn size-btn active" data-size="14pt">متوسط</button>
+                <button type="button" class="studio-btn size-btn" data-size="16pt">كبير</button>
+              </div>
+            </div>
+            <div class="tool-group">
+              <label>المحاذاة:</label>
+              <div class="align-btns">
+                <button type="button" class="studio-btn align-btn" data-align="right"><i class="fas fa-align-right"></i></button>
+                <button type="button" class="studio-btn align-btn active" data-align="center"><i class="fas fa-align-center"></i></button>
+                <button type="button" class="studio-btn align-btn" data-align="left"><i class="fas fa-align-left"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="studio-preview-pane">
+          <div class="live-card-preview" id="liveCardPreview">
+             <div class="card-inner-frame">
+               <img src="assets/logo.png" style="width: 25mm; height: auto; margin: -5px auto 10px; display: block; z-index: 1; position: relative;" alt="Logo">
+               <div class="card-recipient" id="previewRecipient"></div>
+               <div class="card-message" id="previewMessage" style="font-family: Tajawal; font-size: 14pt; text-align: center;">معاينة النص تظهر هنا...</div>
+               <div class="card-sender" id="previewSender"></div>
+               <img src="assets/logo.png" class="card-watermark" alt="">
+             </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="studio-footer">
+        <button class="btn-hero-primary" id="submitGiftCardBtn" style="width: 100%; justify-content: center;">
+          <i class="fas fa-check-circle" style="margin-left: 10px;"></i> اعتماد الكارت وإرسال الطلب
+        </button>
+      </div>
+    </div>
+  </div>
+
 
   <!-- Minified Scripts -->
   <script src="assets/dist/js/db.min.js?v=1789758932"></script>

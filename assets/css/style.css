@@ -3532,3 +3532,161 @@ button {
   background-size: 20px;
   padding-left: 35px;
 }
+
+
+/* ===================================================================== */
+/* 9. Gift Studio Modal Styles
+/* ===================================================================== */
+.gift-studio-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  opacity: 1;
+  visibility: visible;
+  transition: 0.3s;
+}
+.gift-studio-modal.hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+.gift-studio-container {
+  background: #fff;
+  width: 90%;
+  max-width: 900px;
+  border-radius: 12px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+}
+.studio-close-btn {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  background: rgba(0,0,0,0.1);
+  border: none;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.2s;
+}
+.studio-close-btn:hover { background: rgba(0,0,0,0.2); }
+.studio-header {
+  padding: 20px;
+  background: var(--gold-dark);
+  color: #fff;
+  text-align: center;
+}
+.studio-header h2 { margin: 0; font-size: 22px; }
+.studio-header p { margin: 5px 0 0; opacity: 0.9; font-size: 14px; }
+.studio-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  flex-direction: row;
+}
+.studio-controls {
+  flex: 1;
+  padding: 20px;
+  background: #fdfdfd;
+  overflow-y: auto;
+  border-left: 1px solid #eee;
+}
+.studio-preview-pane {
+  flex: 1;
+  background: #f4f5f7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.studio-footer {
+  padding: 15px;
+  background: #fff;
+  border-top: 1px solid #eee;
+}
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #555; }
+.studio-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 14px;
+}
+.studio-input:focus { outline: none; border-color: var(--gold-primary); }
+.formatting-tools {
+  background: #fff;
+  border: 1px solid #eee;
+  padding: 15px;
+  border-radius: 6px;
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+.tool-group { flex: 1; min-width: 120px; }
+.tool-group label { display: block; font-size: 12px; margin-bottom: 5px; color: #777; }
+.size-btns, .align-btns { display: flex; gap: 5px; }
+.studio-btn {
+  padding: 5px 10px;
+  background: #f4f4f4;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  flex: 1;
+}
+.studio-btn.active { background: var(--gold-light); color: #fff; border-color: var(--gold-primary); }
+
+.live-card-preview {
+  width: 100%;
+  max-width: 350px;
+  aspect-ratio: 1.414 / 1;
+  background: #fff;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  border: 1px solid #eee;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.card-inner-frame {
+  width: 90%;
+  height: 90%;
+  border: 2px solid var(--gold-light);
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.card-recipient { font-weight: bold; margin-bottom: 10px; z-index: 1; }
+.card-message { flex: 1; display: flex; align-items: center; justify-content: center; z-index: 1; white-space: pre-wrap; line-height: 1.5; }
+.card-sender { font-weight: bold; margin-top: 10px; text-align: left; z-index: 1; }
+.card-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.05;
+  width: 70%;
+  z-index: 0;
+  pointer-events: none;
+}
+@media (max-width: 768px) {
+  .studio-body { flex-direction: column; overflow-y: auto; }
+  .studio-controls { border-left: none; border-bottom: 1px solid #eee; }
+  .live-card-preview { max-width: 300px; }
+}

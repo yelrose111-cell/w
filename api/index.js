@@ -12,6 +12,7 @@ const Category = require('../models/Category');
 const Subcategory = require('../models/Subcategory');
 const Product = require('../models/Product');
 const Settings = require('../models/Settings');
+const Order = require('../models/Order');
 
 const app = express();
 app.use(cors({
@@ -385,6 +386,73 @@ app.post('/api/settings', authMiddleware, async (req, res) => {
       { upsert: true }
     );
     res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+
+// ---------------- Orders & Print Station ----------------
+
+const employeeAuthMiddleware = (req, res, next) => {
+  const token = req.cookies.auth_token;
+  if (!token) return res.status(401).json({ success: false, error: 'Unauthorized: No token provided' });
+  try {
+    const [payload, signature] = token.split('.');
+    const expectedSignature = crypto.createHmac('sha256', process.env.SESSION_SECRET).update(payload).digest('hex');
+    if (signature !== expectedSignature) return res.status(401).json({ success: false, error: 'Unauthorized: Invalid token signature' });
+    const decodedPayload = JSON.parse(Buffer.from(payload, 'base64').toString('utf-8'));
+    if (Date.now() > decodedPayload.exp) return res.status(401).json({ success: false, error: 'Unauthorized: Token expired' });
+    if (decodedPayload.role !== 'admin' && decodedPayload.role !== 'employee') return res.status(403).json({ success: false, error: 'Forbidden' });
+    req.user = decodedPayload;
+    next();
+  } catch (err) {
+    return res.status(401).json({ success: false, error: 'Unauthorized: Token validation failed' });
+  }
+};
+
+app.post('/api/auth/employee-login', loginLimiter, (req, res) => {
+  const { pin } = req.body;
+  if (pin === '1234') {
+    const payloadBase64 = Buffer.from(JSON.stringify({ role: 'employee', exp: Date.now() + 12 * 60 * 60 * 1000 })).toString('base64');
+    const signature = crypto.createHmac('sha256', process.env.SESSION_SECRET).update(payloadBase64).digest('hex');
+    res.cookie('auth_token', `${payloadBase64}.${signature}`, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'strict', maxAge: 12 * 60 * 60 * 1000 });
+    return res.json({ success: true });
+  }
+  return res.status(401).json({ success: false, error: 'Invalid PIN' });
+});
+
+// Customer placing an order
+app.post('/api/orders', async (req, res) => {
+  try {
+    const data = req.body;
+    data.orderId = 'YR-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
+    const saved = await Order.create(data);
+    res.status(201).json({ success: true, order: saved });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.get('/api/orders', employeeAuthMiddleware, async (req, res) => {
+  try {
+    const status = req.query.status;
+    const filter = status ? { status } : {};
+    const items = await Order.find(filter).sort({ createdAt: -1 }).lean();
+    res.json(items);
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+app.patch('/api/orders/:id/print', employeeAuthMiddleware, async (req, res) => {
+  try {
+    const updated = await Order.findOneAndUpdate(
+      { orderId: req.params.id },
+      { status: 'printed', printedAt: new Date() },
+      { new: true }
+    );
+    res.json({ success: true, order: updated });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }

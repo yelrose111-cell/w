@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>محطة طباعة الكروت | يلوروز</title>
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/logo.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Aref+Ruqaa:wght@400;700&family=Cairo:wght@400;700&family=Noto+Naskh+Arabic:wght@400;700&family=Tajawal:wght@300;400;500;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    :root {
+      --gold-primary: #c8a251;
+      --gold-dark: #a37c35;
+    }
+    body { background-color: #f4f5f7; margin: 0; padding: 0; font-family: 'Tajawal', sans-serif; }
+    .print-header { background: var(--gold-dark, #a37c35); color: #fff; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+    .print-header h1 { margin: 0; font-size: 20px; }
+    .print-header .header-actions { display: flex; gap: 10px; }
+    .btn-action { background: rgba(255,255,255,0.2); border: none; color: white; padding: 8px 15px; border-radius: 4px; cursor: pointer; transition: 0.2s; }
+    .btn-action:hover { background: rgba(255,255,255,0.3); }
+    
+    .print-container { max-width: 1200px; margin: 30px auto; padding: 0 20px; display: grid; grid-template-columns: 350px 1fr; gap: 30px; }
+    .orders-sidebar { background: #fff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 20px; max-height: 80vh; overflow-y: auto; }
+    .orders-sidebar h2 { margin-top: 0; font-size: 18px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+    
+    .order-card { border: 1px solid #eee; border-radius: 6px; padding: 15px; margin-bottom: 15px; cursor: pointer; transition: 0.2s; }
+    .order-card:hover { border-color: var(--gold-primary, #c8a251); box-shadow: 0 4px 10px rgba(200, 162, 81, 0.1); }
+    .order-card.active { border-color: var(--gold-primary, #c8a251); background: #fdfaf3; }
+    .order-card .order-id { font-size: 12px; color: #888; margin-bottom: 5px; }
+    .order-card .order-title { font-weight: bold; margin-bottom: 5px; font-size: 15px; }
+    .order-card .order-status { font-size: 12px; display: inline-block; padding: 3px 8px; border-radius: 12px; }
+    .status-pending { background: #fff3cd; color: #856404; }
+    .status-printed { background: #d4edda; color: #155724; }
+    
+    .print-main { background: #fff; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); padding: 30px; display: flex; flex-direction: column; align-items: center; }
+    
+    /* A7 Canvas size: 105mm x 74mm */
+    .print-canvas {
+      width: 105mm;
+      height: 74mm;
+      background: white;
+      position: relative;
+      margin-bottom: 30px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 12mm 10mm 10mm 10mm; /* Extra top padding for the logo */
+      box-sizing: border-box;
+      /* Only show shadow on screen */
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    
+    /* The fixed print frame */
+    .print-canvas::before {
+      content: "";
+      position: absolute;
+      top: 4mm;
+      left: 4mm;
+      right: 4mm;
+      bottom: 4mm;
+      border: 1.5px solid var(--gold-primary, #c8a251);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* The top center logo */
+    .print-canvas-logo {
+      position: absolute;
+      top: 6mm;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 25mm; /* Fixed size for the logo */
+      height: auto;
+      z-index: 1;
+    }
+
+    .print-canvas .card-recipient { font-size: 13pt; font-weight: bold; margin-bottom: 10px; align-self: flex-start; z-index: 1; position: relative; }
+    .print-canvas .card-message { font-size: 16pt; text-align: center; flex-grow: 1; display: flex; align-items: center; justify-content: center; line-height: 1.6; white-space: pre-wrap; z-index: 1; position: relative;}
+    .print-canvas .card-sender { font-size: 13pt; font-weight: bold; margin-top: 10px; align-self: flex-end; z-index: 1; position: relative; }
+    
+    /* Watermark in the background */
+    .print-canvas .card-watermark { position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%); width: 60%; opacity: 0.04; z-index: 0; pointer-events: none; }
+
+
+    .btn-print-large { background: var(--gold-primary, #c8a251); color: white; border: none; padding: 15px 40px; font-size: 18px; border-radius: 30px; cursor: pointer; transition: 0.3s; box-shadow: 0 5px 15px rgba(200, 162, 81, 0.4); }
+    .btn-print-large:hover { background: var(--gold-dark, #a37c35); transform: translateY(-2px); }
+    .btn-print-large:disabled { background: #ccc; cursor: not-allowed; box-shadow: none; transform: none; }
+
+    .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #f4f5f7; display: flex; align-items: center; justify-content: center; z-index: 9999; }
+    .login-box { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+    .login-box h2 { margin-bottom: 20px; color: var(--gold-dark, #a37c35); }
+    .login-box input { width: 100%; padding: 15px; font-size: 24px; text-align: center; letter-spacing: 5px; border: 2px solid #ddd; border-radius: 6px; margin-bottom: 20px; }
+    .login-box button { width: 100%; padding: 15px; font-size: 18px; background: var(--gold-primary, #c8a251); color: white; border: none; border-radius: 6px; cursor: pointer; }
+    
+    @media print {
+      body * { visibility: hidden; }
+      .print-canvas, .print-canvas * { visibility: visible; }
+      .print-canvas {
+        position: absolute;
+        left: 0;
+        top: 0;
+        border: none;
+        box-shadow: none;
+        margin: 0;
+        padding: 10mm;
+      }
+      @page {
+        size: 105mm 74mm landscape;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Login Overlay -->
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-box">
+      <img src="assets/logo.png" alt="Yellow Rose" style="width: 80px; margin-bottom: 20px;">
+      <h2>دخول محطة الطباعة</h2>
+      <input type="password" id="employeePin" placeholder="PIN" maxlength="4">
+      <button onclick="handleLogin()">دخول</button>
+      <p id="loginError" style="color: red; display: none; margin-top: 10px;">الرمز غير صحيح</p>
+    </div>
+  </div>
+
+  <header class="print-header">
+    <h1>محطة الطباعة - كروت الإهداء</h1>
+    <div class="header-actions">
+      <button class="btn-action" onclick="openQuickCreateModal()"><i class="fas fa-magic"></i> إنشاء فوري</button>
+      <button class="btn-action" onclick="fetchOrders()"><i class="fas fa-sync-alt"></i> تحديث</button>
+      <button class="btn-action" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
+    </div>
+  </header>
+
+  <div class="print-container">
+    <aside class="orders-sidebar">
+      <h2>الطلبات الحديثة</h2>
+      <div id="ordersList">
+        <p style="text-align:center; color:#888;">جاري جلب الطلبات...</p>
+      </div>
+    </aside>
+
+    <main class="print-main">
+      <h2 style="margin-top: 0; color: #555;">معاينة الكارت المحدّد</h2>
+      
+      <div class="print-canvas" id="printCanvas">
+        <img src="assets/logo.png" class="print-canvas-logo" alt="Yellow Rose">
+        <div class="card-recipient" id="canvasRecipient"></div>
+        <div class="card-message" id="canvasMessage">الرجاء اختيار طلب من القائمة أو إنشاء كارت فوري.</div>
+        <div class="card-sender" id="canvasSender"></div>
+        <img src="assets/logo.png" class="card-watermark" alt="">
+      </div>
+      
+      <button class="btn-print-large" id="printBtn" onclick="printCard()" disabled>
+        <i class="fas fa-print"></i> طباعة الكارت الآن
+      </button>
+    </main>
+  </div>
+
+  <!-- Quick Create Modal -->
+  <div id="quickCreateModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:#fff; padding:30px; border-radius:8px; width:100%; max-width:500px;">
+      <h2 style="margin-top:0;">إنشاء كارت فوري</h2>
+      <div style="margin-bottom:15px;">
+        <label>إلى:</label>
+        <input type="text" id="qcRecipient" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px;">
+      </div>
+      <div style="margin-bottom:15px;">
+        <label>النص:</label>
+        <textarea id="qcMessage" rows="4" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px;"></textarea>
+      </div>
+      <div style="margin-bottom:15px;">
+        <label>من:</label>
+        <input type="text" id="qcSender" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px;">
+      </div>
+      <div style="display:flex; gap:10px; margin-bottom:20px;">
+        <div style="flex:1;">
+          <label>الخط:</label>
+          <select id="qcFont" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px;">
+            <option value="Tajawal">تجوال</option>
+            <option value="'Aref Ruqaa'">رقعة</option>
+            <option value="'Noto Naskh Arabic'">نسخ</option>
+            <option value="Amiri">ديواني</option>
+            <option value="Cairo">كايرو</option>
+          </select>
+        </div>
+        <div style="flex:1;">
+          <label>الحجم:</label>
+          <select id="qcSize" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px;">
+            <option value="12pt">صغير</option>
+            <option value="14pt" selected>متوسط</option>
+            <option value="16pt">كبير</option>
+          </select>
+        </div>
+        <div style="flex:1;">
+          <label>المحاذاة:</label>
+          <select id="qcAlign" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px;">
+            <option value="right">يمين</option>
+            <option value="center" selected>توسيط</option>
+            <option value="left">يسار</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button onclick="previewQuickCreate()" style="flex:1; padding:10px; background:var(--gold-primary); color:white; border:none; border-radius:4px; cursor:pointer;">معاينة</button>
+        <button onclick="closeQuickCreateModal()" style="flex:1; padding:10px; background:#ddd; color:#333; border:none; border-radius:4px; cursor:pointer;">إلغاء</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/print-station.js"></script>
+</body>
+</html>

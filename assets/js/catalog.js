@@ -210,6 +210,9 @@ async function renderAllProductsView() {
               <a href="${waUrl}" target="_blank" rel="noopener" class="btn-card-order">
                 <i class="fab fa-whatsapp"></i> طلب بالواتساب
               </a>
+              <button type="button" class="btn-card-gift" onclick="openGiftStudio('${p.id}', '${escapeHtml(p.title)}')" style="margin-top:5px; background:var(--gold-primary); color:#fff; border:none; padding:8px; border-radius:4px; width:100%; cursor:pointer;">
+                <i class="fas fa-gift"></i> إرفاق كرت إهداء
+              </button>
             </div>
           </div>
         `;
@@ -424,6 +427,9 @@ function renderProductsGrid(products, catInfo, hasDirectAlbums = false) {
           <a href="${waUrl}" target="_blank" rel="noopener" class="btn-card-order">
             <i class="fab fa-whatsapp"></i> طلب بالواتساب
           </a>
+          <button type="button" class="btn-card-gift" onclick="openGiftStudio('${p.id}', '${escapeHtml(p.title)}')" style="margin-top:5px; background:var(--gold-primary); color:#fff; border:none; padding:8px; border-radius:4px; width:100%; cursor:pointer;">
+            <i class="fas fa-gift"></i> إرفاق كرت إهداء
+          </button>
         </div>
       </div>
     `;
@@ -643,6 +649,9 @@ async function renderProductView(productId) {
           <a href="#" onclick="handleGiftWhatsAppOrder(event, ${index})" class="btn-photo-whatsapp" title="طلب هذا النموذج بالاسم والكود">
             <i class="fab fa-whatsapp"></i> طلب بالواتساب
           </a>
+          <button type="button" class="btn-photo-gift" onclick="openGiftStudio('${currentAlbum.id}', '${escapeHtml(photoName)}')" style="margin-top:5px; background:var(--gold-primary); color:#fff; border:none; padding:8px; border-radius:4px; width:100%; cursor:pointer;">
+            <i class="fas fa-gift"></i> إرفاق كرت إهداء
+          </button>
         </div>
       </div>
     `;
@@ -792,3 +801,141 @@ function escapeHtml(str) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
+
+// -------------------------------------------------------------
+// Gift Studio Logic
+// -------------------------------------------------------------
+let currentGiftProduct = { id: '', title: '' };
+
+window.openGiftStudio = function(productId, productTitle) {
+  currentGiftProduct = { id: productId, title: productTitle };
+  const modal = document.getElementById('giftStudioModal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  }
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+  const modal = document.getElementById('giftStudioModal');
+  const closeBtn = document.getElementById('closeStudioBtn');
+  
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      if (modal) modal.classList.add('hidden');
+      document.body.style.overflow = 'auto';
+    });
+  }
+
+  // Live Preview Updates
+  const recipientIn = document.getElementById('studioRecipient');
+  const messageIn = document.getElementById('studioMessage');
+  const senderIn = document.getElementById('studioSender');
+  
+  const prevRec = document.getElementById('previewRecipient');
+  const prevMsg = document.getElementById('previewMessage');
+  const prevSen = document.getElementById('previewSender');
+  const msgCharCount = document.getElementById('msgCharCount');
+  
+  if (messageIn) {
+    messageIn.addEventListener('input', () => {
+      prevMsg.textContent = messageIn.value || 'معاينة النص تظهر هنا...';
+      if (msgCharCount) msgCharCount.textContent = messageIn.value.length;
+    });
+  }
+  if (recipientIn) {
+    recipientIn.addEventListener('input', () => {
+      prevRec.textContent = recipientIn.value ? 'إلى: ' + recipientIn.value : '';
+    });
+  }
+  if (senderIn) {
+    senderIn.addEventListener('input', () => {
+      prevSen.textContent = senderIn.value ? 'من: ' + senderIn.value : '';
+    });
+  }
+
+  // Font
+  const fontSel = document.getElementById('studioFont');
+  if (fontSel) {
+    fontSel.addEventListener('change', () => {
+      prevMsg.style.fontFamily = fontSel.value;
+    });
+  }
+
+  // Size
+  const sizeBtns = document.querySelectorAll('.size-btn');
+  sizeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      sizeBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      prevMsg.style.fontSize = btn.dataset.size;
+    });
+  });
+
+  // Align
+  const alignBtns = document.querySelectorAll('.align-btn');
+  alignBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      alignBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      prevMsg.style.textAlign = btn.dataset.align;
+    });
+  });
+
+  // Submit Order
+  const submitBtn = document.getElementById('submitGiftCardBtn');
+  if (submitBtn) {
+    submitBtn.addEventListener('click', async () => {
+      if (!messageIn.value.trim()) {
+        alert('الرجاء كتابة نص الإهداء');
+        return;
+      }
+      
+      const orderData = {
+        productId: currentGiftProduct.id,
+        productName: currentGiftProduct.title,
+        recipientName: recipientIn.value.trim(),
+        message: messageIn.value.trim(),
+        senderName: senderIn.value.trim(),
+        fontFamily: fontSel.value,
+        fontSize: document.querySelector('.size-btn.active').dataset.size,
+        alignment: document.querySelector('.align-btn.active').dataset.align
+      };
+
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+      
+      try {
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(orderData)
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          const orderId = data.order.orderId;
+          const waMsg = 'مرحباً، أود طباعة كرت إهداء للطلب التابع للمنتج: ' + currentGiftProduct.title + '\\nرقم طلب الكارت: ' + orderId;
+          window.open('https://wa.me/966582739397?text=' + encodeURIComponent(waMsg), '_blank');
+          
+          if (modal) modal.classList.add('hidden');
+          document.body.style.overflow = 'auto';
+          
+          recipientIn.value = '';
+          messageIn.value = '';
+          senderIn.value = '';
+          prevMsg.textContent = 'معاينة النص تظهر هنا...';
+          prevRec.textContent = '';
+          prevSen.textContent = '';
+        } else {
+          alert('حدث خطأ أثناء حفظ الطلب.');
+        }
+      } catch (err) {
+        alert('حدث خطأ في الاتصال بالسيرفر.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> اعتماد الكارت وإرسال الطلب';
+      }
+    });
+  }
+});
