@@ -326,10 +326,9 @@
             </div>
             <div class="tool-group">
               <label>الحجم:</label>
-              <div class="size-btns">
-                <button type="button" class="studio-btn size-btn" data-size="12pt">صغير</button>
-                <button type="button" class="studio-btn size-btn active" data-size="14pt">متوسط</button>
-                <button type="button" class="studio-btn size-btn" data-size="16pt">كبير</button>
+              <div class="size-btns" style="align-items: center; justify-content: center;">
+                <input type="number" id="studioFontSize" value="14" min="8" max="72" class="studio-input" style="width: 80px; text-align: center;">
+                <span style="margin-right: 5px; font-weight: bold; color: #555;">pt</span>
               </div>
             </div>
             <div class="tool-group">
@@ -345,8 +344,8 @@
 
         <div class="studio-preview-pane">
           <div class="live-card-preview" id="liveCardPreview">
+             <img src="assets/logo.png" class="preview-logo" alt="Logo">
              <div class="card-inner-frame">
-               <img src="assets/logo.png" style="width: 25mm; height: auto; margin: -5px auto 10px; display: block; z-index: 1; position: relative;" alt="Logo">
                <div class="card-recipient" id="previewRecipient"></div>
                <div class="card-message" id="previewMessage" style="font-family: Tajawal; font-size: 14pt; text-align: center;">معاينة النص تظهر هنا...</div>
                <div class="card-sender" id="previewSender"></div>

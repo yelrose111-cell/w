@@ -135,7 +135,10 @@ function previewQuickCreate() {
   const message = document.getElementById('qcMessage').value;
   const sender = document.getElementById('qcSender').value;
   const font = document.getElementById('qcFont').value;
-  const size = document.getElementById('qcSize').value;
+  let size = document.getElementById('qcSize').value;
+  if(size < 8) size = 8;
+  if(size > 100) size = 100;
+  size = size + 'pt';
   const align = document.getElementById('qcAlign').value;
   
   if (!message.trim()) {

@@ -863,14 +863,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Size
-  const sizeBtns = document.querySelectorAll('.size-btn');
-  sizeBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      sizeBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      prevMsg.style.fontSize = btn.dataset.size;
+  const sizeInput = document.getElementById('studioFontSize');
+  if (sizeInput) {
+    sizeInput.addEventListener('input', () => {
+      let val = sizeInput.value;
+      if (val < 8) val = 8;
+      if (val > 100) val = 100;
+      prevMsg.style.fontSize = val + 'pt';
     });
-  });
+  }
 
   // Align
   const alignBtns = document.querySelectorAll('.align-btn');
@@ -898,7 +899,7 @@ document.addEventListener('DOMContentLoaded', () => {
         message: messageIn.value.trim(),
         senderName: senderIn.value.trim(),
         fontFamily: fontSel.value,
-        fontSize: document.querySelector('.size-btn.active').dataset.size,
+        fontSize: sizeInput ? sizeInput.value + 'pt' : '14pt',
         alignment: document.querySelector('.align-btn.active').dataset.align
       };
 

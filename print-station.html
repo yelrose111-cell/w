@@ -61,27 +61,35 @@
       box-shadow: 0 5px 20px rgba(0,0,0,0.1);
     }
     
-    /* The fixed print frame */
-    .print-canvas::before {
-      content: "";
-      position: absolute;
-      top: 4mm;
-      left: 4mm;
-      right: 4mm;
-      bottom: 4mm;
-      border: 1.5px solid var(--gold-primary, #c8a251);
-      pointer-events: none;
-      z-index: 0;
+    .print-canvas {
+      width: 105mm;
+      height: 74mm;
+      background: white;
+      margin: 0 auto 30px;
+      position: relative;
     }
-
-    /* The top center logo */
+    
     .print-canvas-logo {
       position: absolute;
-      top: 6mm;
+      top: 3mm;
       left: 50%;
       transform: translateX(-50%);
       width: 25mm; /* Fixed size for the logo */
       height: auto;
+      z-index: 10;
+    }
+
+    .card-inner-frame {
+      position: absolute;
+      top: 15mm; /* Space for logo */
+      left: 4mm;
+      right: 4mm;
+      bottom: 4mm;
+      border: 1.5px solid var(--gold-primary, #c8a251);
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden; /* Prevent text overflow */
       z-index: 1;
     }
 
@@ -157,10 +165,12 @@
       
       <div class="print-canvas" id="printCanvas">
         <img src="assets/logo.png" class="print-canvas-logo" alt="Yellow Rose">
-        <div class="card-recipient" id="canvasRecipient"></div>
-        <div class="card-message" id="canvasMessage">الرجاء اختيار طلب من القائمة أو إنشاء كارت فوري.</div>
-        <div class="card-sender" id="canvasSender"></div>
-        <img src="assets/logo.png" class="card-watermark" alt="">
+        <div class="card-inner-frame">
+          <div class="card-recipient" id="canvasRecipient"></div>
+          <div class="card-message" id="canvasMessage">الرجاء اختيار طلب من القائمة أو إنشاء كارت فوري.</div>
+          <div class="card-sender" id="canvasSender"></div>
+          <img src="assets/logo.png" class="card-watermark" alt="">
+        </div>
       </div>
       
       <button class="btn-print-large" id="printBtn" onclick="printCard()" disabled>
@@ -198,11 +208,10 @@
         </div>
         <div style="flex:1;">
           <label>الحجم:</label>
-          <select id="qcSize" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px;">
-            <option value="12pt">صغير</option>
-            <option value="14pt" selected>متوسط</option>
-            <option value="16pt">كبير</option>
-          </select>
+          <div style="display: flex; align-items: center;">
+            <input type="number" id="qcSize" value="14" min="8" max="72" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px;">
+            <span style="margin-right: 5px;">pt</span>
+          </div>
         </div>
         <div style="flex:1;">
           <label>المحاذاة:</label>
