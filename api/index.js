@@ -501,11 +501,9 @@ if (require.main === module) {
 
 app.get('/api/migrate-codes', async (req, res) => {
   try {
-    const Category = require('../models/Category');
-    const Product = require('../models/Product');
-    
     const categories = await Category.find();
     const categoryPrefixMap = {};
+    const catOps = [];
     
     for (const cat of categories) {
       let prefix = 'YR';
@@ -517,15 +515,23 @@ app.get('/api/migrate-codes', async (req, res) => {
       else if (cat.name.includes('مواليد')) prefix = 'YN';
       else if (cat.name.includes('نباتات')) prefix = 'YP';
       
-      cat.prefix = prefix;
-      await cat.save();
       categoryPrefixMap[cat.id] = prefix;
+      catOps.push({
+        updateOne: {
+          filter: { id: cat.id },
+          update: { $set: { prefix: prefix } }
+        }
+      });
+    }
+    
+    if (catOps.length > 0) {
+      await Category.bulkWrite(catOps);
     }
     
     const prefixCounters = {};
     const products = await Product.find().sort({ createdAt: 1 });
+    const prodOps = [];
     
-    let updatedCount = 0;
     for (const prod of products) {
       const prefix = categoryPrefixMap[prod.categoryId] || 'YR';
       if (!prefixCounters[prefix]) prefixCounters[prefix] = 1;
@@ -534,11 +540,10 @@ app.get('/api/migrate-codes', async (req, res) => {
       const codeNum = count.toString().padStart(2, '0');
       const productCode = `${prefix}-${codeNum}`;
       
-      prod.productCode = productCode;
-      
-      if (prod.images && prod.images.length > 0) {
-        prod.images.forEach((img, idx) => {
-          if (prod.images.length === 1) {
+      const updatedImages = prod.images ? [...prod.images] : [];
+      if (updatedImages.length > 0) {
+        updatedImages.forEach((img, idx) => {
+          if (updatedImages.length === 1) {
             img.code = productCode;
           } else {
             img.code = `${productCode}-${idx + 1}`;
@@ -546,13 +551,22 @@ app.get('/api/migrate-codes', async (req, res) => {
         });
       }
       
-      await prod.save();
-      updatedCount++;
+      prodOps.push({
+        updateOne: {
+          filter: { id: prod.id },
+          update: { $set: { productCode: productCode, images: updatedImages } }
+        }
+      });
     }
     
-    res.json({ success: true, message: `Migrated ${categories.length} categories and ${updatedCount} products.` });
+    if (prodOps.length > 0) {
+      await Product.bulkWrite(prodOps);
+    }
+    
+    res.json({ success: true, message: `Migrated ${categories.length} categories and ${products.length} products.` });
   } catch (error) {
-    res.status(500).json({ success: false, error: error.message });
+    console.error("Migration Error:", error);
+    res.status(500).json({ success: false, error: error.message, stack: error.stack });
   }
 });
 
