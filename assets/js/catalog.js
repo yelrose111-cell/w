@@ -760,14 +760,19 @@ window.handleGiftWhatsAppOrder = async function(e, index) {
 
     try {
       const orderData = {
+        customerName: "عميل عبر الواتساب",
+        customerPhone: giftData && giftData.recipientPhone ? giftData.recipientPhone : "0000000000",
         productId: currentAlbum.id,
-        productName: photoName,
-        recipientName: "حسب الطلب", // No longer asking for to/from specifically, it's inside the text
-        message: giftCardMessage,
-        senderName: "حسب الطلب",
-        fontFamily: "Tajawal", // Default fallback
-        fontSize: "14pt",      // Default fallback
-        alignment: "center"    // Default fallback
+        productTitle: photoName,
+        productCoverUrl: photoUrl,
+        cardData: {
+          recipient: "",
+          sender: "",
+          message: giftCardMessage,
+          fontFamily: "Tajawal",
+          fontSize: "14pt",
+          textAlign: "center"
+        }
       };
 
       const res = await fetch('/api/orders', {
