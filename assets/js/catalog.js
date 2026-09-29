@@ -210,9 +210,6 @@ async function renderAllProductsView() {
               <a href="${waUrl}" target="_blank" rel="noopener" class="btn-card-order">
                 <i class="fab fa-whatsapp"></i> طلب بالواتساب
               </a>
-              <button type="button" class="btn-card-gift" onclick="openGiftStudio('${p.id}', '${escapeHtml(p.title)}')" style="margin-top:5px; background:var(--gold-primary); color:#fff; border:none; padding:8px; border-radius:4px; width:100%; cursor:pointer;">
-                <i class="fas fa-gift"></i> إرفاق كرت إهداء
-              </button>
             </div>
           </div>
         `;
@@ -427,9 +424,6 @@ function renderProductsGrid(products, catInfo, hasDirectAlbums = false) {
           <a href="${waUrl}" target="_blank" rel="noopener" class="btn-card-order">
             <i class="fab fa-whatsapp"></i> طلب بالواتساب
           </a>
-          <button type="button" class="btn-card-gift" onclick="openGiftStudio('${p.id}', '${escapeHtml(p.title)}')" style="margin-top:5px; background:var(--gold-primary); color:#fff; border:none; padding:8px; border-radius:4px; width:100%; cursor:pointer;">
-            <i class="fas fa-gift"></i> إرفاق كرت إهداء
-          </button>
         </div>
       </div>
     `;
@@ -580,28 +574,31 @@ async function renderProductView(productId) {
 
   // Show Gift Option Container
   const giftContainer = document.getElementById("giftOptionContainer");
-  const giftCheck = document.getElementById("enableGiftCheck");
-  const giftForm = document.getElementById("giftDetailsForm");
+  const enableGiftCheck = document.getElementById("enableGiftCheck");
+  const giftDetailsForm = document.getElementById("giftDetailsForm");
   const giftPhone = document.getElementById("giftRecipientPhone");
   const giftDeliveryRadios = document.getElementsByName("giftDelivery");
+  const standaloneGiftCardBox = document.getElementById("standaloneGiftCardBox");
+  const standaloneGiftCardCheck = document.getElementById("standaloneGiftCardCheck");
+  const standaloneGiftCardForm = document.getElementById("standaloneGiftCardForm");
+  const nestedGiftCardCheck = document.getElementById("nestedGiftCardCheck");
+  const nestedGiftCardForm = document.getElementById("nestedGiftCardForm");
 
-  if (giftContainer && giftCheck && giftForm) {
+  if (giftContainer && enableGiftCheck && giftDetailsForm) {
     giftContainer.style.display = "block";
     
     // Reset form state on new product load
-    giftCheck.checked = false;
-    giftForm.classList.add("hidden");
+    enableGiftCheck.checked = false;
+    giftDetailsForm.classList.add("hidden");
     if(giftPhone) giftPhone.value = "";
     if(giftDeliveryRadios && giftDeliveryRadios.length > 0) giftDeliveryRadios[0].checked = true;
 
-    // Toggle form visibility
-    giftCheck.onchange = function() {
-      if (this.checked) {
-        giftForm.classList.remove("hidden");
-      } else {
-        giftForm.classList.add("hidden");
-      }
-    };
+    if (standaloneGiftCardBox) standaloneGiftCardBox.style.display = "block";
+    if (standaloneGiftCardCheck) standaloneGiftCardCheck.checked = false;
+    if (standaloneGiftCardForm) standaloneGiftCardForm.classList.add("hidden");
+    
+    if (nestedGiftCardCheck) nestedGiftCardCheck.checked = false;
+    if (nestedGiftCardForm) nestedGiftCardForm.classList.add("hidden");
   }
 
   // Show and Render Images Grid
@@ -649,9 +646,6 @@ async function renderProductView(productId) {
           <a href="#" onclick="handleGiftWhatsAppOrder(event, ${index})" class="btn-photo-whatsapp" title="طلب هذا النموذج بالاسم والكود">
             <i class="fab fa-whatsapp"></i> طلب بالواتساب
           </a>
-          <button type="button" class="btn-photo-gift" onclick="openGiftStudio('${currentAlbum.id}', '${escapeHtml(photoName)}')" style="margin-top:5px; background:var(--gold-primary); color:#fff; border:none; padding:8px; border-radius:4px; width:100%; cursor:pointer;">
-            <i class="fas fa-gift"></i> إرفاق كرت إهداء
-          </button>
         </div>
       </div>
     `;
@@ -663,7 +657,7 @@ async function renderProductView(productId) {
 // -------------------------------------------------------------
 // WhatsApp Order Handler with Gift Support
 // -------------------------------------------------------------
-window.handleGiftWhatsAppOrder = function(e, index) {
+window.handleGiftWhatsAppOrder = async function(e, index) {
   e.preventDefault();
   
   if (!currentAlbum) return;
@@ -676,9 +670,36 @@ window.handleGiftWhatsAppOrder = function(e, index) {
   const photoCode = typeof photo === "object" && photo.code ? photo.code : `#YR-0${index + 1}`;
 
   let giftData = null;
-  const giftCheck = document.getElementById("enableGiftCheck");
+  const enableGiftCheck = document.getElementById("enableGiftCheck");
+  const nestedGiftCardCheck = document.getElementById("nestedGiftCardCheck");
+  const standaloneGiftCardCheck = document.getElementById("standaloneGiftCardCheck");
   
-  if (giftCheck && giftCheck.checked) {
+  let needsPrintStation = false;
+  let giftCardMessage = "";
+  let giftCardType = "";
+
+  // Helper to extract gift card details
+  const extractGiftCard = (messageId, typeName) => {
+    const msg = document.getElementById(messageId).value.trim();
+    if (!msg) {
+      alert("الرجاء كتابة نص الإهداء.");
+      return null;
+    }
+    
+    let type = "";
+    const radios = document.getElementsByName(typeName);
+    for (let r of radios) {
+      if (r.checked) { type = r.value; break; }
+    }
+    if (!type) {
+      alert("الرجاء اختيار نوع الكتابة (طباعة أو خطاط).");
+      return null;
+    }
+    return { msg, type };
+  };
+
+  // 1. Check if "Gift to someone else" is active
+  if (enableGiftCheck && enableGiftCheck.checked) {
     const phone = document.getElementById("giftRecipientPhone") ? document.getElementById("giftRecipientPhone").value.trim() : "";
     
     if (!phone) {
@@ -700,6 +721,80 @@ window.handleGiftWhatsAppOrder = function(e, index) {
       recipientPhone: phone,
       deliveryMethod: delivery
     };
+
+    // Check nested gift card
+    if (nestedGiftCardCheck && nestedGiftCardCheck.checked) {
+      const gc = extractGiftCard("nestedGiftMessage", "nestedGiftType");
+      if (!gc) return; // validation failed
+      giftCardMessage = gc.msg;
+      giftCardType = gc.type;
+      giftData.hasGiftCard = true;
+      giftData.giftCardMessage = gc.msg;
+      giftData.giftCardType = gc.type;
+      if (gc.type === "طباعة") needsPrintStation = true;
+    }
+  } 
+  // 2. Or if Standalone Gift Card is active
+  else if (standaloneGiftCardCheck && standaloneGiftCardCheck.checked) {
+    const gc = extractGiftCard("standaloneGiftMessage", "standaloneGiftType");
+    if (!gc) return; // validation failed
+    giftCardMessage = gc.msg;
+    giftCardType = gc.type;
+    
+    giftData = {
+      isGift: false, // It's just an attached card
+      hasGiftCard: true,
+      giftCardMessage: gc.msg,
+      giftCardType: gc.type
+    };
+    if (gc.type === "طباعة") needsPrintStation = true;
+  }
+
+  // If Print Station is needed, submit to DB first
+  let printOrderId = null;
+  if (needsPrintStation) {
+    const btn = e.currentTarget;
+    const originalHtml = btn.innerHTML;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال لمحطة الطباعة...';
+    btn.style.pointerEvents = 'none';
+
+    try {
+      const orderData = {
+        productId: currentAlbum.id,
+        productName: photoName,
+        recipientName: "حسب الطلب", // No longer asking for to/from specifically, it's inside the text
+        message: giftCardMessage,
+        senderName: "حسب الطلب",
+        fontFamily: "Tajawal", // Default fallback
+        fontSize: "14pt",      // Default fallback
+        alignment: "center"    // Default fallback
+      };
+
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        printOrderId = data.order.orderId;
+        if(giftData) giftData.printOrderId = printOrderId;
+      } else {
+        alert('حدث خطأ أثناء حفظ طلب الكارت في محطة الطباعة.');
+        btn.innerHTML = originalHtml;
+        btn.style.pointerEvents = 'auto';
+        return;
+      }
+    } catch (err) {
+      alert('حدث خطأ في الاتصال بالسيرفر أثناء تجهيز الكارت.');
+      btn.innerHTML = originalHtml;
+      btn.style.pointerEvents = 'auto';
+      return;
+    }
+    
+    btn.innerHTML = originalHtml;
+    btn.style.pointerEvents = 'auto';
   }
 
   const finalWaUrl = window.YellowRoseDB.buildWhatsAppUrl(currentAlbum, { url: photoUrl, name: photoName, code: photoCode }, giftData);
@@ -807,135 +902,51 @@ function escapeHtml(str) {
 // -------------------------------------------------------------
 let currentGiftProduct = { id: '', title: '' };
 
-window.openGiftStudio = function(productId, productTitle) {
-  currentGiftProduct = { id: productId, title: productTitle };
-  const modal = document.getElementById('giftStudioModal');
-  if (modal) {
-    modal.classList.remove('hidden');
-    document.body.style.overflow = 'hidden';
-  }
-};
-
+// -------------------------------------------------------------
+// New Gift Options Logic
+// -------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', () => {
-  const modal = document.getElementById('giftStudioModal');
-  const closeBtn = document.getElementById('closeStudioBtn');
+  const enableGiftCheck = document.getElementById('enableGiftCheck');
+  const giftDetailsForm = document.getElementById('giftDetailsForm');
+  const nestedGiftCardCheck = document.getElementById('nestedGiftCardCheck');
+  const nestedGiftCardForm = document.getElementById('nestedGiftCardForm');
   
-  if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      if (modal) modal.classList.add('hidden');
-      document.body.style.overflow = 'auto';
-    });
-  }
+  const standaloneGiftCardBox = document.getElementById('standaloneGiftCardBox');
+  const standaloneGiftCardCheck = document.getElementById('standaloneGiftCardCheck');
+  const standaloneGiftCardForm = document.getElementById('standaloneGiftCardForm');
 
-  // Live Preview Updates
-  const recipientIn = document.getElementById('studioRecipient');
-  const messageIn = document.getElementById('studioMessage');
-  const senderIn = document.getElementById('studioSender');
-  
-  const prevRec = document.getElementById('previewRecipient');
-  const prevMsg = document.getElementById('previewMessage');
-  const prevSen = document.getElementById('previewSender');
-  const msgCharCount = document.getElementById('msgCharCount');
-  
-  if (messageIn) {
-    messageIn.addEventListener('input', () => {
-      prevMsg.textContent = messageIn.value || 'معاينة النص تظهر هنا...';
-      if (msgCharCount) msgCharCount.textContent = messageIn.value.length;
-    });
-  }
-  if (recipientIn) {
-    recipientIn.addEventListener('input', () => {
-      prevRec.textContent = recipientIn.value ? 'إلى: ' + recipientIn.value : '';
-    });
-  }
-  if (senderIn) {
-    senderIn.addEventListener('input', () => {
-      prevSen.textContent = senderIn.value ? 'من: ' + senderIn.value : '';
-    });
-  }
-
-  // Font
-  const fontSel = document.getElementById('studioFont');
-  if (fontSel) {
-    fontSel.addEventListener('change', () => {
-      prevMsg.style.fontFamily = fontSel.value;
-    });
-  }
-
-  // Size
-  const sizeInput = document.getElementById('studioFontSize');
-  if (sizeInput) {
-    sizeInput.addEventListener('input', () => {
-      let val = sizeInput.value;
-      if (val < 8) val = 8;
-      if (val > 100) val = 100;
-      prevMsg.style.fontSize = val + 'pt';
-    });
-  }
-
-  // Align
-  const alignBtns = document.querySelectorAll('.align-btn');
-  alignBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      alignBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      prevMsg.style.textAlign = btn.dataset.align;
-    });
-  });
-
-  // Submit Order
-  const submitBtn = document.getElementById('submitGiftCardBtn');
-  if (submitBtn) {
-    submitBtn.addEventListener('click', async () => {
-      if (!messageIn.value.trim()) {
-        alert('الرجاء كتابة نص الإهداء');
-        return;
+  if (enableGiftCheck) {
+    enableGiftCheck.addEventListener('change', () => {
+      if (enableGiftCheck.checked) {
+        giftDetailsForm.classList.remove('hidden');
+        standaloneGiftCardBox.style.display = 'none'; // Hide standalone option
+        standaloneGiftCardCheck.checked = false;
+        if(standaloneGiftCardForm) standaloneGiftCardForm.classList.add('hidden');
+      } else {
+        giftDetailsForm.classList.add('hidden');
+        standaloneGiftCardBox.style.display = 'block'; // Show standalone option
+        nestedGiftCardCheck.checked = false;
+        if(nestedGiftCardForm) nestedGiftCardForm.classList.add('hidden');
       }
-      
-      const orderData = {
-        productId: currentGiftProduct.id,
-        productName: currentGiftProduct.title,
-        recipientName: recipientIn.value.trim(),
-        message: messageIn.value.trim(),
-        senderName: senderIn.value.trim(),
-        fontFamily: fontSel.value,
-        fontSize: sizeInput ? sizeInput.value + 'pt' : '14pt',
-        alignment: document.querySelector('.align-btn.active').dataset.align
-      };
+    });
+  }
 
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
-      
-      try {
-        const res = await fetch('/api/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(orderData)
-        });
-        const data = await res.json();
-        
-        if (data.success) {
-          const orderId = data.order.orderId;
-          const waMsg = 'مرحباً، أود طباعة كرت إهداء للطلب التابع للمنتج: ' + currentGiftProduct.title + '\\nرقم طلب الكارت: ' + orderId;
-          window.open('https://wa.me/966582739397?text=' + encodeURIComponent(waMsg), '_blank');
-          
-          if (modal) modal.classList.add('hidden');
-          document.body.style.overflow = 'auto';
-          
-          recipientIn.value = '';
-          messageIn.value = '';
-          senderIn.value = '';
-          prevMsg.textContent = 'معاينة النص تظهر هنا...';
-          prevRec.textContent = '';
-          prevSen.textContent = '';
-        } else {
-          alert('حدث خطأ أثناء حفظ الطلب.');
-        }
-      } catch (err) {
-        alert('حدث خطأ في الاتصال بالسيرفر.');
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> اعتماد الكارت وإرسال الطلب';
+  if (nestedGiftCardCheck) {
+    nestedGiftCardCheck.addEventListener('change', () => {
+      if (nestedGiftCardCheck.checked) {
+        nestedGiftCardForm.classList.remove('hidden');
+      } else {
+        nestedGiftCardForm.classList.add('hidden');
+      }
+    });
+  }
+
+  if (standaloneGiftCardCheck) {
+    standaloneGiftCardCheck.addEventListener('change', () => {
+      if (standaloneGiftCardCheck.checked) {
+        standaloneGiftCardForm.classList.remove('hidden');
+      } else {
+        standaloneGiftCardForm.classList.add('hidden');
       }
     });
   }

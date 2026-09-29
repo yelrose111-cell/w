@@ -279,8 +279,21 @@ class YellowRoseDBManager {
       text += `\n\nهل هذا المنتج متاح لموعد مناسبتنا؟ شكراً لكم!`;
     }
 
-    if (giftData && giftData.isGift) {
-      text += `\n\n🎁 طلب إهداء:\n• رقم جوال المهدى إليه: ${giftData.recipientPhone}\n• طريقة الاستلام: ${giftData.deliveryMethod}`;
+    if (giftData) {
+      if (giftData.isGift) {
+        text += `\n\n🎁 طلب إهداء لشخص آخر:\n• رقم جوال المهدى إليه: ${giftData.recipientPhone}\n• طريقة الاستلام: ${giftData.deliveryMethod}`;
+      } else {
+        text += `\n\n🎁 إرفاق كرت إهداء مع الطلب (استلام شخصي):`;
+      }
+
+      if (giftData.hasGiftCard) {
+        text += `\n• نوع الكتابة: ${giftData.giftCardType}`;
+        text += `\n• نص الإهداء:\n"${giftData.giftCardMessage}"`;
+        
+        if (giftData.printOrderId) {
+          text += `\n\n🖨️ [تنبيه للفرع: تم إرسال طلب طباعة للكارت برقم: ${giftData.printOrderId}]`;
+        }
+      }
     }
 
     return `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(text)}`;

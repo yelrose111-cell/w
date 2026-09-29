@@ -167,28 +167,80 @@
           <p class="heading-subtitle">كل صورة تحمل اسماً ورمز كود خاصاً؛ يمكنك الضغط للتكبير أو طلب نفس النموذج عبر الواتساب</p>
         </div>
 
-        <!-- إضافة خيار تقديم كهدية -->
-        <div id="giftOptionContainer" class="gift-option-wrapper" style="display: none;">
-          <div class="gift-toggle-box">
+        <!-- خيارات الإهداء -->
+        <div id="giftOptionContainer" class="gift-option-wrapper" style="display: none; text-align: right; margin-bottom: 20px;">
+          <!-- الخيار الأول: إرسال كهدية لشخص آخر -->
+          <div class="gift-toggle-box" style="margin-bottom: 15px;">
             <input type="checkbox" id="enableGiftCheck" class="gift-checkbox">
-            <label for="enableGiftCheck" class="gift-label">
+            <label for="enableGiftCheck" class="gift-label" style="cursor: pointer; font-weight: bold;">
               <i class="fas fa-gift text-gold"></i> تقديم هذا المنتج كهدية لشخص آخر
             </label>
           </div>
           
-          <div id="giftDetailsForm" class="gift-details-form hidden">
-            <div class="gift-input-group">
-              <label for="giftRecipientPhone">رقم جوال المهدى إليه:</label>
-              <input type="tel" id="giftRecipientPhone" placeholder="مثال: 05XXXXXXXX">
+          <div id="giftDetailsForm" class="gift-details-form hidden" style="margin-bottom: 20px; padding-right: 20px; border-right: 2px solid var(--gold-light);">
+            <div class="gift-input-group" style="margin-bottom: 15px;">
+              <label for="giftRecipientPhone" style="display: block; margin-bottom: 5px;">رقم جوال المهدى إليه:</label>
+              <input type="tel" id="giftRecipientPhone" placeholder="مثال: 05XXXXXXXX" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
             </div>
-            <div class="gift-input-group">
-              <label>طريقة الاستلام:</label>
-              <div class="gift-radio-group">
-                <label class="gift-radio-label">
+            <div class="gift-input-group" style="margin-bottom: 15px;">
+              <label style="display: block; margin-bottom: 5px;">طريقة الاستلام:</label>
+              <div class="gift-radio-group" style="display: flex; gap: 15px;">
+                <label class="gift-radio-label" style="cursor: pointer;">
                   <input type="radio" name="giftDelivery" value="توصيل" checked> توصيل
                 </label>
-                <label class="gift-radio-label">
+                <label class="gift-radio-label" style="cursor: pointer;">
                   <input type="radio" name="giftDelivery" value="استلام من الفرع"> استلام من الفرع
+                </label>
+              </div>
+            </div>
+            
+            <div class="gift-toggle-box" style="margin-top: 15px; margin-bottom: 10px;">
+              <input type="checkbox" id="nestedGiftCardCheck" class="gift-checkbox">
+              <label for="nestedGiftCardCheck" class="gift-label" style="cursor: pointer; font-weight: bold;">
+                <i class="fas fa-envelope-open-text text-gold"></i> إضافة كرت إهداء
+              </label>
+            </div>
+            
+            <div id="nestedGiftCardForm" class="gift-card-form hidden" style="margin-top: 10px; padding: 15px; background: #fafafa; border: 1px solid #eee; border-radius: 8px;">
+              <div class="gift-input-group" style="margin-bottom: 15px;">
+                <label for="nestedGiftMessage" style="display: block; margin-bottom: 5px;">نص الإهداء (مطلوب):</label>
+                <textarea id="nestedGiftMessage" rows="3" placeholder="اكتب نص الإهداء هنا..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" required></textarea>
+              </div>
+              <div class="gift-input-group">
+                <label style="display: block; margin-bottom: 5px;">نوع الكتابة (مطلوب):</label>
+                <div class="gift-radio-group" style="display: flex; gap: 15px;">
+                  <label class="gift-radio-label" style="cursor: pointer;">
+                    <input type="radio" name="nestedGiftType" value="طباعة"> طباعة
+                  </label>
+                  <label class="gift-radio-label" style="cursor: pointer;">
+                    <input type="radio" name="nestedGiftType" value="خطاط"> كتابة باليد "خطاط"
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- الخيار الثاني: إرفاق كرت إهداء مستقل -->
+          <div class="gift-toggle-box" id="standaloneGiftCardBox" style="margin-bottom: 15px;">
+            <input type="checkbox" id="standaloneGiftCardCheck" class="gift-checkbox">
+            <label for="standaloneGiftCardCheck" class="gift-label" style="cursor: pointer; font-weight: bold;">
+              <i class="fas fa-envelope-open-text text-gold"></i> إرفاق كرت إهداء (مع الاستلام الشخصي)
+            </label>
+          </div>
+
+          <div id="standaloneGiftCardForm" class="gift-card-form hidden" style="margin-top: 10px; padding: 15px; background: #fafafa; border: 1px solid #eee; border-radius: 8px;">
+            <div class="gift-input-group" style="margin-bottom: 15px;">
+              <label for="standaloneGiftMessage" style="display: block; margin-bottom: 5px;">نص الإهداء (مطلوب):</label>
+              <textarea id="standaloneGiftMessage" rows="3" placeholder="اكتب نص الإهداء هنا..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" required></textarea>
+            </div>
+            <div class="gift-input-group">
+              <label style="display: block; margin-bottom: 5px;">نوع الكتابة (مطلوب):</label>
+              <div class="gift-radio-group" style="display: flex; gap: 15px;">
+                <label class="gift-radio-label" style="cursor: pointer;">
+                  <input type="radio" name="standaloneGiftType" value="طباعة"> طباعة
+                </label>
+                <label class="gift-radio-label" style="cursor: pointer;">
+                  <input type="radio" name="standaloneGiftType" value="خطاط"> كتابة باليد "خطاط"
                 </label>
               </div>
             </div>
@@ -285,83 +337,7 @@
   </div>
 
   
-  <!-- استوديو كروت الإهداء -->
-  <div class="gift-studio-modal hidden" id="giftStudioModal" role="dialog" aria-modal="true">
-    <div class="gift-studio-container">
-      <button class="studio-close-btn" id="closeStudioBtn" aria-label="إغلاق الاستوديو">
-        <i class="fas fa-times"></i>
-      </button>
-      
-      <div class="studio-header">
-        <h2>استوديو الإهداء</h2>
-        <p>صمم كارت الإهداء الخاص بك لمعاينة الشكل النهائي</p>
-      </div>
 
-      <div class="studio-body">
-        <div class="studio-controls">
-          <div class="form-group">
-            <label>إلى (اسم المهدى إليه):</label>
-            <input type="text" id="studioRecipient" placeholder="مثال: حبيبتي الغالية" class="studio-input">
-          </div>
-          <div class="form-group">
-            <label>نص الإهداء:</label>
-            <textarea id="studioMessage" rows="4" maxlength="200" placeholder="اكتب مشاعرك هنا..." class="studio-input"></textarea>
-            <div class="char-counter" style="text-align: left; font-size: 12px; color: #666; margin-top: 5px;"><span id="msgCharCount">0</span>/200</div>
-          </div>
-          <div class="form-group">
-            <label>من (اسم المهدي):</label>
-            <input type="text" id="studioSender" placeholder="مثال: محبك فلان" class="studio-input">
-          </div>
-          
-          <div class="formatting-tools">
-            <div class="tool-group">
-              <label>الخط:</label>
-              <select id="studioFont" class="studio-input">
-                <option value="Tajawal">تجوال (عصري)</option>
-                <option value="'Aref Ruqaa'">رقعة (ملكي)</option>
-                <option value="'Noto Naskh Arabic'">نسخ (كلاسيكي)</option>
-                <option value="Amiri">ديواني / ثلث</option>
-                <option value="Cairo">كايرو (ناعم)</option>
-              </select>
-            </div>
-            <div class="tool-group">
-              <label>الحجم:</label>
-              <div class="size-btns" style="align-items: center; justify-content: center;">
-                <input type="number" id="studioFontSize" value="14" min="8" max="72" class="studio-input" style="width: 80px; text-align: center;">
-                <span style="margin-right: 5px; font-weight: bold; color: #555;">pt</span>
-              </div>
-            </div>
-            <div class="tool-group">
-              <label>المحاذاة:</label>
-              <div class="align-btns">
-                <button type="button" class="studio-btn align-btn" data-align="right"><i class="fas fa-align-right"></i></button>
-                <button type="button" class="studio-btn align-btn active" data-align="center"><i class="fas fa-align-center"></i></button>
-                <button type="button" class="studio-btn align-btn" data-align="left"><i class="fas fa-align-left"></i></button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="studio-preview-pane">
-          <div class="live-card-preview" id="liveCardPreview">
-             <img src="assets/logo.png" class="preview-logo" alt="Logo">
-             <div class="card-inner-frame">
-               <div class="card-recipient" id="previewRecipient"></div>
-               <div class="card-message" id="previewMessage" style="font-family: Tajawal; font-size: 14pt; text-align: center;">معاينة النص تظهر هنا...</div>
-               <div class="card-sender" id="previewSender"></div>
-               <img src="assets/logo.png" class="card-watermark" alt="">
-             </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="studio-footer">
-        <button class="btn-hero-primary" id="submitGiftCardBtn" style="width: 100%; justify-content: center;">
-          <i class="fas fa-check-circle" style="margin-left: 10px;"></i> اعتماد الكارت وإرسال الطلب
-        </button>
-      </div>
-    </div>
-  </div>
 
 
   <!-- Minified Scripts -->
