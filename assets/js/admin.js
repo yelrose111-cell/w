@@ -262,12 +262,14 @@ function setupFormHandlers() {
       const id = document.getElementById("categoryIdInput").value;
       const name = document.getElementById("categoryNameInput").value;
       const icon = document.getElementById("categoryIconInput").value;
+      const prefix = document.getElementById("categoryPrefixInput").value;
       const coverUrl = document.getElementById("categoryImageUrl").value;
       const order = document.getElementById("categoryOrderInput").value || 0;
       
       const categoryData = {
         name: name,
         icon: icon,
+        prefix: prefix,
         coverUrl: coverUrl,
         order: parseInt(order)
       };
@@ -1027,6 +1029,7 @@ window.editCategory = async (id) => {
   document.getElementById("categoryIdInput").value = cat.id;
   document.getElementById("categoryNameInput").value = cat.name;
   document.getElementById("categoryIconInput").value = cat.icon || "";
+  document.getElementById("categoryPrefixInput").value = cat.prefix || "YR";
   document.getElementById("categoryImageUrl").value = cat.coverUrl || "";
   document.getElementById("categoryOrderInput").value = cat.order || 0;
   

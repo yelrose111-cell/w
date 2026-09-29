@@ -2,11 +2,13 @@ const mongoose = require('mongoose');
 
 const imageSchema = new mongoose.Schema({
   url: { type: String, required: true },
-  publicId: { type: String }
+  publicId: { type: String },
+  code: { type: String }
 }, { _id: false });
 
 const productSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },
+  productCode: { type: String },
   title: { type: String, required: true },
   description: { type: String },
   price: { type: String },

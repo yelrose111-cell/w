@@ -338,6 +338,35 @@ app.post('/api/products', authMiddleware, async (req, res) => {
   try {
     const data = req.body;
     if (!data.id) data.id = `prod_${Date.now()}`;
+    
+    // Auto-generate productCode if missing
+    if (!data.productCode && data.categoryId) {
+      const Category = require('../models/Category');
+      const cat = await Category.findOne({ id: data.categoryId });
+      const prefix = cat ? (cat.prefix || 'YR') : 'YR';
+      
+      const existingProducts = await Product.find({ productCode: new RegExp(`^${prefix}-`) });
+      let maxNum = 0;
+      for (const p of existingProducts) {
+        if (p.productCode) {
+          const parts = p.productCode.split('-');
+          if (parts.length === 2 && !isNaN(parts[1])) {
+            maxNum = Math.max(maxNum, parseInt(parts[1], 10));
+          }
+        }
+      }
+      data.productCode = `${prefix}-${String(maxNum + 1).padStart(2, '0')}`;
+    }
+
+    // Auto-assign image codes
+    if (data.productCode && data.images && data.images.length > 0) {
+      data.images.forEach((img, idx) => {
+        if (!img.code) {
+          img.code = data.images.length === 1 ? data.productCode : `${data.productCode}-${idx + 1}`;
+        }
+      });
+    }
+
     const saved = await Product.findOneAndUpdate({ id: data.id }, data, { new: true, upsert: true });
     res.status(201).json({ success: true, product: saved });
   } catch (error) {
@@ -469,5 +498,62 @@ if (require.main === module) {
     console.log(`Local Vercel API simulation running on port ${PORT}`);
   });
 }
+
+app.get('/api/migrate-codes', async (req, res) => {
+  try {
+    const Category = require('../models/Category');
+    const Product = require('../models/Product');
+    
+    const categories = await Category.find();
+    const categoryPrefixMap = {};
+    
+    for (const cat of categories) {
+      let prefix = 'YR';
+      if (cat.name.includes('باقات')) prefix = 'YF';
+      else if (cat.name.includes('فازات')) prefix = 'YV';
+      else if (cat.name.includes('شوكولاتة') || cat.name.includes('شوكلاته') || cat.name.includes('شوكلاتة')) prefix = 'YC';
+      else if (cat.name.includes('هدايا') || cat.name.includes('تغليف')) prefix = 'YG';
+      else if (cat.name.includes('مسكات') || cat.name.includes('عرايس')) prefix = 'YW';
+      else if (cat.name.includes('مواليد')) prefix = 'YN';
+      else if (cat.name.includes('نباتات')) prefix = 'YP';
+      
+      cat.prefix = prefix;
+      await cat.save();
+      categoryPrefixMap[cat.id] = prefix;
+    }
+    
+    const prefixCounters = {};
+    const products = await Product.find().sort({ createdAt: 1 });
+    
+    let updatedCount = 0;
+    for (const prod of products) {
+      const prefix = categoryPrefixMap[prod.categoryId] || 'YR';
+      if (!prefixCounters[prefix]) prefixCounters[prefix] = 1;
+      
+      const count = prefixCounters[prefix]++;
+      const codeNum = count.toString().padStart(2, '0');
+      const productCode = `${prefix}-${codeNum}`;
+      
+      prod.productCode = productCode;
+      
+      if (prod.images && prod.images.length > 0) {
+        prod.images.forEach((img, idx) => {
+          if (prod.images.length === 1) {
+            img.code = productCode;
+          } else {
+            img.code = `${productCode}-${idx + 1}`;
+          }
+        });
+      }
+      
+      await prod.save();
+      updatedCount++;
+    }
+    
+    res.json({ success: true, message: `Migrated ${categories.length} categories and ${updatedCount} products.` });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
 
 module.exports = app;
