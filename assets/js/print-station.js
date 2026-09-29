@@ -83,8 +83,8 @@ function renderOrders(orders) {
           <div class="order-id">${order.orderId}</div>
           <div class="order-status ${statusClass}">${statusText}</div>
         </div>
-        <div class="order-title">المنتج: ${escapeHtml(order.productName || 'إنشاء فوري')}</div>
-        <div style="font-size:13px; color:#555;">إلى: ${escapeHtml(order.recipientName || 'غير محدد')}</div>
+        <div class="order-title">المنتج: ${escapeHtml(order.productTitle || 'إنشاء فوري')}</div>
+        <div style="font-size:13px; color:#555;">إلى: ${escapeHtml((order.cardData && order.cardData.recipient) ? order.cardData.recipient : 'غير محدد')}</div>
       </div>
     `;
   });
@@ -102,7 +102,8 @@ function selectOrder(order) {
   });
   
   // render canvas
-  renderCanvas(order.recipientName, order.message, order.senderName, order.fontFamily, order.fontSize, order.alignment);
+  const cardData = order.cardData || {};
+  renderCanvas(cardData.recipient, cardData.message || order.message, cardData.sender, cardData.fontFamily, cardData.fontSize, cardData.textAlign || order.alignment);
   
   // enable print
   document.getElementById('printBtn').disabled = false;
