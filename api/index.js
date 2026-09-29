@@ -426,7 +426,7 @@ app.post('/api/auth/employee-login', loginLimiter, (req, res) => {
 app.post('/api/orders', async (req, res) => {
   try {
     const data = req.body;
-    data.orderId = 'YR-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
+    data.orderId = data.orderId || ('YR-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000));
     const saved = await Order.create(data);
     res.status(201).json({ success: true, order: saved });
   } catch (error) {

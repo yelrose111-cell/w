@@ -49,6 +49,8 @@ function startPolling() {
   pollingInterval = setInterval(fetchOrders, 10000); // 10 seconds
 }
 
+let allOrders = [];
+
 async function fetchOrders() {
   try {
     const res = await fetch('/api/orders');
@@ -57,10 +59,24 @@ async function fetchOrders() {
       return;
     }
     const orders = await res.json();
-    renderOrders(orders);
+    allOrders = orders;
+    filterOrders();
   } catch (err) {
     console.error('Error fetching orders', err);
   }
+}
+
+function filterOrders() {
+  const searchInput = document.getElementById('orderSearchInput');
+  const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+  
+  if (!query) {
+    renderOrders(allOrders);
+    return;
+  }
+  
+  const filtered = allOrders.filter(o => o.orderId && o.orderId.toLowerCase().includes(query));
+  renderOrders(filtered);
 }
 
 function renderOrders(orders) {

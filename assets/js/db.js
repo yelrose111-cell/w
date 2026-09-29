@@ -253,6 +253,10 @@ class YellowRoseDBManager {
     const productUrl = `${window.location.origin}/catalog.html?id=${product.id}`;
     
     let text = "";
+
+    if (giftData && giftData.generalOrderId) {
+      text += `رقم الطلب المرجعي: ${giftData.generalOrderId}\n\n`;
+    }
     
     if (window.SITE_SETTINGS && window.SITE_SETTINGS.whatsappMessage) {
       let customMsg = window.SITE_SETTINGS.whatsappMessage
@@ -262,10 +266,10 @@ class YellowRoseDBManager {
       if (photo && photo.url) {
         customMsg += `\n\nصورة محددة: ${photo.url}`;
       }
-      text = customMsg;
+      text += customMsg;
     } else {
       let photoName = photo && photo.name ? photo.name : product.title;
-      text = `مرحباً يلوروز 🌸\nأود الاستفسار وحجز المنتج التالي:\n• اسم المنتج: ${photoName}\n• القسم: ${catName}`;
+      text += `مرحباً يلوروز 🌸\nأود الاستفسار وحجز المنتج التالي:\n• اسم المنتج: ${photoName}\n• القسم: ${catName}`;
       
       const imgUrl = photo && photo.url ? photo.url : (product.images && product.images.length > 0 ? product.images[0].url : "");
       if (imgUrl && !imgUrl.startsWith("data:")) {
@@ -282,7 +286,7 @@ class YellowRoseDBManager {
     if (giftData) {
       if (giftData.isGift) {
         text += `\n\n🎁 طلب إهداء لشخص آخر:\n• رقم جوال المهدى إليه: ${giftData.recipientPhone}\n• طريقة الاستلام: ${giftData.deliveryMethod}`;
-      } else {
+      } else if (giftData.hasGiftCard) {
         text += `\n\n🎁 إرفاق كرت إهداء مع الطلب (استلام شخصي):`;
       }
 
@@ -291,7 +295,7 @@ class YellowRoseDBManager {
         text += `\n• نص الإهداء:\n"${giftData.giftCardMessage}"`;
         
         if (giftData.printOrderId) {
-          text += `\n\n🖨️ [تنبيه للفرع: تم إرسال طلب طباعة للكارت برقم: ${giftData.printOrderId}]`;
+          text += `\n\n🖨️ [تنبيه للفرع: تم إرسال طلب طباعة للكارت بنفس رقم الطلب المرجعي أعلاه]`;
         }
       }
     }

@@ -669,7 +669,8 @@ window.handleGiftWhatsAppOrder = async function(e, index) {
   const photoName = typeof photo === "object" && photo.name ? photo.name : `${currentAlbum.title} (صورة #${index + 1})`;
   const photoCode = typeof photo === "object" && photo.code ? photo.code : `#YR-0${index + 1}`;
 
-  let giftData = null;
+  const generalOrderId = 'YR-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
+  let giftData = { generalOrderId: generalOrderId };
   const enableGiftCheck = document.getElementById("enableGiftCheck");
   const nestedGiftCardCheck = document.getElementById("nestedGiftCardCheck");
   const standaloneGiftCardCheck = document.getElementById("standaloneGiftCardCheck");
@@ -716,11 +717,9 @@ window.handleGiftWhatsAppOrder = async function(e, index) {
       }
     }
 
-    giftData = {
-      isGift: true,
-      recipientPhone: phone,
-      deliveryMethod: delivery
-    };
+    giftData.isGift = true;
+    giftData.recipientPhone = phone;
+    giftData.deliveryMethod = delivery;
 
     // Check nested gift card
     if (nestedGiftCardCheck && nestedGiftCardCheck.checked) {
@@ -741,12 +740,11 @@ window.handleGiftWhatsAppOrder = async function(e, index) {
     giftCardMessage = gc.msg;
     giftCardType = gc.type;
     
-    giftData = {
-      isGift: false, // It's just an attached card
-      hasGiftCard: true,
-      giftCardMessage: gc.msg,
-      giftCardType: gc.type
-    };
+    giftData.isGift = false;
+    giftData.hasGiftCard = true;
+    giftData.giftCardMessage = gc.msg;
+    giftData.giftCardType = gc.type;
+    
     if (gc.type === "طباعة") needsPrintStation = true;
   }
 
@@ -760,8 +758,9 @@ window.handleGiftWhatsAppOrder = async function(e, index) {
 
     try {
       const orderData = {
+        orderId: generalOrderId,
         customerName: "عميل عبر الواتساب",
-        customerPhone: giftData && giftData.recipientPhone ? giftData.recipientPhone : "0000000000",
+        customerPhone: giftData.recipientPhone ? giftData.recipientPhone : "0000000000",
         productId: currentAlbum.id,
         productTitle: photoName,
         productCoverUrl: photoUrl,

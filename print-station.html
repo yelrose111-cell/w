@@ -153,9 +153,12 @@
   </header>
 
   <div class="print-container">
-    <aside class="orders-sidebar">
+    <aside class="orders-sidebar" style="display: flex; flex-direction: column;">
       <h2>الطلبات الحديثة</h2>
-      <div id="ordersList">
+      <div style="padding: 0 15px 15px 15px;">
+        <input type="text" id="orderSearchInput" placeholder="ابحث برقم الطلب..." style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;" oninput="filterOrders()">
+      </div>
+      <div id="ordersList" style="flex: 1; overflow-y: auto;">
         <p style="text-align:center; color:#888;">جاري جلب الطلبات...</p>
       </div>
     </aside>
