@@ -253,6 +253,31 @@ function setupFormHandlers() {
   const urlInput = document.getElementById("directImageUrlInput");
   const addUrlBtn = document.getElementById("addDirectUrlBtn");
   const cancelBtn = document.getElementById("cancelEditBtn");
+  const migrateBtn = document.getElementById("btnMigrateCodes");
+  
+  if (migrateBtn) {
+    migrateBtn.addEventListener("click", async () => {
+      if (confirm("هل أنت متأكد من رغبتك في تهيئة الأكواد لجميع المنتجات الحالية؟ لن يتم حذف أي شيء.")) {
+        try {
+          migrateBtn.disabled = true;
+          migrateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التهيئة...';
+          const res = await fetch('/api/migrate-codes');
+          const data = await res.json();
+          if (data.success) {
+            showToast("تم تهيئة الأكواد بنجاح!");
+            await loadProductsList();
+          } else {
+            showToast("حدث خطأ: " + data.error);
+          }
+        } catch (err) {
+          showToast("خطأ في الاتصال بالخادم.");
+        } finally {
+          migrateBtn.disabled = false;
+          migrateBtn.innerHTML = '<i class="fas fa-sync"></i> تهيئة أكواد المنتجات الحالية';
+        }
+      }
+    });
+  }
   
   // Category Form
   const categoryForm = document.getElementById("categoryForm");

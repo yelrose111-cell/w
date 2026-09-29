@@ -140,9 +140,14 @@
         <div class="admin-card">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
             <h3 class="admin-card-title" style="margin-bottom: 0; border: none; padding: 0;">المنتجات المسجلة</h3>
-            <button class="btn-card-album" onclick="document.querySelector('[data-tab=\'tabProductForm\']').click()" style="padding: 8px 16px;">
-              <i class="fas fa-plus"></i> إضافة منتج جديد
-            </button>
+            <div style="display: flex; gap: 10px;">
+              <button class="btn-card-album" onclick="document.querySelector('[data-tab=\'tabProductForm\']').click()" style="padding: 8px 16px;">
+                <i class="fas fa-plus"></i> إضافة منتج جديد
+              </button>
+              <button class="btn-card-album" id="btnMigrateCodes" style="padding: 8px 16px; background-color: var(--primary-color);">
+                <i class="fas fa-sync"></i> تهيئة أكواد المنتجات الحالية
+              </button>
+            </div>
           </div>
 
           <div class="admin-albums-list" id="adminProductsList">
