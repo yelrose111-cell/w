@@ -478,7 +478,8 @@ function renderDirectImagesGrid(directAlbums, catInfo) {
     const photoUrl = typeof photo === "string" ? photo : photo.url;
     const photoThumbUrl = typeof photo === "object" && photo.thumbnailUrl ? photo.thumbnailUrl : photoUrl;
     const photoName = typeof photo === "object" && photo.name ? photo.name : `${item.albumTitle} (صورة #${index + 1})`;
-    const photoCode = typeof photo === "object" && photo.code ? photo.code : `#YR-0${index + 1}`;
+    const baseCode = currentAlbum && currentAlbum.productCode ? currentAlbum.productCode : 'YR-00';
+    const photoCode = typeof photo === "object" && photo.code ? photo.code : `${baseCode}-${index + 1}`;
 
     const itemCard = document.createElement("div");
     itemCard.className = "album-photo-card";
@@ -617,7 +618,8 @@ async function renderProductView(productId) {
     const photoUrl = typeof photo === "string" ? photo : photo.url;
     const photoThumbUrl = typeof photo === "object" && photo.thumbnailUrl ? photo.thumbnailUrl : photoUrl;
     const photoName = typeof photo === "object" && photo.name ? photo.name : `${currentAlbum.title} (صورة #${index + 1})`;
-    const photoCode = typeof photo === "object" && photo.code ? photo.code : `#YR-0${index + 1}`;
+    const baseCode = currentAlbum && currentAlbum.productCode ? currentAlbum.productCode : 'YR-00';
+    const photoCode = typeof photo === "object" && photo.code ? photo.code : `${baseCode}-${index + 1}`;
 
     const itemCard = document.createElement("div");
     itemCard.className = "album-photo-card";
@@ -667,7 +669,8 @@ window.handleGiftWhatsAppOrder = async function(e, index) {
   
   const photoUrl = typeof photo === "string" ? photo : photo.url;
   const photoName = typeof photo === "object" && photo.name ? photo.name : `${currentAlbum.title} (صورة #${index + 1})`;
-  const photoCode = typeof photo === "object" && photo.code ? photo.code : `#YR-0${index + 1}`;
+  const baseCode = currentAlbum && currentAlbum.productCode ? currentAlbum.productCode : 'YR-00';
+  const photoCode = typeof photo === "object" && photo.code ? photo.code : `${baseCode}-${index + 1}`;
 
   const generalOrderId = 'YR-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
   let giftData = { generalOrderId: generalOrderId };
@@ -845,7 +848,8 @@ function updateLightboxContent() {
   const photo = images[currentLightboxIndex];
   const photoUrl = typeof photo === "string" ? photo : photo.url;
   const photoName = typeof photo === "object" && photo.name ? photo.name : `${currentAlbum.title} (صورة ${currentLightboxIndex + 1})`;
-  const photoCode = typeof photo === "object" && photo.code ? photo.code : `#YR-0${currentLightboxIndex + 1}`;
+  const baseCode = currentAlbum && currentAlbum.productCode ? currentAlbum.productCode : 'YR-00';
+  const photoCode = typeof photo === "object" && photo.code ? photo.code : `${baseCode}-${currentLightboxIndex + 1}`;
 
   const imgEl = document.getElementById("lightboxImg");
   const titleEl = document.getElementById("lightboxTitle");
