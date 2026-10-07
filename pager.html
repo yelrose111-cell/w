@@ -158,7 +158,8 @@
         const pagerToken = urlParams.get('token');
         let orderNumber = '---';
         let pollInterval = null;
-        let alertAudio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+        let alertAudio = new Audio('https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg');
+        alertAudio.loop = true;
 
         // Fetch initial order details to show the order number
         async function fetchInitialStatus() {
@@ -246,21 +247,19 @@
         function triggerReadyAlert() {
             showReadyScreen();
 
-            // Vibrate (pattern: short, short, long)
+            // Vibrate (long continuous pattern for ~5 seconds)
             if (navigator.vibrate) {
-                navigator.vibrate([200, 100, 200, 100, 800]);
+                navigator.vibrate([500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500]);
             }
 
-            // Play unlocked sound multiple times
-            let playCount = 0;
+            // Play loud continuous sound for 5 seconds
+            alertAudio.currentTime = 0;
             alertAudio.play().catch(e => console.log("Audio play blocked", e));
-            alertAudio.addEventListener('ended', function repeat() {
-                playCount++;
-                if (playCount < 4) { // Beep 4 times
-                    alertAudio.currentTime = 0;
-                    alertAudio.play();
-                }
-            });
+            
+            setTimeout(() => {
+                alertAudio.pause();
+                alertAudio.currentTime = 0;
+            }, 5000);
 
             // Show Push Notification
             if (Notification.permission === "granted") {
