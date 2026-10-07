@@ -285,6 +285,7 @@ async function handleNewOrderSubmit(e) {
 
   const newOrder = {
     customerName,
+    customerPhone: '0000000000', // Default phone to pass schema validation
     productTitle: orderType,
     notes,
     status: 'pending',
