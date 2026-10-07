@@ -405,6 +405,52 @@
       pointer-events: none;
     }
     .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ===================== MODALS ===================== */
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 2000; opacity: 0; pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-box {
+      background: white; border-radius: 16px; width: 90%; max-width: 450px;
+      padding: 2rem; transform: translateY(20px); transition: transform 0.3s;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+    .modal-overlay.active .modal-box { transform: translateY(0); }
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem;
+    }
+    .modal-title { font-size: 1.25rem; font-weight: 800; color: var(--dark); }
+    .modal-close {
+      background: none; border: none; font-size: 1.5rem; color: var(--text-muted);
+      cursor: pointer; transition: color 0.2s;
+    }
+    .modal-close:hover { color: var(--red); }
+    .form-group { margin-bottom: 1.25rem; }
+    .form-label { display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.95rem; }
+    .form-input {
+      width: 100%; padding: 0.75rem; border: 1px solid var(--border);
+      border-radius: 8px; font-family: inherit; font-size: 0.95rem;
+      outline: none; transition: border-color 0.2s;
+    }
+    .form-input:focus { border-color: var(--gold); }
+    .modal-footer { display: flex; gap: 10px; margin-top: 2rem; }
+    .btn-submit {
+      flex: 1; padding: 0.85rem; background: var(--dark); color: var(--gold);
+      border: none; border-radius: 8px; font-weight: 700; font-family: inherit;
+      cursor: pointer; transition: opacity 0.2s;
+    }
+    .btn-submit:hover { opacity: 0.9; }
+    .btn-cancel {
+      flex: 1; padding: 0.85rem; background: #f4f5f7; color: var(--text);
+      border: 1px solid var(--border); border-radius: 8px; font-weight: 700; font-family: inherit;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-cancel:hover { background: #e8e8e8; }
   </style>
 </head>
 <body>
@@ -447,6 +493,7 @@
         </a>
         <a href="/print-station.html" class="topbar-link">
           <i class="fas fa-print"></i> محطة الطباعة
+        </a>
         </a>
         <button class="logout-btn" id="logoutBtn">
           <i class="fas fa-sign-out-alt"></i> خروج
@@ -505,6 +552,9 @@
             <option value="completed">مكتمل</option>
           </select>
         </div>
+        <button class="ctrl-btn" id="btnOpenNewOrder" style="background: var(--gold); color: var(--dark);">
+          <i class="fas fa-plus"></i> إضافة طلب للنداء
+        </button>
         <button class="ctrl-btn" onclick="fetchOrders()">
           <i class="fas fa-sync-alt" id="refreshIcon"></i> تحديث
         </button>
@@ -523,6 +573,56 @@
   <!-- Toast -->
   <div class="toast" id="toast"></div>
 
-  <script src="/assets/js/orders.js"></script>
+  <!-- New Order Modal -->
+  <div class="modal-overlay" id="newOrderModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fas fa-plus-circle text-gold"></i> إضافة طلب (باركود نداء)</h3>
+        <button class="modal-close" id="btnCloseNewOrder">&times;</button>
+      </div>
+      <form id="newOrderForm">
+        <div class="form-group">
+          <label class="form-label">اسم العميل / رقم الطلب</label>
+          <input type="text" id="noCustomerName" class="form-input" placeholder="مثال: أحمد، أو طلب رقم 102" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">نوع الطلب</label>
+          <select id="noOrderType" class="form-input">
+            <option value="مبيعات عامة">مبيعات عامة (تغليف، باقة...)</option>
+            <option value="طباعة كارت">طباعة كارت إهداء</option>
+            <option value="توصيل">تجهيز للتوصيل</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">تفاصيل إضافية (اختياري)</label>
+          <textarea id="noNotes" class="form-input" rows="3" placeholder="ملاحظات حول الطلب..."></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" id="btnCancelNewOrder">إلغاء</button>
+          <button type="submit" class="btn-submit" id="btnSubmitNewOrder">إنشاء وحفظ</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- QR Pager Modal -->
+  <div class="modal-overlay" id="qrModal">
+    <div class="modal-box" style="text-align: center; max-width: 350px;">
+      <div class="modal-header">
+        <h3 class="modal-title">باركود النداء للعميل</h3>
+        <button class="modal-close" id="btnCloseQrModal">&times;</button>
+      </div>
+      <p style="margin-bottom: 15px; font-size: 0.95rem; color: #555;">يرجى مسح الباركود للعميل ليتمكن من متابعة حالة الطلب واستلام تنبيه عند الجاهزية.</p>
+      <canvas id="qrCanvas" style="margin: 0 auto; display: block; max-width: 100%; border-radius: 12px; border: 1px solid #eee; padding: 10px;"></canvas>
+      <div style="margin-top: 20px;">
+        <a id="qrLink" href="#" target="_blank" style="display: block; padding: 12px; background: #f4f5f7; border-radius: 8px; color: var(--dark); font-weight: bold; text-decoration: none; border: 1px solid #ddd;">
+          <i class="fas fa-external-link-alt"></i> فتح رابط النداء
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script src="/assets/dist/js/orders.min.js?v=2.2"></script>
 </body>
 </html>

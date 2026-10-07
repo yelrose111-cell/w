@@ -8,10 +8,23 @@ let allOrders = [];
 document.addEventListener('DOMContentLoaded', () => {
   checkAuth();
 
-  document.getElementById('loginForm').addEventListener('submit', handleLogin);
-  document.getElementById('logoutBtn').addEventListener('click', handleLogout);
-  document.getElementById('searchOrder').addEventListener('input', applyFilters);
-  document.getElementById('statusFilter').addEventListener('change', applyFilters);
+  // Setup Event Listeners
+  const el = (id) => document.getElementById(id);
+  if (el('loginForm')) el('loginForm').addEventListener('submit', handleLogin);
+  if (el('logoutBtn')) el('logoutBtn').addEventListener('click', handleLogout);
+  if (el('searchOrder')) el('searchOrder').addEventListener('input', applyFilters);
+  if (el('statusFilter')) el('statusFilter').addEventListener('change', applyFilters);
+  
+  if (el('btnOpenNewOrder')) el('btnOpenNewOrder').addEventListener('click', openNewOrderModal);
+  if (el('btnCloseNewOrder')) el('btnCloseNewOrder').addEventListener('click', closeNewOrderModal);
+  if (el('btnCancelNewOrder')) el('btnCancelNewOrder').addEventListener('click', closeNewOrderModal);
+  if (el('newOrderForm')) el('newOrderForm').addEventListener('submit', handleNewOrderSubmit);
+  if (el('btnCloseQrModal')) el('btnCloseQrModal').addEventListener('click', closeQrModal);
+
+  // Expose for inline handlers
+  window.updateStatus = updateStatus;
+  window.showQrModal = showQrModal;
+  window.fetchOrders = fetchOrders;
 });
 
 // ─── Auth ─────────────────────────────────
@@ -205,6 +218,10 @@ function renderOrders(orders) {
           <option value="ready"     ${order.status === 'ready'     ? 'selected' : ''}>✅ جاهز</option>
           <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>🏁 مكتمل</option>
         </select>
+        </select>
+        ${order.pagerToken ? `<button class="action-btn btn-dark" onclick="showQrModal('${order.pagerToken}')">
+          <i class="fas fa-qrcode"></i> نداء
+        </button>` : ''}
         ${waPhone ? `<a class="action-btn btn-green" href="https://wa.me/${waPhone}" target="_blank" rel="noopener">
           <i class="fab fa-whatsapp"></i> واتساب
         </a>` : ''}
@@ -243,4 +260,79 @@ function showToast(msg) {
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ─── Modals Logic ─────────────────────────
+function openNewOrderModal() {
+  document.getElementById('newOrderModal').classList.add('active');
+  document.getElementById('noCustomerName').focus();
+}
+
+function closeNewOrderModal() {
+  document.getElementById('newOrderModal').classList.remove('active');
+  document.getElementById('newOrderForm').reset();
+}
+
+async function handleNewOrderSubmit(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btnSubmitNewOrder');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإنشاء...';
+
+  const customerName = document.getElementById('noCustomerName').value.trim();
+  const orderType = document.getElementById('noOrderType').value;
+  const notes = document.getElementById('noNotes').value.trim();
+
+  const newOrder = {
+    customerName,
+    productTitle: orderType,
+    notes,
+    status: 'pending',
+    needsPrint: orderType === 'طباعة كارت',
+    isGift: false
+  };
+
+  try {
+    const res = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newOrder)
+    });
+    const data = await res.json();
+    if (data.success) {
+      closeNewOrderModal();
+      showToast('تم إنشاء الطلب بنجاح ✓');
+      await fetchOrders();
+      if (data.order && data.order.pagerToken) {
+        showQrModal(data.order.pagerToken);
+      }
+    } else {
+      showToast('فشل إنشاء الطلب: ' + data.error);
+    }
+  } catch (err) {
+    showToast('خطأ في الاتصال بالخادم');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'إنشاء وحفظ';
+  }
+}
+
+function showQrModal(token) {
+  const modal = document.getElementById('qrModal');
+  const pagerUrl = window.location.origin + '/pager.html?token=' + token;
+  document.getElementById('qrLink').href = pagerUrl;
+  
+  new QRious({
+    element: document.getElementById('qrCanvas'),
+    value: pagerUrl,
+    size: 250,
+    background: 'white',
+    foreground: 'black'
+  });
+  
+  modal.classList.add('active');
+}
+
+function closeQrModal() {
+  document.getElementById('qrModal').classList.remove('active');
 }
