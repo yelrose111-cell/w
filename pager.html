@@ -141,6 +141,9 @@
         <div class="warning">
             🔒 شاشة هاتفك ستبقى مضاءة تلقائياً
         </div>
+        <button class="btn" style="margin-top: 20px; background: transparent; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 10px;" onclick="playTestAlarm()">
+            🔊 تجربة قوة التنبيه
+        </button>
     </div>
 
     <!-- Screen 3: Ready -->
@@ -200,6 +203,38 @@
                 }
             } catch (e) {
                 console.log("Failed to play alarm", e);
+            }
+        }
+
+        function playTestAlarm() {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+
+                const now = audioCtx.currentTime;
+                // Play 2 short beeps for test
+                for (let i = 0; i < 2; i++) {
+                    const startTime = now + (i * 0.5);
+                    const osc = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(880, startTime);
+                    osc.frequency.setValueAtTime(1100, startTime + 0.1);
+                    
+                    gainNode.gain.setValueAtTime(1, startTime);
+                    gainNode.gain.linearRampToValueAtTime(0, startTime + 0.4);
+                    
+                    osc.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    
+                    osc.start(startTime);
+                    osc.stop(startTime + 0.4);
+                }
+            } catch (e) {
+                console.log("Failed to play test alarm", e);
             }
         }
 
