@@ -469,7 +469,7 @@ app.get('/api/orders', employeeAuthMiddleware, async (req, res) => {
     const status = req.query.status;
     const filter = status ? { status } : {};
     const items = await Order.find(filter).sort({ createdAt: -1 }).lean();
-    res.json(items);
+    res.json({ success: true, orders: items });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
@@ -622,8 +622,24 @@ app.get('/api/migrate-codes', async (req, res) => {
       });
     }
 
-    if (prodOps.length > 0) await Product.bulkWrite(prodOps);
-    if (albOps.length > 0) await Album.bulkWrite(albOps);
+    let catResult, prodResult, albResult;
+    try {
+      if (catOps.length > 0) catResult = await Category.bulkWrite(catOps);
+    } catch (e) {
+      throw new Error("Category bulkWrite failed: " + e.message);
+    }
+    
+    try {
+      if (prodOps.length > 0) prodResult = await Product.bulkWrite(prodOps);
+    } catch (e) {
+      throw new Error("Product bulkWrite failed: " + e.message);
+    }
+    
+    try {
+      if (albOps.length > 0) albResult = await Album.bulkWrite(albOps);
+    } catch (e) {
+      throw new Error("Album bulkWrite failed: " + e.message);
+    }
     
     res.json({ success: true, message: `تم تهيئة ${categories.length} قسم و ${products.length} منتج و ${albums.length} ألبوم بنجاح.` });
   } catch (error) {

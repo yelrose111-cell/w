@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>تنبيه الطلب | Yellow Rose</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #E2B93B; /* Yellow Rose Gold */
+            --bg-color: #111111;      /* Dark background for battery saving */
+            --text-color: #ffffff;
+            --success-color: #2ecc71;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { 
+            font-family: 'Tajawal', sans-serif; 
+            text-align: center; 
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .logo {
+            width: 120px;
+            margin-bottom: 20px;
+            border-radius: 50%;
+            border: 2px solid var(--primary-color);
+            padding: 5px;
+        }
+        .container {
+            width: 100%;
+            max-width: 400px;
+            background: #1a1a1a;
+            border-radius: 20px;
+            padding: 40px 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+        }
+        .order-label { font-size: 18px; color: #aaa; margin-bottom: 10px; }
+        .order-num { 
+            font-size: 60px; 
+            font-weight: bold; 
+            color: var(--primary-color); 
+            margin: 10px 0 30px;
+            line-height: 1;
+            text-shadow: 0 0 10px rgba(226, 185, 59, 0.3);
+        }
+        .btn { 
+            padding: 16px 32px; 
+            font-size: 18px; 
+            font-family: 'Tajawal', sans-serif;
+            font-weight: bold; 
+            background: var(--primary-color);
+            color: #000; 
+            border: none; 
+            border-radius: 50px; 
+            cursor: pointer; 
+            width: 100%;
+            transition: all 0.2s;
+            margin-top: 15px;
+        }
+        .btn:active { transform: scale(0.98); }
+        .btn:hover { background: #f1c40f; }
+        .status { 
+            font-size: 20px; 
+            color: #ddd; 
+            margin-top: 20px;
+            padding: 20px;
+            background: #2a2a2a;
+            border-radius: 15px;
+            border: 1px solid #444;
+        }
+        .spinner {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 3px solid rgba(226, 185, 59, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 10px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .ready-msg { 
+            font-size: 32px; 
+            color: var(--success-color); 
+            font-weight: bold; 
+            margin: 20px 0;
+            animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .ready-icon { 
+            font-size: 80px; 
+            margin-bottom: 10px; 
+            animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+        }
+        @keyframes popIn { 
+            0% { transform: scale(0.5); opacity: 0; } 
+            100% { transform: scale(1); opacity: 1; } 
+        }
+        .hidden { display: none !important; }
+        .warning { 
+            font-size: 14px; 
+            color: #e67e22; 
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(230, 126, 34, 0.1);
+            border: 1px solid rgba(230, 126, 34, 0.3);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <img src="/assets/logo.png" alt="Yellow Rose" class="logo" onerror="this.src='/assets/logo.jpg'">
+
+    <!-- Screen 1: Initial load -->
+    <div id="initialScreen" class="container">
+        <div class="order-label">رقم طلبك</div>
+        <div class="order-num" id="displayOrderNum">---</div>
+        <p style="color:#bbb; margin-bottom: 25px; line-height: 1.6; font-size: 15px;">
+            لضمان إشعارك فور جاهزية الطلب، يرجى تفعيل التنبيهات وإبقاء هذه الصفحة مفتوحة.
+        </p>
+        <button class="btn" onclick="activatePager()">🔔 تفعيل التنبيه والانتظار</button>
+    </div>
+
+    <!-- Screen 2: Waiting -->
+    <div id="waitingScreen" class="container hidden">
+        <div class="order-label">رقم طلبك</div>
+        <div class="order-num" id="displayOrderNumWait">---</div>
+        <div class="status">
+            <div class="spinner"></div><br>
+            ⏳ جاري تجهيز طلبك بكل حب...<br>
+            <small style="color:#888; display: block; margin-top: 10px;">نرجو عدم إغلاق هذه الصفحة</small>
+        </div>
+        <div class="warning">
+            🔒 شاشة هاتفك ستبقى مضاءة تلقائياً
+        </div>
+    </div>
+
+    <!-- Screen 3: Ready -->
+    <div id="readyScreen" class="container hidden" style="background: #112211; border-color: var(--success-color);">
+        <div class="ready-icon">✨</div>
+        <div class="ready-msg">طلبك جاهز!</div>
+        <p style="font-size: 18px; color: #ccc; margin-top: 10px; line-height: 1.5;">
+            تفضل بزيارتنا عند الكاونتر لاستلام طلبك<br>
+            <span style="color: var(--primary-color);">شكراً لاختيارك Yellow Rose</span>
+        </p>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const pagerToken = urlParams.get('token');
+        let orderNumber = '---';
+        let pollInterval = null;
+
+        // Fetch initial order details to show the order number
+        async function fetchInitialStatus() {
+            if (!pagerToken) {
+                showError("رابط غير صالح، يرجى مسح الرمز المرفق مع الطلب.");
+                return;
+            }
+            try {
+                const res = await fetch(`/api/pager/${pagerToken}`);
+                const data = await res.json();
+                if (data.success) {
+                    orderNumber = data.orderId;
+                    document.getElementById('displayOrderNum').innerText = orderNumber;
+                    document.getElementById('displayOrderNumWait').innerText = orderNumber;
+                    
+                    if (data.status === 'ready' || data.status === 'completed') {
+                        showReadyScreen();
+                    }
+                } else {
+                    showError("تعذر العثور على الطلب. قد يكون منتهياً.");
+                }
+            } catch (err) {
+                console.error("Fetch error:", err);
+            }
+        }
+
+        function showError(msg) {
+            document.body.innerHTML = `<div class="container" style="border-color: #e74c3c;"><h2 style="color: #e74c3c; margin-bottom: 15px;">⚠️ عذراً</h2><p>${msg}</p></div>`;
+        }
+
+        async function activatePager() {
+            if (!pagerToken) return;
+
+            // 1. Request Notification Permission
+            if ("Notification" in window) {
+                const permission = await Notification.requestPermission();
+                if (permission === "granted") console.log("Notification granted");
+            }
+
+            // 2. Request Wake Lock
+            try {
+                if ('wakeLock' in navigator) {
+                    let wakeLock = await navigator.wakeLock.request('screen');
+                    document.addEventListener('visibilitychange', async () => {
+                        if (wakeLock !== null && document.visibilityState === 'visible') {
+                            wakeLock = await navigator.wakeLock.request('screen');
+                        }
+                    });
+                }
+            } catch (err) {
+                console.log("Wake Lock error:", err);
+            }
+
+            // 3. Switch UI
+            document.getElementById('initialScreen').classList.add('hidden');
+            document.getElementById('waitingScreen').classList.remove('hidden');
+
+            // 4. Start Polling
+            startPolling();
+        }
+
+        function startPolling() {
+            // Poll every 4 seconds
+            pollInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(`/api/pager/${pagerToken}?t=${Date.now()}`);
+                    const data = await res.json();
+                    
+                    if (data.success && (data.status === 'ready' || data.status === 'completed')) {
+                        clearInterval(pollInterval);
+                        triggerReadyAlert();
+                    }
+                } catch (err) {
+                    // Ignore transient network errors
+                }
+            }, 4000);
+        }
+
+        function triggerReadyAlert() {
+            showReadyScreen();
+
+            // Vibrate (pattern: short, short, long)
+            if (navigator.vibrate) {
+                navigator.vibrate([200, 100, 200, 100, 800]);
+            }
+
+            // Play sound
+            const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+            audio.play().catch(e => console.log("Audio play blocked by browser"));
+
+            // Show Push Notification
+            if (Notification.permission === "granted") {
+                new Notification("Yellow Rose 🌹", {
+                    body: `طلبك رقم ${orderNumber} أصبح جاهزاً للاستلام!`,
+                    icon: "/assets/logo.png"
+                });
+            }
+        }
+
+        function showReadyScreen() {
+            document.getElementById('initialScreen').classList.add('hidden');
+            document.getElementById('waitingScreen').classList.add('hidden');
+            document.getElementById('readyScreen').classList.remove('hidden');
+        }
+
+        // Initialize
+        fetchInitialStatus();
+    </script>
+</body>
+</html>

@@ -7,7 +7,9 @@ const jsFiles = [
   'assets/js/db.js',
   'assets/js/main.js',
   'assets/js/catalog.js',
-  'assets/js/admin.js'
+  'assets/js/admin.js',
+  'assets/js/orders.js',
+  'assets/js/print-station.js'
 ];
 
 const cssFiles = [

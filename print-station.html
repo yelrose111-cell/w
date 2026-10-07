@@ -93,9 +93,9 @@
       z-index: 1;
     }
 
-    .print-canvas .card-recipient { font-size: 13pt; font-weight: bold; margin-bottom: 10px; align-self: flex-start; z-index: 1; position: relative; }
-    .print-canvas .card-message { font-size: 16pt; text-align: center; flex-grow: 1; display: flex; align-items: center; justify-content: center; line-height: 1.6; white-space: pre-wrap; z-index: 1; position: relative;}
-    .print-canvas .card-sender { font-size: 13pt; font-weight: bold; margin-top: 10px; align-self: flex-end; z-index: 1; position: relative; }
+    .print-canvas .card-recipient { font-size: 13pt; font-weight: bold; margin-bottom: 10px; align-self: flex-start; z-index: 1; position: relative; color: #111; }
+    .print-canvas .card-message { font-size: 16pt; text-align: center; flex-grow: 1; display: flex; align-items: center; justify-content: center; line-height: 1.6; white-space: pre-wrap; z-index: 1; position: relative; color: #111; }
+    .print-canvas .card-sender { font-size: 13pt; font-weight: bold; margin-top: 10px; align-self: flex-end; z-index: 1; position: relative; color: #111; }
     
     /* Watermark in the background */
     .print-canvas .card-watermark { position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%); width: 60%; opacity: 0.04; z-index: 0; pointer-events: none; }
@@ -176,9 +176,24 @@
         </div>
       </div>
       
-      <button class="btn-print-large" id="printBtn" onclick="printCard()" disabled>
-        <i class="fas fa-print"></i> طباعة الكارت الآن
-      </button>
+      <div style="display: flex; gap: 15px; margin-top: 20px;">
+        <button class="btn-print-large" id="printBtn" onclick="printCard()" disabled style="flex: 1;">
+          <i class="fas fa-print"></i> طباعة الكارت الآن
+        </button>
+        <button class="btn-print-large" id="readyBtn" onclick="markOrderReady()" disabled style="flex: 1; background: #2ecc71; box-shadow: 0 5px 15px rgba(46, 204, 113, 0.4);">
+          <i class="fas fa-bell"></i> 🔔 العميل جاهز للاستلام
+        </button>
+      </div>
+
+      <!-- Pager QR Code Section -->
+      <div id="pagerQrSection" style="margin-top: 30px; text-align: center; display: none; background: #fff; padding: 20px; border-radius: 10px; border: 1px solid #ddd;">
+        <h3 style="color: #444; margin-bottom: 10px;">بيجر العميل (Web Pager)</h3>
+        <p style="font-size: 14px; color: #777; margin-bottom: 15px;">اطلب من العميل مسح هذا الرمز لمتابعة حالة الطلب عبر هاتفه</p>
+        <canvas id="pagerQrCanvas"></canvas>
+        <p style="margin-top: 10px; font-size: 13px; color: #555;">
+          <a id="pagerLink" href="#" target="_blank" style="color: var(--gold-primary); text-decoration: none;">فتح الرابط مباشرة</a>
+        </p>
+      </div>
     </main>
   </div>
 
@@ -232,6 +247,8 @@
     </div>
   </div>
 
+  <!-- QR Code Generator Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <script src="assets/js/print-station.js"></script>
 </body>
 </html>

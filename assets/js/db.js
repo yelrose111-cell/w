@@ -280,8 +280,14 @@ class YellowRoseDBManager {
          text += `\n• كود المنتج: ${photo.code}`;
       }
       
-      text += `\n\nهل هذا المنتج متاح لموعد مناسبتنا؟ شكراً لكم!`;
+      if (giftData && giftData.pagerUrl) {
+         text += `\n\n📌 *تابع حالة طلبك مباشرة من هنا:*\n${giftData.pagerUrl}`;
+      } else {
+         text += `\n\nهل هذا المنتج متاح لموعد مناسبتنا؟ شكراً لكم!`;
+      }
     }
+
+    const phone = window.SITE_SETTINGS && window.SITE_SETTINGS.whatsappNumber ? window.SITE_SETTINGS.whatsappNumber : "966500000000";
 
     if (giftData) {
       if (giftData.isGift) {
@@ -292,6 +298,8 @@ class YellowRoseDBManager {
 
       if (giftData.hasGiftCard) {
         text += `\n• نوع الكتابة: ${giftData.giftCardType}`;
+        if (giftData.giftCardRecipient) text += `\n• إلى: ${giftData.giftCardRecipient}`;
+        if (giftData.giftCardSender) text += `\n• من: ${giftData.giftCardSender}`;
         text += `\n• نص الإهداء:\n"${giftData.giftCardMessage}"`;
         
         if (giftData.printOrderId) {

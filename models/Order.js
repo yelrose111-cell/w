@@ -10,15 +10,20 @@ const orderSchema = new mongoose.Schema({
   cardData: {
     recipient: { type: String },
     sender: { type: String },
-    message: { type: String, required: true },
+    message: { type: String },
     fontFamily: { type: String, default: 'Tajawal' },
     fontSize: { type: String, default: '14pt' },
     textAlign: { type: String, default: 'center' },
     templateStyle: { type: String, default: 'gold-frame' }
   },
-  status: { type: String, enum: ['pending', 'printed'], default: 'pending' },
+  needsPrint: { type: Boolean, default: false },
+  isGift: { type: Boolean, default: false },
+  deliveryMethod: { type: String },
+  status: { type: String, enum: ['pending', 'preparing', 'printed', 'ready', 'completed'], default: 'pending' },
+  pagerToken: { type: String, required: false }, // Unique token for the web pager session
   createdAt: { type: Date, default: Date.now },
-  printedAt: { type: Date }
+  printedAt: { type: Date },
+  readyAt: { type: Date }
 });
 
 module.exports = mongoose.models.Order || mongoose.model('Order', orderSchema);

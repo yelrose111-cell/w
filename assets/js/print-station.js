@@ -58,8 +58,8 @@ async function fetchOrders() {
       logout();
       return;
     }
-    const orders = await res.json();
-    allOrders = orders;
+    const data = await res.json();
+    allOrders = data.orders || data; // support both formats
     filterOrders();
   } catch (err) {
     console.error('Error fetching orders', err);
@@ -71,11 +71,14 @@ function filterOrders() {
   const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
   
   if (!query) {
-    renderOrders(allOrders);
+    renderOrders(allOrders.filter(o => o.needsPrint === true || (o.cardData && o.cardData.message)));
     return;
   }
   
-  const filtered = allOrders.filter(o => o.orderId && o.orderId.toLowerCase().includes(query));
+  const filtered = allOrders.filter(o => 
+    (o.needsPrint === true || (o.cardData && o.cardData.message)) && 
+    (o.orderId && o.orderId.toLowerCase().includes(query))
+  );
   renderOrders(filtered);
 }
 
@@ -89,12 +92,21 @@ function renderOrders(orders) {
   let html = '';
   orders.forEach(order => {
     const isActive = currentSelectedOrder && currentSelectedOrder._id === order._id;
-    const isPending = order.status === 'pending';
-    const statusClass = isPending ? 'status-pending' : 'status-printed';
-    const statusText = isPending ? 'قيد الانتظار' : 'مطبوع';
+    let statusClass = 'status-pending';
+    let statusText = 'قيد الانتظار';
+    if (order.status === 'printed') {
+      statusClass = 'status-printed';
+      statusText = 'مطبوع';
+    } else if (order.status === 'ready') {
+      statusClass = 'status-printed';
+      statusText = 'جاهز';
+    } else if (order.status === 'completed') {
+      statusClass = 'status-printed';
+      statusText = 'مكتمل';
+    }
     
     html += `
-      <div class="order-card ${isActive ? 'active' : ''}" onclick='selectOrder(${JSON.stringify(order).replace(/'/g, "&#39;")})'>
+      <div class="order-card ${isActive ? 'active' : ''}" data-order="${escapeHtml(JSON.stringify(order))}" onclick="selectOrder(JSON.parse(this.dataset.order))">
         <div style="display:flex; justify-content:space-between;">
           <div class="order-id">${order.orderId}</div>
           <div class="order-status ${statusClass}">${statusText}</div>
@@ -123,6 +135,63 @@ function selectOrder(order) {
   
   // enable print
   document.getElementById('printBtn').disabled = false;
+  
+  // enable pager ready button & render QR
+  const readyBtn = document.getElementById('readyBtn');
+  const pagerSection = document.getElementById('pagerQrSection');
+  
+  if (order.status !== 'ready' && order.status !== 'completed') {
+    readyBtn.disabled = false;
+  } else {
+    readyBtn.disabled = true;
+  }
+
+  if (order.pagerToken) {
+    pagerSection.style.display = 'block';
+    const pagerUrl = window.location.origin + '/pager.html?token=' + order.pagerToken;
+    document.getElementById('pagerLink').href = pagerUrl;
+    
+    // Generate QR Code
+    new QRious({
+      element: document.getElementById('pagerQrCanvas'),
+      value: pagerUrl,
+      size: 200,
+      background: 'white',
+      foreground: 'black'
+    });
+  } else {
+    pagerSection.style.display = 'none';
+  }
+}
+
+async function markOrderReady() {
+  if (!currentSelectedOrder) return;
+  
+  const btn = document.getElementById('readyBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحديث...';
+  
+  try {
+    const res = await fetch(`/api/orders/${currentSelectedOrder.orderId}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'ready' })
+    });
+    const data = await res.json();
+    if (data.success) {
+      btn.innerHTML = '<i class="fas fa-check"></i> تم تنبيه العميل';
+      btn.style.background = '#27ae60';
+      fetchOrders(); // Refresh the list
+    } else {
+      alert('حدث خطأ: ' + data.error);
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-bell"></i> 🔔 العميل جاهز للاستلام';
+    }
+  } catch (error) {
+    alert('حدث خطأ في الاتصال بالخادم');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-bell"></i> 🔔 العميل جاهز للاستلام';
+  }
 }
 
 function renderCanvas(recipient, message, sender, font, size, align) {

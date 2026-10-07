@@ -682,8 +682,11 @@ window.handleGiftWhatsAppOrder = async function(e, index) {
   let giftCardMessage = "";
   let giftCardType = "";
 
+  let giftCardRecipient = "";
+  let giftCardSender = "";
+
   // Helper to extract gift card details
-  const extractGiftCard = (messageId, typeName) => {
+  const extractGiftCard = (messageId, typeName, recipientId, senderId) => {
     const msg = document.getElementById(messageId).value.trim();
     if (!msg) {
       alert("الرجاء كتابة نص الإهداء.");
@@ -699,7 +702,9 @@ window.handleGiftWhatsAppOrder = async function(e, index) {
       alert("الرجاء اختيار نوع الكتابة (طباعة أو خطاط).");
       return null;
     }
-    return { msg, type };
+    const recipient = document.getElementById(recipientId) ? document.getElementById(recipientId).value.trim() : "";
+    const sender = document.getElementById(senderId) ? document.getElementById(senderId).value.trim() : "";
+    return { msg, type, recipient, sender };
   };
 
   // 1. Check if "Gift to someone else" is active
@@ -726,83 +731,100 @@ window.handleGiftWhatsAppOrder = async function(e, index) {
 
     // Check nested gift card
     if (nestedGiftCardCheck && nestedGiftCardCheck.checked) {
-      const gc = extractGiftCard("nestedGiftMessage", "nestedGiftType");
+      const gc = extractGiftCard("nestedGiftMessage", "nestedGiftType", "nestedGiftRecipient", "nestedGiftSender");
       if (!gc) return; // validation failed
       giftCardMessage = gc.msg;
       giftCardType = gc.type;
+      giftCardRecipient = gc.recipient;
+      giftCardSender = gc.sender;
       giftData.hasGiftCard = true;
       giftData.giftCardMessage = gc.msg;
       giftData.giftCardType = gc.type;
+      giftData.giftCardRecipient = gc.recipient;
+      giftData.giftCardSender = gc.sender;
       if (gc.type === "طباعة") needsPrintStation = true;
     }
   } 
   // 2. Or if Standalone Gift Card is active
   else if (standaloneGiftCardCheck && standaloneGiftCardCheck.checked) {
-    const gc = extractGiftCard("standaloneGiftMessage", "standaloneGiftType");
+    const gc = extractGiftCard("standaloneGiftMessage", "standaloneGiftType", "standaloneGiftRecipient", "standaloneGiftSender");
     if (!gc) return; // validation failed
     giftCardMessage = gc.msg;
     giftCardType = gc.type;
+    giftCardRecipient = gc.recipient;
+    giftCardSender = gc.sender;
     
     giftData.isGift = false;
     giftData.hasGiftCard = true;
     giftData.giftCardMessage = gc.msg;
     giftData.giftCardType = gc.type;
+    giftData.giftCardRecipient = gc.recipient;
+    giftData.giftCardSender = gc.sender;
     
     if (gc.type === "طباعة") needsPrintStation = true;
   }
 
-  // If Print Station is needed, submit to DB first
+  // Submit to DB for ALL orders (Sales tracking & Pager system)
   let printOrderId = null;
-  if (needsPrintStation) {
-    const btn = e.currentTarget;
-    const originalHtml = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال لمحطة الطباعة...';
-    btn.style.pointerEvents = 'none';
+  const btn = e.currentTarget;
+  const originalHtml = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري تجهيز الطلب...';
+  btn.style.pointerEvents = 'none';
 
-    try {
-      const orderData = {
-        orderId: generalOrderId,
-        customerName: "عميل عبر الواتساب",
-        customerPhone: giftData.recipientPhone ? giftData.recipientPhone : "0000000000",
-        productId: currentAlbum.id,
-        productTitle: photoName,
-        productCoverUrl: photoUrl,
-        cardData: {
-          recipient: "",
-          sender: "",
-          message: giftCardMessage,
-          fontFamily: "Tajawal",
-          fontSize: "14pt",
-          textAlign: "center"
-        }
+  try {
+    const orderData = {
+      orderId: generalOrderId,
+      customerName: "عميل عبر الواتساب",
+      customerPhone: giftData.recipientPhone ? giftData.recipientPhone : "0000000000",
+      productId: currentAlbum.id,
+      productTitle: photoName,
+      productCoverUrl: photoUrl,
+      needsPrint: needsPrintStation,
+      isGift: giftData.isGift || false,
+      deliveryMethod: giftData.deliveryMethod || ""
+    };
+
+    if (giftData.hasGiftCard) {
+      orderData.cardData = {
+        recipient: giftCardRecipient,
+        sender: giftCardSender,
+        message: giftCardMessage,
+        fontFamily: "Tajawal",
+        fontSize: "14pt",
+        textAlign: "center"
       };
+    }
 
-      const res = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderData)
-      });
-      const data = await res.json();
-      
-      if (data.success) {
+    const res = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(orderData)
+    });
+    const data = await res.json();
+    
+    if (data.success) {
+      if (needsPrintStation) {
         printOrderId = data.order.orderId;
-        if(giftData) giftData.printOrderId = printOrderId;
-      } else {
-        alert('حدث خطأ أثناء حفظ طلب الكارت في محطة الطباعة.');
-        btn.innerHTML = originalHtml;
-        btn.style.pointerEvents = 'auto';
-        return;
+        giftData.printOrderId = printOrderId;
       }
-    } catch (err) {
-      alert('حدث خطأ في الاتصال بالسيرفر أثناء تجهيز الكارت.');
+      if (data.order.pagerToken) {
+        giftData.pagerUrl = `${window.location.origin}/pager.html?token=${data.order.pagerToken}`;
+      }
+    } else {
+      alert('حدث خطأ أثناء حفظ الطلب في النظام.');
       btn.innerHTML = originalHtml;
       btn.style.pointerEvents = 'auto';
       return;
     }
-    
+  } catch (err) {
+    alert('حدث خطأ في الاتصال بالسيرفر أثناء تجهيز الطلب.');
     btn.innerHTML = originalHtml;
     btn.style.pointerEvents = 'auto';
+    return;
   }
+  
+  btn.innerHTML = originalHtml;
+  btn.style.pointerEvents = 'auto';
 
   const finalWaUrl = window.YellowRoseDB.buildWhatsAppUrl(currentAlbum, { url: photoUrl, name: photoName, code: photoCode }, giftData);
   window.open(finalWaUrl, "_blank", "noopener");

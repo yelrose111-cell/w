@@ -202,6 +202,16 @@
             </div>
             
             <div id="nestedGiftCardForm" class="gift-card-form hidden" style="margin-top: 10px; padding: 15px; background: #fafafa; border: 1px solid #eee; border-radius: 8px;">
+              <div class="gift-input-group" style="margin-bottom: 15px; display: flex; gap: 10px;">
+                <div style="flex: 1;">
+                  <label for="nestedGiftRecipient" style="display: block; margin-bottom: 5px;">إلى (المهدى إليه):</label>
+                  <input type="text" id="nestedGiftRecipient" placeholder="اسم المهدى إليه" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div style="flex: 1;">
+                  <label for="nestedGiftSender" style="display: block; margin-bottom: 5px;">من (المرسل):</label>
+                  <input type="text" id="nestedGiftSender" placeholder="اسم المرسل" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+              </div>
               <div class="gift-input-group" style="margin-bottom: 15px;">
                 <label for="nestedGiftMessage" style="display: block; margin-bottom: 5px;">نص الإهداء (مطلوب):</label>
                 <textarea id="nestedGiftMessage" rows="3" placeholder="اكتب نص الإهداء هنا..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" required></textarea>
@@ -229,6 +239,16 @@
           </div>
 
           <div id="standaloneGiftCardForm" class="gift-card-form hidden" style="margin-top: 10px; padding: 15px; background: #fafafa; border: 1px solid #eee; border-radius: 8px;">
+            <div class="gift-input-group" style="margin-bottom: 15px; display: flex; gap: 10px;">
+              <div style="flex: 1;">
+                <label for="standaloneGiftRecipient" style="display: block; margin-bottom: 5px;">إلى (المهدى إليه):</label>
+                <input type="text" id="standaloneGiftRecipient" placeholder="اسم المهدى إليه" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+              </div>
+              <div style="flex: 1;">
+                <label for="standaloneGiftSender" style="display: block; margin-bottom: 5px;">من (المرسل):</label>
+                <input type="text" id="standaloneGiftSender" placeholder="اسم المرسل" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;">
+              </div>
+            </div>
             <div class="gift-input-group" style="margin-bottom: 15px;">
               <label for="standaloneGiftMessage" style="display: block; margin-bottom: 5px;">نص الإهداء (مطلوب):</label>
               <textarea id="standaloneGiftMessage" rows="3" placeholder="اكتب نص الإهداء هنا..." style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px;" required></textarea>
@@ -342,6 +362,6 @@
 
   <!-- Minified Scripts -->
   <script src="assets/dist/js/db.min.js?v=1789758932"></script>
-  <script src="assets/dist/js/catalog.min.js?v=1789759566"></script>
+  <script src="assets/js/catalog.js?v=1789759566"></script>
 </body>
 </html>
