@@ -158,6 +158,7 @@
         const pagerToken = urlParams.get('token');
         let orderNumber = '---';
         let pollInterval = null;
+        let alertAudio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
 
         // Fetch initial order details to show the order number
         async function fetchInitialStatus() {
@@ -197,7 +198,13 @@
                 if (permission === "granted") console.log("Notification granted");
             }
 
-            // 2. Request Wake Lock
+            // 2. Unlock Audio for iOS (must happen during user interaction)
+            alertAudio.play().then(() => {
+                alertAudio.pause();
+                alertAudio.currentTime = 0;
+            }).catch(e => console.log("Audio unlock failed", e));
+
+            // 3. Request Wake Lock
             try {
                 if ('wakeLock' in navigator) {
                     let wakeLock = await navigator.wakeLock.request('screen');
@@ -211,7 +218,7 @@
                 console.log("Wake Lock error:", err);
             }
 
-            // 3. Switch UI
+            // 4. Switch UI
             document.getElementById('initialScreen').classList.add('hidden');
             document.getElementById('waitingScreen').classList.remove('hidden');
 
@@ -244,9 +251,16 @@
                 navigator.vibrate([200, 100, 200, 100, 800]);
             }
 
-            // Play sound
-            const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
-            audio.play().catch(e => console.log("Audio play blocked by browser"));
+            // Play unlocked sound multiple times
+            let playCount = 0;
+            alertAudio.play().catch(e => console.log("Audio play blocked", e));
+            alertAudio.addEventListener('ended', function repeat() {
+                playCount++;
+                if (playCount < 4) { // Beep 4 times
+                    alertAudio.currentTime = 0;
+                    alertAudio.play();
+                }
+            });
 
             // Show Push Notification
             if (Notification.permission === "granted") {
