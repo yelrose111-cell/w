@@ -235,14 +235,20 @@
         async function activatePager() {
             if (!pagerToken) return;
 
-            // 1. Request Notification Permission
-            if ("Notification" in window) {
-                const permission = await Notification.requestPermission();
-                if (permission === "granted") console.log("Notification granted");
-            }
-
-            // 2. Unlock Audio for iOS (must happen during user interaction)
+            // 1. Unlock Audio for iOS synchronously FIRST (must happen before any await)
             unlockAudio();
+
+            // 2. Request Notification Permission (async)
+            if ("Notification" in window) {
+                try {
+                    // Don't block execution if permission request hangs
+                    Notification.requestPermission().then(permission => {
+                        if (permission === "granted") console.log("Notification granted");
+                    });
+                } catch (e) {
+                    console.log("Notification error", e);
+                }
+            }
 
             // 3. Request Wake Lock
             try {
