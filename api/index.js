@@ -456,6 +456,7 @@ app.post('/api/orders', async (req, res) => {
   try {
     const data = req.body;
     data.orderId = data.orderId || ('YR-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000));
+    data.pagerToken = crypto.randomBytes(8).toString('hex'); // Generate unique token for web pager
     const saved = await Order.create(data);
     res.status(201).json({ success: true, order: saved });
   } catch (error) {
@@ -487,6 +488,36 @@ app.patch('/api/orders/:id/print', employeeAuthMiddleware, async (req, res) => {
   }
 });
 
+app.patch('/api/orders/:id/status', employeeAuthMiddleware, async (req, res) => {
+  try {
+    const { status } = req.body;
+    const updateData = { status };
+    if (status === 'ready') updateData.readyAt = Date.now();
+    
+    const updated = await Order.findOneAndUpdate(
+      { orderId: req.params.id },
+      updateData,
+      { new: true }
+    );
+    res.json({ success: true, order: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// Pager API for clients (public, no auth required, accessed via token)
+app.get('/api/pager/:token', async (req, res) => {
+  try {
+    const order = await Order.findOne({ pagerToken: req.params.token }).lean();
+    if (!order) {
+      return res.status(404).json({ success: false, error: 'Not found' });
+    }
+    res.json({ success: true, status: order.status, orderId: order.orderId });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', dbConnected: mongoose.connection.readyState === 1 });
@@ -501,19 +532,20 @@ if (require.main === module) {
 
 app.get('/api/migrate-codes', async (req, res) => {
   try {
-    const categories = await Category.find();
+    const categories = await Category.find().lean();
     const categoryPrefixMap = {};
     const catOps = [];
     
     for (const cat of categories) {
       let prefix = 'YR';
-      if (cat.name.includes('باقات')) prefix = 'YF';
-      else if (cat.name.includes('فازات')) prefix = 'YV';
-      else if (cat.name.includes('شوكولاتة') || cat.name.includes('شوكلاته') || cat.name.includes('شوكلاتة')) prefix = 'YC';
-      else if (cat.name.includes('هدايا') || cat.name.includes('تغليف')) prefix = 'YG';
-      else if (cat.name.includes('مسكات') || cat.name.includes('عرايس')) prefix = 'YW';
-      else if (cat.name.includes('مواليد')) prefix = 'YN';
-      else if (cat.name.includes('نباتات')) prefix = 'YP';
+      const catName = cat.name || '';
+      if (catName.includes('باقات')) prefix = 'YF';
+      else if (catName.includes('فازات')) prefix = 'YV';
+      else if (catName.includes('شوكولاتة') || catName.includes('شوكلاته') || catName.includes('شوكلاتة')) prefix = 'YC';
+      else if (catName.includes('هدايا') || catName.includes('تغليف')) prefix = 'YG';
+      else if (catName.includes('مسكات') || catName.includes('عرايس')) prefix = 'YW';
+      else if (catName.includes('مواليد')) prefix = 'YN';
+      else if (catName.includes('نباتات')) prefix = 'YP';
       
       categoryPrefixMap[cat.id] = prefix;
       catOps.push({
@@ -529,7 +561,7 @@ app.get('/api/migrate-codes', async (req, res) => {
     }
     
     const prefixCounters = {};
-    const products = await Product.find().sort({ createdAt: 1 });
+    const products = await Product.find().sort({ createdAt: 1 }).lean();
     const prodOps = [];
     
     for (const prod of products) {
@@ -559,11 +591,41 @@ app.get('/api/migrate-codes', async (req, res) => {
       });
     }
     
-    if (prodOps.length > 0) {
-      await Product.bulkWrite(prodOps);
-    }
+    // Also migrate Albums!
+    const albums = await Album.find().sort({ createdAt: 1 }).lean();
+    const albOps = [];
     
-    res.json({ success: true, message: `Migrated ${categories.length} categories and ${products.length} products.` });
+    for (const alb of albums) {
+      const prefix = categoryPrefixMap[alb.category] || 'YR';
+      if (!prefixCounters[prefix]) prefixCounters[prefix] = 1;
+      
+      const count = prefixCounters[prefix]++;
+      const codeNum = count.toString().padStart(2, '0');
+      const albumCode = `${prefix}-${codeNum}`; // Since Album doesn't have productCode, we only update images
+      
+      const updatedImages = alb.images ? [...alb.images] : [];
+      if (updatedImages.length > 0) {
+        updatedImages.forEach((img, idx) => {
+          if (updatedImages.length === 1) {
+            img.code = albumCode;
+          } else {
+            img.code = `${albumCode}-${idx + 1}`;
+          }
+        });
+      }
+      
+      albOps.push({
+        updateOne: {
+          filter: { id: alb.id },
+          update: { $set: { images: updatedImages } }
+        }
+      });
+    }
+
+    if (prodOps.length > 0) await Product.bulkWrite(prodOps);
+    if (albOps.length > 0) await Album.bulkWrite(albOps);
+    
+    res.json({ success: true, message: `تم تهيئة ${categories.length} قسم و ${products.length} منتج و ${albums.length} ألبوم بنجاح.` });
   } catch (error) {
     console.error("Migration Error:", error);
     res.status(500).json({ success: false, error: error.message, stack: error.stack });
