@@ -9,6 +9,21 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('loginOverlay').style.display = 'none';
     startPolling();
   }
+
+  // Setup Event Listeners
+  const el = (id) => document.getElementById(id);
+  if (el('loginBtn')) el('loginBtn').addEventListener('click', handleLogin);
+  if (el('logoutBtn')) el('logoutBtn').addEventListener('click', logout);
+  if (el('refreshBtn')) el('refreshBtn').addEventListener('click', fetchOrders);
+  if (el('qcOpenBtn')) el('qcOpenBtn').addEventListener('click', openQuickCreateModal);
+  if (el('qcPreviewBtn')) el('qcPreviewBtn').addEventListener('click', previewQuickCreate);
+  if (el('qcCancelBtn')) el('qcCancelBtn').addEventListener('click', closeQuickCreateModal);
+  if (el('readyBtn')) el('readyBtn').addEventListener('click', markOrderReady);
+  if (el('printBtn')) el('printBtn').addEventListener('click', printCard);
+  
+  // Also expose to window for inline HTML onclick handlers just in case
+  window.selectOrder = selectOrder;
+  window.handleLogin = handleLogin;
 });
 
 function getCookie(name) {

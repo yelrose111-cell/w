@@ -138,7 +138,7 @@
       <img src="assets/logo.png" alt="Yellow Rose" style="width: 80px; margin-bottom: 20px;">
       <h2>دخول محطة الطباعة</h2>
       <input type="password" id="employeePin" placeholder="PIN" maxlength="4">
-      <button onclick="handleLogin()">دخول</button>
+      <button id="loginBtn">دخول</button>
       <p id="loginError" style="color: red; display: none; margin-top: 10px;">الرمز غير صحيح</p>
     </div>
   </div>
@@ -146,9 +146,9 @@
   <header class="print-header">
     <h1>محطة الطباعة - كروت الإهداء</h1>
     <div class="header-actions">
-      <button class="btn-action" onclick="openQuickCreateModal()"><i class="fas fa-magic"></i> إنشاء فوري</button>
-      <button class="btn-action" onclick="fetchOrders()"><i class="fas fa-sync-alt"></i> تحديث</button>
-      <button class="btn-action" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
+      <button class="btn-action" id="qcOpenBtn"><i class="fas fa-magic"></i> إنشاء فوري</button>
+      <button class="btn-action" id="refreshBtn"><i class="fas fa-sync-alt"></i> تحديث</button>
+      <button class="btn-action" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> خروج</button>
     </div>
   </header>
 
@@ -241,14 +241,14 @@
         </div>
       </div>
       <div style="display:flex; gap:10px;">
-        <button onclick="previewQuickCreate()" style="flex:1; padding:10px; background:var(--gold-primary); color:white; border:none; border-radius:4px; cursor:pointer;">معاينة</button>
-        <button onclick="closeQuickCreateModal()" style="flex:1; padding:10px; background:#ddd; color:#333; border:none; border-radius:4px; cursor:pointer;">إلغاء</button>
+        <button id="qcPreviewBtn" style="flex:1; padding:10px; background:var(--gold-primary); color:white; border:none; border-radius:4px; cursor:pointer;">معاينة</button>
+        <button id="qcCancelBtn" style="flex:1; padding:10px; background:#ddd; color:#333; border:none; border-radius:4px; cursor:pointer;">إلغاء</button>
       </div>
     </div>
   </div>
 
   <!-- QR Code Generator Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
-  <script src="assets/js/print-station.js"></script>
+  <script src="assets/dist/js/print-station.min.js?v=2.1"></script>
 </body>
 </html>
