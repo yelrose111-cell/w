@@ -158,8 +158,50 @@
         const pagerToken = urlParams.get('token');
         let orderNumber = '---';
         let pollInterval = null;
-        let alertAudio = new Audio('https://actions.google.com/sounds/v1/alarms/digital_watch_alarm_long.ogg');
-        alertAudio.loop = true;
+        let audioCtx = null;
+
+        function unlockAudio() {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                osc.connect(audioCtx.destination);
+                osc.start(0);
+                osc.stop(0.001);
+            } catch (e) {
+                console.log("Audio API not supported");
+            }
+        }
+
+        function playLoudAlarm() {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const now = audioCtx.currentTime;
+                // Play 10 loud beeps over 5 seconds
+                for (let i = 0; i < 10; i++) {
+                    const startTime = now + (i * 0.5);
+                    const osc = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    
+                    osc.type = 'square'; // Very loud siren tone
+                    osc.frequency.setValueAtTime(880, startTime);
+                    osc.frequency.setValueAtTime(1100, startTime + 0.1);
+                    
+                    gainNode.gain.setValueAtTime(1, startTime);
+                    gainNode.gain.linearRampToValueAtTime(0, startTime + 0.4);
+                    
+                    osc.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    
+                    osc.start(startTime);
+                    osc.stop(startTime + 0.4);
+                }
+            } catch (e) {
+                console.log("Failed to play alarm", e);
+            }
+        }
 
         // Fetch initial order details to show the order number
         async function fetchInitialStatus() {
@@ -200,10 +242,7 @@
             }
 
             // 2. Unlock Audio for iOS (must happen during user interaction)
-            alertAudio.play().then(() => {
-                alertAudio.pause();
-                alertAudio.currentTime = 0;
-            }).catch(e => console.log("Audio unlock failed", e));
+            unlockAudio();
 
             // 3. Request Wake Lock
             try {
@@ -252,14 +291,8 @@
                 navigator.vibrate([500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500]);
             }
 
-            // Play loud continuous sound for 5 seconds
-            alertAudio.currentTime = 0;
-            alertAudio.play().catch(e => console.log("Audio play blocked", e));
-            
-            setTimeout(() => {
-                alertAudio.pause();
-                alertAudio.currentTime = 0;
-            }, 5000);
+            // Play loud continuous sound for 5 seconds using Web Audio API
+            playLoudAlarm();
 
             // Show Push Notification
             if (Notification.permission === "granted") {
