@@ -219,8 +219,12 @@ function renderOrders(orders) {
           <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>🏁 مكتمل</option>
         </select>
         </select>
-        ${order.pagerToken ? `<button class="action-btn btn-dark" onclick="showQrModal('${order.pagerToken}')">
-          <i class="fas fa-qrcode"></i> نداء
+        </select>
+        ${order.pagerToken && order.status === 'ready' ? `<button class="action-btn btn-dark" onclick="pingOrder('${order.orderId}')" title="جعل هاتف العميل يرن مرة أخرى">
+          <i class="fas fa-bell"></i> إعادة النداء
+        </button>` : ''}
+        ${order.pagerToken && order.status !== 'ready' ? `<button class="action-btn btn-dark" onclick="showQrModal('${order.pagerToken}')">
+          <i class="fas fa-qrcode"></i> باركود
         </button>` : ''}
         ${waPhone ? `<a class="action-btn btn-green" href="https://wa.me/${waPhone}" target="_blank" rel="noopener">
           <i class="fab fa-whatsapp"></i> واتساب
@@ -250,6 +254,24 @@ async function updateStatus(orderId, newStatus) {
       fetchOrders();
     }
   } catch {
+    showToast('خطأ في الاتصال ✗');
+  }
+}
+
+// ─── Ping Order (Re-trigger alarm) ────────
+async function pingOrder(orderId) {
+  try {
+    const res = await fetch(`/api/orders/${encodeURIComponent(orderId)}/ping`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('تم إرسال نداء التنبيه للعميل 🔔');
+    } else {
+      showToast('فشل إرسال النداء ✗');
+    }
+  } catch (e) {
     showToast('خطأ في الاتصال ✗');
   }
 }

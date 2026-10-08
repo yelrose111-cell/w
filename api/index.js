@@ -505,6 +505,19 @@ app.patch('/api/orders/:id/status', employeeAuthMiddleware, async (req, res) => 
   }
 });
 
+app.post('/api/orders/:id/ping', employeeAuthMiddleware, async (req, res) => {
+  try {
+    const updated = await Order.findOneAndUpdate(
+      { orderId: req.params.id },
+      { lastPingAt: Date.now() },
+      { new: true }
+    );
+    res.json({ success: true, order: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // Pager API for clients (public, no auth required, accessed via token)
 app.get('/api/pager/:token', async (req, res) => {
   try {
@@ -512,7 +525,7 @@ app.get('/api/pager/:token', async (req, res) => {
     if (!order) {
       return res.status(404).json({ success: false, error: 'Not found' });
     }
-    res.json({ success: true, status: order.status, orderId: order.orderId });
+    res.json({ success: true, status: order.status, orderId: order.orderId, lastPingAt: order.lastPingAt });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }

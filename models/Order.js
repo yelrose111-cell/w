@@ -23,7 +23,8 @@ const orderSchema = new mongoose.Schema({
   pagerToken: { type: String, required: false }, // Unique token for the web pager session
   createdAt: { type: Date, default: Date.now },
   printedAt: { type: Date },
-  readyAt: { type: Date }
+  readyAt: { type: Date },
+  lastPingAt: { type: Date }
 });
 
 module.exports = mongoose.models.Order || mongoose.model('Order', orderSchema);
