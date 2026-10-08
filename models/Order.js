@@ -24,7 +24,8 @@ const orderSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
   printedAt: { type: Date },
   readyAt: { type: Date },
-  lastPingAt: { type: Date }
+  lastPingAt: { type: Date },
+  pushSubscription: { type: mongoose.Schema.Types.ObjectId, ref: 'PushSubscription', default: null }
 });
 
 module.exports = mongoose.models.Order || mongoose.model('Order', orderSchema);

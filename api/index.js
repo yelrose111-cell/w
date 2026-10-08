@@ -13,6 +13,16 @@ const Subcategory = require('../models/Subcategory');
 const Product = require('../models/Product');
 const Settings = require('../models/Settings');
 const Order = require('../models/Order');
+const PushSubscription = require('../models/PushSubscription');
+const webpush = require('web-push');
+
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+      process.env.VAPID_SUBJECT || 'mailto:admin@yellowrose.com',
+      process.env.VAPID_PUBLIC_KEY,
+      process.env.VAPID_PRIVATE_KEY
+  );
+}
 
 const app = express();
 app.use(cors({
@@ -512,6 +522,32 @@ app.post('/api/orders/:id/ping', employeeAuthMiddleware, async (req, res) => {
       { lastPingAt: Date.now() },
       { new: true }
     );
+
+    if (updated && updated.pushSubscription && process.env.VAPID_PUBLIC_KEY) {
+      try {
+        const subDoc = await PushSubscription.findById(updated.pushSubscription).lean();
+        if (subDoc) {
+          const payload = JSON.stringify({
+            title: 'Yellow Rose 🌹',
+            body: `طلبك رقم ${updated.orderId} جاهز للاستلام!`,
+            url: `/pager.html?token=${updated.pagerToken}`,
+            orderId: updated.orderId
+          });
+          await webpush.sendNotification({
+            endpoint: subDoc.endpoint,
+            keys: { p256dh: subDoc.keys.p256dh, auth: subDoc.keys.auth }
+          }, payload);
+          await PushSubscription.findByIdAndUpdate(subDoc._id, { lastUsedAt: new Date() }).catch(() => {});
+        }
+      } catch (err) {
+        if (err.statusCode === 410 || err.statusCode === 404) {
+          await PushSubscription.findByIdAndDelete(updated.pushSubscription);
+          await Order.findOneAndUpdate({ orderId: req.params.id }, { pushSubscription: null });
+        }
+        console.error('Push error:', err);
+      }
+    }
+
     res.json({ success: true, order: updated });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -528,6 +564,86 @@ app.get('/api/pager/:token', async (req, res) => {
     res.json({ success: true, status: order.status, orderId: order.orderId, lastPingAt: order.lastPingAt });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ---------------- Web Push Subscriptions ----------------
+app.post('/api/push/subscribe', async (req, res) => {
+  try {
+    const { pagerToken, subscription, deviceType, userAgent } = req.body;
+    if (!pagerToken || !subscription || !subscription.endpoint) {
+      return res.status(400).json({ success: false, error: 'بيانات غير مكتملة' });
+    }
+
+    const orderExists = await Order.exists({ pagerToken });
+    if (!orderExists) {
+      return res.status(404).json({ success: false, error: 'الطلب غير موجود' });
+    }
+
+    const subDoc = await PushSubscription.findOneAndUpdate(
+      { endpoint: subscription.endpoint },
+      {
+        $set: {
+          keys: {
+            p256dh: subscription.keys.p256dh,
+            auth: subscription.keys.auth
+          },
+          pagerToken: pagerToken,
+          deviceType: deviceType || 'unknown',
+          userAgent: userAgent || '',
+          lastUsedAt: new Date()
+        }
+      },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    await Order.findOneAndUpdate(
+      { pagerToken },
+      { pushSubscription: subDoc._id }
+    );
+
+    res.json({ success: true, subscriptionId: subDoc._id });
+  } catch (err) {
+    console.error('Subscribe error:', err);
+    res.status(500).json({ success: false, error: 'خطأ في السيرفر' });
+  }
+});
+
+app.post('/api/push/refresh-subscription', async (req, res) => {
+  try {
+    const { oldEndpoint, newSubscription, pagerToken } = req.body;
+    if (!oldEndpoint || !pagerToken) {
+      return res.status(400).json({ success: false, error: 'بيانات غير مكتملة' });
+    }
+
+    const oldSub = await PushSubscription.findOne({ endpoint: oldEndpoint }).lean();
+    if (!oldSub) return res.status(404).json({ success: false, error: 'الاشتراك غير موجود' });
+    if (oldSub.pagerToken !== pagerToken) return res.status(403).json({ success: false, error: 'غير مصرح' });
+
+    if (!newSubscription) {
+      await Order.findOneAndUpdate({ pagerToken }, { pushSubscription: null });
+      await PushSubscription.findByIdAndDelete(oldSub._id);
+    } else if (newSubscription.endpoint === oldEndpoint) {
+      await PushSubscription.findByIdAndUpdate(oldSub._id, {
+        $set: { keys: newSubscription.keys, lastUsedAt: new Date() }
+      });
+    } else {
+      const newSubDoc = await PushSubscription.create({
+        endpoint: newSubscription.endpoint,
+        keys: newSubscription.keys,
+        pagerToken: pagerToken,
+        deviceType: oldSub.deviceType,
+        userAgent: oldSub.userAgent,
+        lastUsedAt: new Date()
+      });
+      await Order.findOneAndUpdate({ pagerToken }, { pushSubscription: newSubDoc._id });
+      await PushSubscription.findByIdAndDelete(oldSub._id);
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Refresh sub error:', err);
+    res.status(500).json({ success: false, error: 'خطأ في السيرفر' });
   }
 });
 

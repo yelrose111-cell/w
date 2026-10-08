@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>تنبيه الطلب | Yellow Rose</title>
+    <link rel="manifest" href="/manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -119,6 +120,25 @@
 
     <img src="/assets/logo.png" alt="Yellow Rose" class="logo" onerror="this.src='/assets/logo.jpg'">
 
+    
+    <!-- Install Prompt -->
+    <div id="iosInstallPrompt" class="container hidden" style="border-color: #3498db; margin-bottom: 20px;">
+        <h3 style="color: #3498db; margin-bottom: 10px;">📲 تفعيل الإشعارات بالخلفية</h3>
+        <p style="font-size: 15px; color: #ccc; line-height: 1.5; margin-bottom: 15px;">
+            لضمان وصول التنبيه حتى لو أغلقت المتصفح، يرجى إضافة الصفحة للشاشة الرئيسية:
+        </p>
+        <div style="background: #2a2a2a; padding: 10px; border-radius: 10px; text-align: right; font-size: 14px;">
+            1. اضغط على زر المشاركة أسفل الشاشة.<br>
+            2. اختر <strong>"إضافة للشاشة الرئيسية"</strong> (Add to Home Screen).<br>
+            3. افتح التطبيق من الشاشة الرئيسية لتفعيل التنبيهات!
+        </div>
+    </div>
+
+    <!-- Clean Audio for fallback -->
+    <audio id="cleanAlarmSound" preload="auto">
+        <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
+    </audio>
+
     <!-- Screen 1: Initial load -->
     <div id="initialScreen" class="container">
         <div class="order-label">رقم طلبك</div>
@@ -162,80 +182,31 @@
         let orderNumber = '---';
         let pollInterval = null;
         let audioCtx = null;
+        let lastSeenPing = null;
+        let hasTriggeredInitialReady = false;
 
+        
         function unlockAudio() {
-            try {
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                const osc = audioCtx.createOscillator();
-                osc.connect(audioCtx.destination);
-                osc.start(0);
-                osc.stop(0.001);
-            } catch (e) {
-                console.log("Audio API not supported");
+            const audio = document.getElementById('cleanAlarmSound');
+            if (audio) {
+                audio.play().then(() => {
+                    audio.pause();
+                    audio.currentTime = 0;
+                }).catch(e => console.log('Audio unlock failed:', e));
             }
         }
 
         function playLoudAlarm() {
-            try {
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-
-                const now = audioCtx.currentTime;
-                // Play 10 loud beeps over 5 seconds
-                for (let i = 0; i < 10; i++) {
-                    const startTime = now + (i * 0.5);
-                    const osc = audioCtx.createOscillator();
-                    const gainNode = audioCtx.createGain();
-                    
-                    osc.type = 'square'; // Very loud siren tone
-                    osc.frequency.setValueAtTime(880, startTime);
-                    osc.frequency.setValueAtTime(1100, startTime + 0.1);
-                    
-                    gainNode.gain.setValueAtTime(1, startTime);
-                    gainNode.gain.linearRampToValueAtTime(0, startTime + 0.4);
-                    
-                    osc.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-                    
-                    osc.start(startTime);
-                    osc.stop(startTime + 0.4);
-                }
-            } catch (e) {
-                console.log("Failed to play alarm", e);
+            const audio = document.getElementById('cleanAlarmSound');
+            if (audio) {
+                audio.currentTime = 0;
+                audio.play().catch(e => console.log('Audio play failed:', e));
             }
         }
 
         function playTestAlarm() {
-            try {
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-
-                if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-
-                const now = audioCtx.currentTime;
-                // Play 2 short beeps for test
-                for (let i = 0; i < 2; i++) {
-                    const startTime = now + (i * 0.5);
-                    const osc = audioCtx.createOscillator();
-                    const gainNode = audioCtx.createGain();
-                    
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(880, startTime);
-                    osc.frequency.setValueAtTime(1100, startTime + 0.1);
-                    
-                    gainNode.gain.setValueAtTime(1, startTime);
-                    gainNode.gain.linearRampToValueAtTime(0, startTime + 0.4);
-                    
-                    osc.connect(gainNode);
-                    gainNode.connect(audioCtx.destination);
-                    
-                    osc.start(startTime);
-                    osc.stop(startTime + 0.4);
-                }
-            } catch (e) {
-                console.log("Failed to play test alarm", e);
-            }
+            playLoudAlarm();
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
         }
 
         // Fetch initial order details to show the order number
@@ -252,7 +223,13 @@
                     document.getElementById('displayOrderNum').innerText = orderNumber;
                     document.getElementById('displayOrderNumWait').innerText = orderNumber;
                     
-                    if (data.status === 'ready' || data.status === 'completed') {
+                    
+                    if (data.status === 'completed') {
+                        window.location.href = '/';
+                        return;
+                    }
+                    if (data.status === 'ready') {
+
                         showReadyScreen();
                     }
                 } else {
@@ -273,16 +250,40 @@
             // 1. Unlock Audio for iOS synchronously FIRST (must happen before any await)
             unlockAudio();
 
-            // 2. Request Notification Permission (async)
-            if ("Notification" in window) {
+            // 2. Register Service Worker and Push Subscription
+            if ('serviceWorker' in navigator && 'PushManager' in window) {
                 try {
-                    // Don't block execution if permission request hangs
-                    Notification.requestPermission().then(permission => {
-                        if (permission === "granted") console.log("Notification granted");
-                    });
+                    const registration = await navigator.serviceWorker.register('/sw.js');
+                    console.log('Service Worker registered:', registration);
+                    
+                    const permission = await Notification.requestPermission();
+                    if (permission === 'granted') {
+                        const VAPID_PUBLIC_KEY = 'BH-2u9hVKOUXM81nr4ENB1zhTqXWHAUVnCvd3Z0TrgPI4jMHiMM7t-w5r7SWFEk1Hf9FyeBp9XUBg3dPaH8OAIQ';
+                        
+                        const subscription = await registration.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+                        });
+
+                        await fetch('/api/push/subscribe', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                pagerToken: pagerToken,
+                                subscription: subscription,
+                                deviceType: getDeviceType(),
+                                userAgent: navigator.userAgent
+                            })
+                        });
+                        console.log('Push subscription successful');
+                    } else {
+                        console.warn('Notification permission denied, falling back to Long Polling only.');
+                    }
                 } catch (e) {
-                    console.log("Notification error", e);
+                    console.error('Push Registration failed:', e);
                 }
+            } else {
+                console.warn('Push messaging is not supported, falling back to Long Polling only.');
             }
 
             // 3. Request Wake Lock
@@ -314,9 +315,23 @@
                     const res = await fetch(`/api/pager/${pagerToken}?t=${Date.now()}`);
                     const data = await res.json();
                     
-                    if (data.success && (data.status === 'ready' || data.status === 'completed')) {
-                        clearInterval(pollInterval);
-                        triggerReadyAlert();
+                    
+                    if (data.success && data.status === 'completed') {
+                        window.location.href = '/'; // Redirect to main site when completed
+                        return;
+                    }
+                    if (data.success && data.status === 'ready') {
+
+                        // First time changing to ready
+                        if (!hasTriggeredInitialReady) {
+                            hasTriggeredInitialReady = true;
+                            if (data.lastPingAt) lastSeenPing = data.lastPingAt;
+                            triggerReadyAlert();
+                        } else if (data.lastPingAt && data.lastPingAt !== lastSeenPing) {
+                            // Employee manually pinged the customer again
+                            lastSeenPing = data.lastPingAt;
+                            triggerReadyAlert();
+                        }
                     }
                 } catch (err) {
                     // Ignore transient network errors
@@ -350,8 +365,37 @@
             document.getElementById('readyScreen').classList.remove('hidden');
         }
 
+        
+        // Check Standalone (A2HS)
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+        
+        if (!isStandalone && isIOS) {
+            document.getElementById('iosInstallPrompt').classList.remove('hidden');
+        }
+
         // Initialize
         fetchInitialStatus();
+
+
+        // Helper functions
+        function getDeviceType() {
+            const ua = navigator.userAgent;
+            if (/android/i.test(ua)) return 'android';
+            if (/iPad|iPhone|iPod/.test(ua)) return 'ios';
+            return 'desktop';
+        }
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
     </script>
 </body>
 </html>

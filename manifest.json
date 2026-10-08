@@ -1,0 +1,21 @@
+{
+  "name": "Yellow Rose Pager",
+  "short_name": "YR Pager",
+  "start_url": "/pager.html",
+  "display": "standalone",
+  "background_color": "#1c1c1e",
+  "theme_color": "#d4af37",
+  "description": "نظام النداء الآلي لمتجر Yellow Rose",
+  "icons": [
+    {
+      "src": "/assets/images/yr-icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/images/yr-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
