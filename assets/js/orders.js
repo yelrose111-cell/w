@@ -248,6 +248,7 @@ async function updateStatus(orderId, newStatus) {
       const order = allOrders.find(o => o.orderId === orderId);
       if (order) order.status = newStatus;
       updateStats();
+      renderOrders(allOrders); // Re-render to update the buttons (e.g. show ping button)
       showToast('تم تحديث حالة الطلب ✓');
     } else {
       showToast('فشل تحديث الحالة ✗');
