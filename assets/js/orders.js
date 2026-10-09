@@ -71,6 +71,11 @@ async function handleLogin(e) {
       showDashboard();
       fetchOrders();
     } else {
+      if (data.error === 'Too many login attempts') {
+        errEl.textContent = 'تم تجاوز عدد محاولات الدخول. يرجى الانتظار دقيقتين.';
+      } else {
+        errEl.textContent = 'رمز الدخول غير صحيح.';
+      }
       errEl.style.display = 'block';
     }
   } catch {
