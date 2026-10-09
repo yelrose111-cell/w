@@ -5,31 +5,37 @@ const pushSubscriptionSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
-        index: true
+        index: true,
+        maxlength: 500
     },
     keys: {
-        p256dh: { type: String, required: true },
-        auth:   { type: String, required: true }
+        p256dh: { type: String, required: true, maxlength: 200 },
+        auth:   { type: String, required: true, maxlength: 50 }
     },
     pagerToken: {
         type: String,
         required: true,
-        index: true
+        index: true,
+        match: /^[a-f0-9]{16,32}$/
     },
     deviceType: {
         type: String,
         enum: ['ios', 'android', 'desktop', 'unknown'],
         default: 'unknown'
     },
-    userAgent: { type: String, default: '' },
-    createdAt:  { type: Date, default: Date.now },
-    lastUsedAt: { type: Date, default: Date.now }
+    userAgent: { 
+        type: String, 
+        default: '',
+        maxlength: 500
+    },
+    lastUsedAt: { type: Date, default: Date.now, index: true }
 }, { timestamps: true });
 
-// TTL: Auto delete after 90 days of no use
 pushSubscriptionSchema.index(
     { lastUsedAt: 1 },
     { expireAfterSeconds: 90 * 24 * 60 * 60 }
 );
+
+pushSubscriptionSchema.index({ pagerToken: 1, lastUsedAt: -1 });
 
 module.exports = mongoose.model('PushSubscription', pushSubscriptionSchema);

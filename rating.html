@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تقييم الخدمة - Yellow Rose</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #d4af37;
+            --primary-dark: #b8860b;
+            --bg-dark: #1c1c1e;
+            --bg-card: #2c2c2e;
+            --text-light: #f5f5f7;
+            --text-muted: #8e8e93;
+            --success: #34c759;
+        }
+
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .rating-container {
+            background-color: var(--bg-card);
+            border-radius: 16px;
+            padding: 40px 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .logo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            margin-bottom: 20px;
+            object-fit: cover;
+            border: 2px solid var(--primary);
+        }
+
+        h2 {
+            margin: 0 0 10px 0;
+            font-size: 1.5rem;
+            color: var(--primary);
+        }
+
+        p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            margin-bottom: 30px;
+        }
+
+        .stars-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 30px;
+            direction: ltr; /* Important for right-to-left star selection logic */
+        }
+
+        .star {
+            font-size: 2.5rem;
+            color: #444;
+            cursor: pointer;
+            transition: color 0.2s, transform 0.2s;
+        }
+
+        .star:hover, .star.active, .star.selected {
+            color: var(--primary);
+            transform: scale(1.1);
+        }
+
+        .comment-box {
+            width: 100%;
+            background: #1c1c1e;
+            border: 1px solid #444;
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 0.95rem;
+            resize: none;
+            height: 100px;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+            transition: border-color 0.3s;
+        }
+
+        .comment-box:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+        }
+        
+        .btn-submit:disabled {
+            background: #555;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .google-maps-btn {
+            background: #ffffff;
+            color: #1a73e8;
+            border: none;
+            border-radius: 12px;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            text-decoration: none;
+            display: none; /* Hidden until submission */
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            transition: transform 0.2s;
+        }
+
+        .google-maps-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .success-message {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            animation: fadeIn 0.5s;
+        }
+
+        .success-icon {
+            font-size: 4rem;
+            color: var(--success);
+            margin-bottom: 15px;
+        }
+
+        .error-message {
+            color: #ff3b30;
+            margin-bottom: 15px;
+            display: none;
+            font-size: 0.9rem;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .rating-container { padding: 30px 20px; }
+            .star { font-size: 2rem; }
+            h2 { font-size: 1.3rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="rating-container" id="ratingCard">
+        <img src="/assets/images/yr-icon-192.png" alt="Yellow Rose Logo" class="logo">
+        <h2>كيف كانت تجربتك معنا؟</h2>
+        <p>رأيك يهمنا ويساعدنا على تقديم خدمة أفضل لك دائماً.</p>
+
+        <div id="errorMsg" class="error-message"></div>
+
+        <div class="stars-container" id="stars">
+            <!-- Stars are RTL in HTML but displayed LTR for hover logic -->
+            <i class="fas fa-star star" data-value="1"></i>
+            <i class="fas fa-star star" data-value="2"></i>
+            <i class="fas fa-star star" data-value="3"></i>
+            <i class="fas fa-star star" data-value="4"></i>
+            <i class="fas fa-star star" data-value="5"></i>
+        </div>
+
+        <textarea id="commentInput" class="comment-box" placeholder="شاركنا ملاحظاتك أو مقترحاتك (اختياري)..."></textarea>
+
+        <button id="submitBtn" class="btn-submit" disabled>
+            <span>إرسال التقييم</span>
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </div>
+
+    <div class="rating-container success-message" id="successCard">
+        <i class="fas fa-check-circle success-icon"></i>
+        <h2>شكراً لك! 🌹</h2>
+        <p>تم استلام تقييمك بنجاح. نحن نقدر وقتك وملاحظاتك.</p>
+        
+        <p style="margin-top: 20px; color: var(--text-light); font-weight: 500;">هل أحببت خدمتنا؟ ادعمنا بتقييم على خرائط جوجل!</p>
+        <a href="https://g.page/r/your-google-maps-link/review" target="_blank" class="google-maps-btn" id="googleBtn" style="display: flex;">
+            <i class="fab fa-google"></i>
+            تقييمنا على جوجل ماب
+        </a>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('order');
+        let selectedRating = 0;
+
+        const stars = document.querySelectorAll('.star');
+        const submitBtn = document.getElementById('submitBtn');
+        const errorMsg = document.getElementById('errorMsg');
+        const commentInput = document.getElementById('commentInput');
+
+        if (!orderId) {
+            errorMsg.textContent = 'رابط غير صالح. مفقود رقم الطلب.';
+            errorMsg.style.display = 'block';
+            stars.forEach(s => s.style.pointerEvents = 'none');
+        }
+
+        // Star hover and select logic
+        stars.forEach(star => {
+            star.addEventListener('mouseover', function() {
+                if(!orderId) return;
+                const value = this.getAttribute('data-value');
+                highlightStars(value);
+            });
+
+            star.addEventListener('mouseout', function() {
+                if(!orderId) return;
+                highlightStars(selectedRating);
+            });
+
+            star.addEventListener('click', function() {
+                if(!orderId) return;
+                selectedRating = parseInt(this.getAttribute('data-value'));
+                highlightStars(selectedRating);
+                submitBtn.disabled = false;
+            });
+        });
+
+        function highlightStars(value) {
+            stars.forEach(s => {
+                if (parseInt(s.getAttribute('data-value')) <= value) {
+                    s.classList.add('active');
+                } else {
+                    s.classList.remove('active');
+                }
+            });
+        }
+
+        submitBtn.addEventListener('click', async () => {
+            if (selectedRating === 0 || !orderId) return;
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+            errorMsg.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/ratings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        orderId: orderId,
+                        rating: selectedRating,
+                        comment: commentInput.value.trim()
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success || data.error === 'لقد قمت بتقييم هذا الطلب مسبقاً') {
+                    // Show success regardless if they already rated (better UX)
+                    document.getElementById('ratingCard').style.display = 'none';
+                    document.getElementById('successCard').style.display = 'flex';
+                } else {
+                    errorMsg.textContent = data.error || 'حدث خطأ أثناء إرسال التقييم';
+                    errorMsg.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<span>إرسال التقييم</span><i class="fas fa-paper-plane"></i>';
+                }
+            } catch (error) {
+                errorMsg.textContent = 'تعذر الاتصال بالخادم. يرجى المحاولة مرة أخرى.';
+                errorMsg.style.display = 'block';
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<span>إرسال التقييم</span><i class="fas fa-paper-plane"></i>';
+            }
+        });
+    </script>
+</body>
+</html>
