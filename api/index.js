@@ -230,11 +230,7 @@ const ratingLimiter = rateLimit({
     message: { success: false, error: 'تم تجاوز الحد المسموح للتقييم' }
 });
 
-const migrateLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000,
-    max: 1,
-    message: { error: 'Migration already in progress or completed' }
-});
+
 
 // ============================================
 // Dynamic Manifest
@@ -913,58 +909,7 @@ app.get('/api/ratings/avg', async (req, res) => {
     }
 });
 
-// ============================================
-// Migration (Temporary)
-// ============================================
-app.post('/api/run-migration-once', migrateLimiter, async (req, res) => {
-    const secret = req.headers['x-migration-secret'];
-    if (secret !== process.env.MIGRATION_SECRET) {
-        return res.status(403).json({ error: 'Forbidden' });
-    }
-    
-    try {
-        console.log('[MIGRATION] Starting...');
-        const orders = await Order.find({ 
-            pagerToken: { $exists: false } 
-        }).select('_id').lean();
-        
-        if (orders.length === 0) {
-            return res.json({ success: true, message: 'No orders need migration' });
-        }
-        
-        console.log(`[MIGRATION] Found ${orders.length} orders to update`);
-        
-        const crypto = require('crypto');
-        const ops = orders.map(order => ({
-            updateOne: {
-                filter: { _id: order._id },
-                update: { $set: { pagerToken: crypto.randomBytes(16).toString('hex') } }
-            }
-        }));
-        
-        const result = await Order.bulkWrite(ops, { ordered: false });
-        console.log(`[MIGRATION] Updated ${result.modifiedCount} orders`);
-        
-        // Drop old non-unique index to avoid conflict
-        try {
-            await Order.collection.dropIndex("pagerToken_1");
-        } catch (e) {
-            // Ignore if index doesn't exist
-        }
-        
-        await Order.syncIndexes();
-        await PushSubscription.syncIndexes();
-        
-        res.json({ 
-            success: true, 
-            updated: result.modifiedCount,
-            message: `Migration completed successfully` 
-        });
-    } catch (err) {
-        console.error('[MIGRATION] Error:', err);
-        res.status(500).json({ success: false, error: err.message });
-    }
-});
+
 
 // ============================================
 // Health Check
