@@ -16,6 +16,7 @@ const Settings = require('../models/Settings');
 const Order = require('../models/Order');
 const PushSubscription = require('../models/PushSubscription');
 const Rating = require('../models/Rating');
+const MarketingSubscription = require('../models/MarketingSubscription');
 const webpush = require('web-push');
 
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
@@ -230,7 +231,17 @@ const ratingLimiter = rateLimit({
     message: { success: false, error: 'تم تجاوز الحد المسموح للتقييم' }
 });
 
+const marketingSubscribeLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 5,
+    message: { success: false, error: 'محاولات اشتراك تسويقي كثيرة' }
+});
 
+const campaignLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 3,
+    message: { success: false, error: 'الحد الأقصى 3 حملات في الساعة' }
+});
 
 // ============================================
 // Dynamic Manifest
@@ -909,7 +920,161 @@ app.get('/api/ratings/avg', async (req, res) => {
     }
 });
 
+// ============================================
+// 13. نظام الإشعارات التسويقية
+// ============================================
 
+// الاشتراك في الإشعارات التسويقية
+app.post('/api/marketing/subscribe', marketingSubscribeLimiter, async (req, res) => {
+    try {
+        const { subscription, interests, consent, linkedPagerToken } = req.body;
+        
+        // الموافقة الصريحة إلزامية قانونياً
+        if (!consent || consent !== true) {
+            return res.status(400).json({ success: false, error: 'يجب الموافقة على شروط الإشعارات التسويقية' });
+        }
+        
+        if (!subscription || !subscription.endpoint) {
+            return res.status(400).json({ success: false, error: 'بيانات الاشتراك غير مكتملة' });
+        }
+        
+        const validInterests = ['flowers', 'weddings', 'gifts', 'offers', 'events'];
+        const safeInterests = (interests || []).filter(i => validInterests.includes(i));
+        
+        const savedSub = await MarketingSubscription.findOneAndUpdate(
+            { endpoint: subscription.endpoint },
+            {
+                $set: {
+                    keys: subscription.keys,
+                    interests: safeInterests,
+                    isActive: true,
+                    linkedPagerToken: linkedPagerToken || null,
+                    unsubscribedAt: null,
+                    unsubscribeReason: null
+                },
+                $setOnInsert: {
+                    endpoint: subscription.endpoint,
+                    deviceType: req.body.deviceType || 'unknown',
+                    consentedAt: new Date(),
+                    consentMethod: 'in_app'
+                }
+            },
+            { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+        
+        console.log(`[MARKETING] New subscriber: ${savedSub._id}`);
+        res.json({ success: true, subscriptionId: savedSub._id });
+        
+    } catch (error) {
+        console.error('[MARKETING] Subscribe error:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// إلغاء الاشتراك (حق المستخدم القانوني)
+app.post('/api/marketing/unsubscribe', async (req, res) => {
+    try {
+        const { endpoint, reason } = req.body;
+        if (!endpoint) return res.status(400).json({ success: false, error: 'بيانات غير مكتملة' });
+        
+        await MarketingSubscription.findOneAndUpdate(
+            { endpoint },
+            { isActive: false, unsubscribedAt: new Date(), unsubscribeReason: reason || '' }
+        );
+        
+        console.log(`[MARKETING] Unsubscribed: ${endpoint.substring(0, 50)}...`);
+        res.json({ success: true });
+        
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// إرسال حملة تسويقية (للموظف فقط)
+app.post('/api/marketing/campaign', employeeAuthMiddleware, campaignLimiter, async (req, res) => {
+    try {
+        const { title, body, url, interests, sendToAll } = req.body;
+        
+        if (!title || !body) return res.status(400).json({ success: false, error: 'العنوان والمحتوى مطلوبان' });
+        if (title.length > 100 || body.length > 200) return res.status(400).json({ success: false, error: 'النص طويل جداً' });
+        
+        let safeUrl = url || 'https://yelrose2026.vercel.app';
+        if (!safeUrl.startsWith('https://yelrose2026.vercel.app') && !safeUrl.startsWith('/')) {
+            return res.status(400).json({ success: false, error: 'الرابط يجب أن يكون ضمن نطاق المتجر' });
+        }
+        
+        const filter = { isActive: true };
+        if (!sendToAll && interests && interests.length > 0) filter.interests = { $in: interests };
+        
+        const subscribers = await MarketingSubscription.find(filter).lean();
+        if (subscribers.length === 0) return res.json({ success: true, sent: 0, message: 'لا يوجد مشتركون مطابقون' });
+        
+        const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        const eligibleSubscribers = subscribers.filter(s => !s.lastNotificationAt || s.lastNotificationAt < oneDayAgo);
+        
+        if (eligibleSubscribers.length === 0) return res.json({ success: true, sent: 0, message: 'جميع المشتركين استلموا إشعاراً مؤخراً' });
+        
+        const payload = JSON.stringify({ title: `🌹 ${title}`, body: body, url: safeUrl, type: 'marketing' });
+        
+        let successCount = 0;
+        let failedCount = 0;
+        
+        const batchSize = 50;
+        for (let i = 0; i < eligibleSubscribers.length; i += batchSize) {
+            const batch = eligibleSubscribers.slice(i, i + batchSize);
+            const results = await Promise.allSettled(
+                batch.map(async (sub) => {
+                    try {
+                        await webpush.sendNotification({ endpoint: sub.endpoint, keys: sub.keys }, payload);
+                        await MarketingSubscription.findByIdAndUpdate(sub._id, { $inc: { notificationsSent: 1 }, lastNotificationAt: new Date() });
+                        return true;
+                    } catch (err) {
+                        if (err.statusCode === 410 || err.statusCode === 404) await MarketingSubscription.findByIdAndDelete(sub._id);
+                        return false;
+                    }
+                })
+            );
+            successCount += results.filter(r => r.value === true).length;
+            failedCount += results.filter(r => r.value === false).length;
+            if (i + batchSize < eligibleSubscribers.length) await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        
+        res.json({ success: true, sent: successCount, failed: failedCount, total: eligibleSubscribers.length, message: `تم إرسال الإشعار إلى ${successCount} مشترك` });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// إحصائيات التسويق (للموظف)
+app.get('/api/marketing/stats', employeeAuthMiddleware, async (req, res) => {
+    try {
+        const totalActive = await MarketingSubscription.countDocuments({ isActive: true });
+        const totalUnsubscribed = await MarketingSubscription.countDocuments({ isActive: false });
+        
+        const byInterest = await MarketingSubscription.aggregate([
+            { $match: { isActive: true } },
+            { $unwind: '$interests' },
+            { $group: { _id: '$interests', count: { $sum: 1 } } },
+            { $sort: { count: -1 } }
+        ]);
+        
+        const byDevice = await MarketingSubscription.aggregate([
+            { $match: { isActive: true } },
+            { $group: { _id: '$deviceType', count: { $sum: 1 } } }
+        ]);
+        
+        const last7Days = await MarketingSubscription.countDocuments({
+            consentedAt: { $gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) }
+        });
+        
+        res.json({
+            success: true,
+            stats: { totalActive, totalUnsubscribed, newLast7Days: last7Days, byInterest, byDevice }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
 
 // ============================================
 // Health Check
