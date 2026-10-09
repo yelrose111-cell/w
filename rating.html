@@ -1,286 +1,398 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html dir="rtl" lang="ar">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تقييم الخدمة - Yellow Rose</title>
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>تقييم الخدمة | Yellow Rose</title>
+    
+    <!-- Apple PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1c1c1e">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    
     <style>
         :root {
-            --primary: #d4af37;
-            --primary-dark: #b8860b;
-            --bg-dark: #1c1c1e;
-            --bg-card: #2c2c2e;
-            --text-light: #f5f5f7;
-            --text-muted: #8e8e93;
-            --success: #34c759;
+            --primary-color: #E2B93B;
+            --bg-color: #111111;
+            --success-color: #2ecc71;
         }
-
-        body {
-            font-family: 'Tajawal', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            margin: 0;
+        
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            font-family: 'Tajawal', sans-serif; 
+            text-align: center; 
+            background: linear-gradient(135deg, #111111 0%, #1a1a1a 100%);
+            color: #ffffff;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
             padding: 20px;
-            box-sizing: border-box;
         }
-
-        .rating-container {
-            background-color: var(--bg-card);
-            border-radius: 16px;
-            padding: 40px 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-            max-width: 450px;
+        
+        .container {
             width: 100%;
-            text-align: center;
+            max-width: 450px;
+            background: #1a1a1a;
+            border-radius: 25px;
+            padding: 40px 30px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.6);
+            border: 1px solid #333;
         }
-
-        .logo {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            margin-bottom: 20px;
-            object-fit: cover;
-            border: 2px solid var(--primary);
-        }
-
-        h2 {
-            margin: 0 0 10px 0;
-            font-size: 1.5rem;
-            color: var(--primary);
-        }
-
-        p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
+        
+        .rating-header {
             margin-bottom: 30px;
         }
-
+        
+        .rating-icon {
+            font-size: 60px;
+            margin-bottom: 15px;
+        }
+        
+        .rating-title {
+            font-size: 24px;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        
+        .rating-subtitle {
+            color: #888;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .order-id-display {
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid var(--primary-color);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 25px;
+            font-size: 14px;
+            color: var(--primary-color);
+        }
+        
+        /* النجوم */
         .stars-container {
             display: flex;
             justify-content: center;
-            gap: 10px;
-            margin-bottom: 30px;
-            direction: ltr; /* Important for right-to-left star selection logic */
-        }
-
-        .star {
-            font-size: 2.5rem;
-            color: #444;
-            cursor: pointer;
-            transition: color 0.2s, transform 0.2s;
-        }
-
-        .star:hover, .star.active, .star.selected {
-            color: var(--primary);
-            transform: scale(1.1);
-        }
-
-        .comment-box {
-            width: 100%;
-            background: #1c1c1e;
-            border: 1px solid #444;
-            border-radius: 12px;
-            padding: 15px;
-            color: white;
-            font-family: 'Tajawal', sans-serif;
-            font-size: 0.95rem;
-            resize: none;
-            height: 100px;
-            box-sizing: border-box;
-            margin-bottom: 20px;
-            transition: border-color 0.3s;
-        }
-
-        .comment-box:focus {
-            outline: none;
-            border-color: var(--primary);
-        }
-
-        .btn-submit {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            padding: 15px 30px;
-            font-size: 1.1rem;
-            font-family: 'Tajawal', sans-serif;
-            font-weight: 700;
-            cursor: pointer;
-            width: 100%;
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.4);
+            gap: 12px;
+            margin: 25px 0;
         }
         
-        .btn-submit:disabled {
-            background: #555;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .google-maps-btn {
-            background: #ffffff;
-            color: #1a73e8;
-            border: none;
-            border-radius: 12px;
-            padding: 15px 30px;
-            font-size: 1.1rem;
-            font-family: 'Tajawal', sans-serif;
-            font-weight: 700;
+        .star {
+            font-size: 45px;
+            color: #444;
             cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .star:hover,
+        .star.active {
+            color: var(--primary-color);
+            transform: scale(1.15);
+        }
+        
+        .star.active {
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+        }
+        
+        /* تعليق */
+        .comment-box {
             width: 100%;
-            margin-top: 15px;
-            text-decoration: none;
-            display: none; /* Hidden until submission */
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid #444;
+            background: #2a2a2a;
+            color: #fff;
+            font-family: 'Tajawal', sans-serif;
+            font-size: 15px;
+            resize: vertical;
+            min-height: 100px;
+            margin-bottom: 20px;
+        }
+        
+        .comment-box:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        /* زر الإرسال */
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #d4af37, #f6e27a);
+            color: #000;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 17px;
+            cursor: pointer;
             transition: transform 0.2s;
         }
-
-        .google-maps-btn:hover {
-            transform: translateY(-2px);
+        
+        .submit-btn:hover {
+            transform: scale(1.02);
         }
-
-        .success-message {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            animation: fadeIn 0.5s;
+        
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
-
-        .success-icon {
-            font-size: 4rem;
-            color: var(--success);
-            margin-bottom: 15px;
+        
+        /* رسائل */
+        .message {
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 20px;
+            font-size: 14px;
         }
-
-        .error-message {
-            color: #ff3b30;
-            margin-bottom: 15px;
-            display: none;
-            font-size: 0.9rem;
+        
+        .message-success {
+            background: rgba(46, 204, 113, 0.1);
+            border: 1px solid var(--success-color);
+            color: var(--success-color);
         }
-
+        
+        .message-error {
+            background: rgba(231, 76, 60, 0.1);
+            border: 1px solid #e74c3c;
+            color: #e74c3c;
+        }
+        
+        /* شاشة الشكر */
+        .thank-you-screen {
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
+            from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        /* Responsive adjustments */
-        @media (max-width: 480px) {
-            .rating-container { padding: 30px 20px; }
-            .star { font-size: 2rem; }
-            h2 { font-size: 1.3rem; }
+        
+        @keyframes popIn { 
+            0% { transform: scale(0.5); opacity: 0; } 
+            100% { transform: scale(1); opacity: 1; } 
         }
+        
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 25px;
+        }
+        
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 16px;
+            text-decoration: none;
+            border-radius: 14px;
+            font-weight: bold;
+            font-size: 16px;
+            transition: transform 0.2s;
+        }
+        
+        .action-btn:hover {
+            transform: scale(1.02);
+        }
+        
+        .btn-google {
+            background: #4285F4;
+            color: white;
+            box-shadow: 0 4px 15px rgba(66, 133, 244, 0.3);
+        }
+        
+        .btn-website {
+            background: linear-gradient(135deg, #d4af37, #f6e27a);
+            color: #000;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+        }
+        
+        .btn-close {
+            background: transparent;
+            border: 1px solid #444;
+            color: #888;
+        }
+        
+        /* السوشيال */
+        .social-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .social-btn {
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            transition: transform 0.2s;
+        }
+        
+        .social-btn:hover {
+            transform: scale(1.1);
+        }
+        
+        .social-instagram { background: #E1306C; }
+        .social-snapchat { background: #FFFC00; color: #000; }
+        .social-tiktok { background: #000; border: 1px solid #333; }
+        .social-whatsapp { background: #25D366; }
+        
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
-    <div class="rating-container" id="ratingCard">
-        <img src="/assets/images/yr-icon-192.png" alt="Yellow Rose Logo" class="logo">
-        <h2>كيف كانت تجربتك معنا؟</h2>
-        <p>رأيك يهمنا ويساعدنا على تقديم خدمة أفضل لك دائماً.</p>
-
-        <div id="errorMsg" class="error-message"></div>
-
-        <div class="stars-container" id="stars">
-            <!-- Stars are RTL in HTML but displayed LTR for hover logic -->
-            <i class="fas fa-star star" data-value="1"></i>
-            <i class="fas fa-star star" data-value="2"></i>
-            <i class="fas fa-star star" data-value="3"></i>
-            <i class="fas fa-star star" data-value="4"></i>
-            <i class="fas fa-star star" data-value="5"></i>
-        </div>
-
-        <textarea id="commentInput" class="comment-box" placeholder="شاركنا ملاحظاتك أو مقترحاتك (اختياري)..."></textarea>
-
-        <button id="submitBtn" class="btn-submit" disabled>
-            <span>إرسال التقييم</span>
-            <i class="fas fa-paper-plane"></i>
-        </button>
-    </div>
-
-    <div class="rating-container success-message" id="successCard">
-        <i class="fas fa-check-circle success-icon"></i>
-        <h2>شكراً لك! 🌹</h2>
-        <p>تم استلام تقييمك بنجاح. نحن نقدر وقتك وملاحظاتك.</p>
+    <div class="container">
         
-        <p style="margin-top: 20px; color: var(--text-light); font-weight: 500;">هل أحببت خدمتنا؟ ادعمنا بتقييم على خرائط جوجل!</p>
-        <a href="https://g.page/r/your-google-maps-link/review" target="_blank" class="google-maps-btn" id="googleBtn" style="display: flex;">
-            <i class="fab fa-google"></i>
-            تقييمنا على جوجل ماب
-        </a>
+        <!-- نموذج التقييم -->
+        <div id="ratingForm">
+            <div class="rating-header">
+                <div class="rating-icon">🌹</div>
+                <h2 class="rating-title">كيف كانت تجربتك؟</h2>
+                <p class="rating-subtitle">
+                    رأيك يساعدنا على تقديم أفضل خدمة
+                </p>
+            </div>
+            
+            <!-- عرض رقم الطلب -->
+            <div class="order-id-display" id="orderIdDisplay">
+                <!-- يُملأ ديناميكياً -->
+            </div>
+            
+            <!-- النجوم -->
+            <div class="stars-container" id="starsContainer">
+                <span class="star" data-rating="1">★</span>
+                <span class="star" data-rating="2">★</span>
+                <span class="star" data-rating="3">★</span>
+                <span class="star" data-rating="4">★</span>
+                <span class="star" data-rating="5">★</span>
+            </div>
+            
+            <!-- التعليق -->
+            <textarea class="comment-box" id="commentInput" 
+                      placeholder="اكتب ملاحظاتك هنا (اختياري)..."
+                      maxlength="500"></textarea>
+            
+            <!-- زر الإرسال -->
+            <button class="submit-btn" id="submitBtn" onclick="submitRating()">
+                إرسال التقييم ⭐
+            </button>
+            
+            <!-- رسالة الخطأ -->
+            <div id="errorMessage" class="message message-error hidden"></div>
+        </div>
+        
+        <!-- شاشة الشكر (تظهر بعد الإرسال) -->
+        <div id="thankYouScreen" class="thank-you-screen hidden">
+            <!-- تُملأ ديناميكياً -->
+        </div>
+        
     </div>
 
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const orderId = urlParams.get('order');
+        // ============================================
+        // المتغيرات العامة
+        // ============================================
         let selectedRating = 0;
-
-        const stars = document.querySelectorAll('.star');
-        const submitBtn = document.getElementById('submitBtn');
-        const errorMsg = document.getElementById('errorMsg');
-        const commentInput = document.getElementById('commentInput');
-
-        if (!orderId) {
-            errorMsg.textContent = 'رابط غير صالح. مفقود رقم الطلب.';
-            errorMsg.style.display = 'block';
-            stars.forEach(s => s.style.pointerEvents = 'none');
-        }
-
-        // Star hover and select logic
-        stars.forEach(star => {
-            star.addEventListener('mouseover', function() {
-                if(!orderId) return;
-                const value = this.getAttribute('data-value');
-                highlightStars(value);
-            });
-
-            star.addEventListener('mouseout', function() {
-                if(!orderId) return;
-                highlightStars(selectedRating);
-            });
-
-            star.addEventListener('click', function() {
-                if(!orderId) return;
-                selectedRating = parseInt(this.getAttribute('data-value'));
-                highlightStars(selectedRating);
-                submitBtn.disabled = false;
-            });
+        let orderId = null;
+        
+        // ============================================
+        // 1. التهيئة عند التحميل
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // قراءة رقم الطلب من URL
+            const urlParams = new URLSearchParams(window.location.search);
+            orderId = urlParams.get('order');
+            
+            // التحقق من صيغة رقم الطلب
+            if (!orderId || !/^[A-Z]{2,3}-\d{4}-\d{4}$/.test(orderId)) {
+                showError('رابط غير صالح. يرجى مسح الباركود من جديد.');
+                return;
+            }
+            
+            // عرض رقم الطلب
+            document.getElementById('orderIdDisplay').innerHTML = 
+                `📋 رقم الطلب: <strong>\${orderId}</strong>`;
+            
+            // إعداد النجوم
+            setupStars();
         });
 
-        function highlightStars(value) {
-            stars.forEach(s => {
-                if (parseInt(s.getAttribute('data-value')) <= value) {
-                    s.classList.add('active');
+        // ============================================
+        // 2. إعداد النجوم التفاعلية
+        // ============================================
+        function setupStars() {
+            const stars = document.querySelectorAll('.star');
+            
+            stars.forEach((star, index) => {
+                star.addEventListener('click', () => {
+                    selectedRating = index + 1;
+                    updateStars();
+                });
+                
+                star.addEventListener('mouseenter', () => {
+                    highlightStars(index + 1);
+                });
+            });
+            
+            // إعادة التلوين الأصلي عند الخروج
+            document.getElementById('starsContainer').addEventListener('mouseleave', () => {
+                updateStars();
+            });
+        }
+
+        function updateStars() {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach((star, index) => {
+                if (index < selectedRating) {
+                    star.classList.add('active');
                 } else {
-                    s.classList.remove('active');
+                    star.classList.remove('active');
                 }
             });
         }
 
-        submitBtn.addEventListener('click', async () => {
-            if (selectedRating === 0 || !orderId) return;
+        function highlightStars(count) {
+            const stars = document.querySelectorAll('.star');
+            stars.forEach((star, index) => {
+                if (index < count) {
+                    star.style.color = 'var(--primary-color)';
+                } else {
+                    star.style.color = '#444';
+                }
+            });
+        }
 
+        // ============================================
+        // 3. إرسال التقييم
+        // ============================================
+        async function submitRating() {
+            // التحقق من اختيار تقييم
+            if (selectedRating === 0) {
+                showError('يرجى اختيار عدد النجوم أولاً');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const comment = document.getElementById('commentInput').value.trim();
+            
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
-            errorMsg.style.display = 'none';
-
+            
             try {
                 const response = await fetch('/api/ratings', {
                     method: 'POST',
@@ -288,29 +400,140 @@
                     body: JSON.stringify({
                         orderId: orderId,
                         rating: selectedRating,
-                        comment: commentInput.value.trim()
+                        comment: comment
                     })
                 });
-
+                
                 const data = await response.json();
-
-                if (data.success || data.error === 'لقد قمت بتقييم هذا الطلب مسبقاً') {
-                    // Show success regardless if they already rated (better UX)
-                    document.getElementById('ratingCard').style.display = 'none';
-                    document.getElementById('successCard').style.display = 'flex';
+                
+                if (data.success) {
+                    // حفظ أن الطلب تم تقييمه
+                    markOrderAsRated(orderId);
+                    
+                    // عرض شاشة الشكر
+                    showThankYouScreen(selectedRating);
+                    
                 } else {
-                    errorMsg.textContent = data.error || 'حدث خطأ أثناء إرسال التقييم';
-                    errorMsg.style.display = 'block';
+                    showError(data.error || 'حدث خطأ، حاول مرة أخرى');
                     submitBtn.disabled = false;
-                    submitBtn.innerHTML = '<span>إرسال التقييم</span><i class="fas fa-paper-plane"></i>';
+                    submitBtn.innerHTML = 'إرسال التقييم ⭐';
                 }
+                
             } catch (error) {
-                errorMsg.textContent = 'تعذر الاتصال بالخادم. يرجى المحاولة مرة أخرى.';
-                errorMsg.style.display = 'block';
+                showError('خطأ في الاتصال. تحقق من الإنترنت وحاول مرة أخرى.');
                 submitBtn.disabled = false;
-                submitBtn.innerHTML = '<span>إرسال التقييم</span><i class="fas fa-paper-plane"></i>';
+                submitBtn.innerHTML = 'إرسال التقييم ⭐';
             }
-        });
+        }
+
+        // ============================================
+        // 4. شاشة الشكر الكاملة مع الروابط
+        // ============================================
+        function showThankYouScreen(rating) {
+            const starsHtml = '⭐'.repeat(rating);
+            
+            document.getElementById('ratingForm').classList.add('hidden');
+            const thankYouScreen = document.getElementById('thankYouScreen');
+            thankYouScreen.classList.remove('hidden');
+            
+            thankYouScreen.innerHTML = \`
+                <div style="text-align: center; padding: 20px 0;">
+                    
+                    <!-- أيقونة النجاح -->
+                    <div style="font-size: 80px; margin-bottom: 15px; 
+                                animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                        💛
+                    </div>
+                    
+                    <!-- عنوان الشكر -->
+                    <h2 style="color: var(--primary-color); margin-bottom: 10px; font-size: 26px;">
+                        شكراً لتقييمك!
+                    </h2>
+                    
+                    <!-- عرض التقييم المقدم -->
+                    <div style="margin: 15px 0; font-size: 22px;">
+                        \${starsHtml}
+                    </div>
+                    
+                    <p style="color: #ccc; margin-bottom: 25px; line-height: 1.7;">
+                        رأيك يساعدنا على تقديم أفضل خدمة
+                    </p>
+                    
+                    <!-- ═══════════════════════════════════════════ -->
+                    <!-- روابط التفاعل -->
+                    <!-- ═══════════════════════════════════════════ -->
+                    
+                    <!-- 1️⃣ تقييم على Google Maps (الأهم!) -->
+                    <a href="https://maps.app.goo.gl/mQVuqixcRywvdfzRA" 
+                       target="_blank" rel="noopener"
+                       class="action-btn btn-google">
+                        <span style="font-size: 20px;">📍</span>
+                        <span>قيّمنا على خرائط Google</span>
+                    </a>
+                    
+                    <!-- 2️⃣ زيارة الموقع الرسمي -->
+                    <a href="https://yelrose2026.vercel.app" 
+                       target="_blank" rel="noopener"
+                       class="action-btn btn-website">
+                        <span style="font-size: 20px;">🌸</span>
+                        <span>تصفح أحدث تصاميمنا</span>
+                    </a>
+                    
+                    <!-- 3️⃣ السوشيال ميديا -->
+                    <div class="social-buttons">
+                        <a href="https://www.instagram.com/yelrose11" target="_blank" rel="noopener" class="social-btn social-instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://www.snapchat.com/add/yelrose11" target="_blank" rel="noopener" class="social-btn social-snapchat">
+                            <i class="fab fa-snapchat-ghost"></i>
+                        </a>
+                        <a href="https://www.tiktok.com/@yelrose11" target="_blank" rel="noopener" class="social-btn social-tiktok">
+                            <i class="fab fa-tiktok"></i>
+                        </a>
+                        <a href="https://wa.me/966582739397" target="_blank" rel="noopener" class="social-btn social-whatsapp">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                    
+                    <!-- 4️⃣ زر الإغلاق -->
+                    <button onclick="window.close()" class="action-btn btn-close">
+                        إغلاق
+                    </button>
+                    
+                    <!-- رسالة أخيرة -->
+                    <p style="color: #666; font-size: 12px; margin-top: 20px;">
+                        🌹 Yellow Rose — هنا حيث تزهر مشاعرك
+                    </p>
+                </div>
+            \`;
+        }
+
+        // ============================================
+        // 5. دوال مساعدة
+        // ============================================
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            
+            setTimeout(() => {
+                errorDiv.classList.add('hidden');
+            }, 5000);
+        }
+
+        function markOrderAsRated(orderId) {
+            try {
+                const key = 'yellowrose_rated_orders';
+                const rated = JSON.parse(localStorage.getItem(key) || '[]');
+                if (!rated.includes(orderId)) {
+                    rated.push(orderId);
+                    localStorage.setItem(key, JSON.stringify(rated));
+                }
+            } catch {}
+        }
     </script>
+    
+    <!-- Font Awesome للأيقونات -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 </body>
 </html>
