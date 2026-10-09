@@ -4,16 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>تنبيه الطلب | Yellow Rose</title>
-    <link rel="manifest" href="/manifest.json?v=3">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- PWA Manifest (يُحقن ديناميكياً) -->
+    <link rel="manifest" href="/api/manifest.json">
+    
+    <!-- Apple PWA Meta Tags (إلزامية لـ iOS) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="YR Pager">
+    <link rel="apple-touch-icon" href="/assets/images/yr-icon-192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="/assets/images/yr-icon-512.png">
+    
+    <!-- Theme Color -->
+    <meta name="theme-color" content="#1c1c1e">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    
     <style>
         :root {
-            --primary-color: #E2B93B; /* Yellow Rose Gold */
-            --bg-color: #111111;      /* Dark background for battery saving */
+            --primary-color: #E2B93B;
+            --bg-color: #111111;
             --text-color: #ffffff;
             --success-color: #2ecc71;
+            --danger-color: #e74c3c;
         }
+        
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body { 
             font-family: 'Tajawal', sans-serif; 
             text-align: center; 
@@ -26,6 +44,7 @@
             align-items: center;
             padding: 20px;
         }
+        
         .logo {
             width: 120px;
             margin-bottom: 20px;
@@ -33,6 +52,7 @@
             border: 2px solid var(--primary-color);
             padding: 5px;
         }
+        
         .container {
             width: 100%;
             max-width: 400px;
@@ -42,7 +62,9 @@
             box-shadow: 0 10px 40px rgba(0,0,0,0.5);
             border: 1px solid #333;
         }
+        
         .order-label { font-size: 18px; color: #aaa; margin-bottom: 10px; }
+        
         .order-num { 
             font-size: 60px; 
             font-weight: bold; 
@@ -51,6 +73,7 @@
             line-height: 1;
             text-shadow: 0 0 10px rgba(226, 185, 59, 0.3);
         }
+        
         .btn { 
             padding: 16px 32px; 
             font-size: 18px; 
@@ -64,9 +87,14 @@
             width: 100%;
             transition: all 0.2s;
             margin-top: 15px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
         }
+        
         .btn:active { transform: scale(0.98); }
-        .btn:hover { background: #f1c40f; }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        
         .status { 
             font-size: 20px; 
             color: #ddd; 
@@ -76,6 +104,7 @@
             border-radius: 15px;
             border: 1px solid #444;
         }
+        
         .spinner {
             display: inline-block;
             width: 30px;
@@ -86,6 +115,7 @@
             animation: spin 1s ease-in-out infinite;
             margin-bottom: 10px;
         }
+        
         @keyframes spin { to { transform: rotate(360deg); } }
         
         .ready-msg { 
@@ -95,16 +125,20 @@
             margin: 20px 0;
             animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        
         .ready-icon { 
             font-size: 80px; 
             margin-bottom: 10px; 
             animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
         }
+        
         @keyframes popIn { 
             0% { transform: scale(0.5); opacity: 0; } 
             100% { transform: scale(1); opacity: 1; } 
         }
+        
         .hidden { display: none !important; }
+        
         .warning { 
             font-size: 14px; 
             color: #e67e22; 
@@ -114,14 +148,67 @@
             border: 1px solid rgba(230, 126, 34, 0.3);
             border-radius: 10px;
         }
+        
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2a2a2a;
+            color: #fff;
+            padding: 14px 24px;
+            border-radius: 50px;
+            border: 1px solid var(--primary-color);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 10000;
+            font-size: 14px;
+        }
+        
+        .toast.show { opacity: 1; }
+        
+        /* أزرار النداء من العميل */
+        .call-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 25px;
+        }
+        
+        /* أزرار السوشيال */
+        .social-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        
+        .social-btn {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+            transition: transform 0.2s;
+        }
+        
+        .social-btn:hover { transform: scale(1.1); }
+        
+        .social-instagram { background: #E1306C; }
+        .social-snapchat { background: #FFFC00; color: #000; }
+        .social-tiktok { background: #000; border: 1px solid #333; }
+        .social-whatsapp { background: #25D366; }
     </style>
 </head>
 <body>
 
     <img src="/assets/logo.png" alt="Yellow Rose" class="logo" onerror="this.src='/assets/logo.jpg'">
 
-    
-    <!-- Install Prompt -->
+    <!-- iOS Install Prompt -->
     <div id="iosInstallPrompt" class="container hidden" style="border-color: #3498db; margin-bottom: 20px;">
         <h3 style="color: #3498db; margin-bottom: 10px;">📲 تفعيل الإشعارات بالخلفية</h3>
         <p style="font-size: 15px; color: #ccc; line-height: 1.5; margin-bottom: 15px;">
@@ -129,24 +216,19 @@
         </p>
         <div style="background: #2a2a2a; padding: 10px; border-radius: 10px; text-align: right; font-size: 14px;">
             1. اضغط على زر المشاركة أسفل الشاشة.<br>
-            2. اختر <strong>"إضافة للشاشة الرئيسية"</strong> (Add to Home Screen).<br>
+            2. اختر <strong>"إضافة للشاشة الرئيسية"</strong>.<br>
             3. افتح التطبيق من الشاشة الرئيسية لتفعيل التنبيهات!
         </div>
     </div>
 
-    <!-- Clean Audio for fallback -->
+    <!-- Audio for Alarm -->
     <audio id="cleanAlarmSound" preload="auto">
         <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
     </audio>
 
-    <!-- Screen 1: Initial load -->
+    <!-- Screen 1: Initial/Welcome -->
     <div id="initialScreen" class="container">
-        <div class="order-label">رقم طلبك</div>
-        <div class="order-num" id="displayOrderNum">---</div>
-        <p style="color:#bbb; margin-bottom: 25px; line-height: 1.6; font-size: 15px;">
-            لضمان إشعارك فور جاهزية الطلب، يرجى تفعيل التنبيهات وإبقاء هذه الصفحة مفتوحة.
-        </p>
-        <button class="btn" onclick="activatePager()">🔔 تفعيل التنبيه والانتظار</button>
+        <!-- يُملأ ديناميكياً -->
     </div>
 
     <!-- Screen 2: Waiting -->
@@ -161,6 +243,25 @@
         <div class="warning">
             🔒 شاشة هاتفك ستبقى مضاءة تلقائياً
         </div>
+        
+        <!-- أزرار النداء للموظف -->
+        <div class="call-buttons">
+            <button class="btn" onclick="sendCall('arrived')" id="callArrivedBtn"
+                    style="background: linear-gradient(135deg, #d4af37, #f6e27a); color: #000;">
+                🏪 أنا الآن في المتجر
+            </button>
+            
+            <button class="btn" onclick="sendCall('help')" id="callHelpBtn"
+                    style="background: transparent; border: 2px solid var(--primary-color); color: var(--primary-color);">
+                ❓ أحتاج مساعدة
+            </button>
+            
+            <button class="btn" onclick="sendCall('ontheway')" id="callOnthewayBtn"
+                    style="background: transparent; border: 2px solid #666; color: #aaa;">
+                🚗 سأصل خلال دقائق
+            </button>
+        </div>
+        
         <button class="btn" style="margin-top: 20px; background: transparent; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 10px;" onclick="playTestAlarm()">
             🔊 تجربة قوة التنبيه
         </button>
@@ -171,203 +272,312 @@
         <div class="ready-icon">✨</div>
         <div class="ready-msg">طلبك جاهز!</div>
         <p style="font-size: 18px; color: #ccc; margin-top: 10px; line-height: 1.5;">
-            تفضل بزيارتنا عند الكاونتر لاستلام طلبك<br>
-            <span style="color: var(--primary-color);">شكراً لاختيارك Yellow Rose</span>
+            تفضل بزيارتنا عند الكاونتر لاستلام طلبك
+        </p>
+        
+        <div class="call-buttons">
+            <button onclick="sendCall('arrived')" id="callArrivedBtn2"
+                    style="padding: 14px; background: linear-gradient(135deg, #d4af37, #f6e27a); 
+                           color: #000; border: none; border-radius: 50px; font-weight: bold;
+                           font-size: 16px; cursor: pointer;">
+                🏪 أنا الآن في المتجر
+            </button>
+            
+            <a href="https://yelrose2026.vercel.app" target="_blank" rel="noopener"
+               style="padding: 12px; background: transparent; 
+                      border: 1px solid #444; color: #888;
+                      text-decoration: none; border-radius: 50px; 
+                      font-size: 13px; text-align: center;">
+                🌸 تصفح منتجاتنا أثناء الانتظار
+            </a>
+        </div>
+        
+        <p style="color: #888; font-size: 13px; margin-top: 15px;">
+            شكراً لاختيارك <span style="color: var(--primary-color);">Yellow Rose</span>
         </p>
     </div>
 
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        let pagerToken = urlParams.get('token');
+        // ============================================
+        // المتغيرات العامة
+        // ============================================
+        const STORAGE_KEY = 'yellowrose_pager_token';
+        const RATED_KEY = 'yellowrose_rated_orders';
+        const VAPID_PUBLIC_KEY = 'BKe-1dNnwMG5m2OXO40FdH2hIAuZTnfufkm5TTq7Cr6vyG9urSG2d_wR3D454hjE4XTjteJlqDYXprBjkSZZri8';
         
-        if (pagerToken) {
-            document.querySelector('link[rel="manifest"]').href = `/api/manifest.json?token=${pagerToken}`;
-        }
-        
-        // Save to localStorage so it survives Add to Home Screen (PWA)
-        if (pagerToken) {
-            localStorage.setItem('yellowrose_pager_token', pagerToken);
-        } else {
-            pagerToken = localStorage.getItem('yellowrose_pager_token');
-        }
+        let pagerToken = null;
         let orderNumber = '---';
         let pollInterval = null;
-        let audioCtx = null;
         let lastSeenPing = null;
         let hasTriggeredInitialReady = false;
+        const lastCallTimes = {};
+        const CALL_COOLDOWN_MS = 30000;
 
-        
-        function unlockAudio() {
-            const audio = document.getElementById('cleanAlarmSound');
-            if (audio) {
-                audio.play().then(() => {
-                    audio.pause();
-                    audio.currentTime = 0;
-                }).catch(e => console.log('Audio unlock failed:', e));
-            }
-        }
-
-        function playLoudAlarm() {
-            const audio = document.getElementById('cleanAlarmSound');
-            if (audio) {
-                audio.currentTime = 0;
-                audio.play().catch(e => console.log('Audio play failed:', e));
-            }
-        }
-
-        function playTestAlarm() {
-            playLoudAlarm();
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
-        }
-
-        // Fetch initial order details to show the order number
-        async function fetchInitialStatus() {
-            if (!pagerToken) {
-                showError("رابط غير صالح، يرجى مسح الرمز المرفق مع الطلب.");
-                return;
-            }
-            try {
-                const res = await fetch(`/api/pager/${pagerToken}`);
-                const data = await res.json();
-                if (data.success) {
-                    orderNumber = data.orderId;
-                    document.getElementById('displayOrderNum').innerText = orderNumber;
-                    document.getElementById('displayOrderNumWait').innerText = orderNumber;
-                    
-                    
-                    if (data.status === 'completed') {
-                        window.location.href = '/';
-                        return;
-                    }
-                    if (data.status === 'ready') {
-
-                        showReadyScreen();
-                    }
-                } else {
-                    showError("تعذر العثور على الطلب. قد يكون منتهياً.");
-                }
-            } catch (err) {
-                console.error("Fetch error:", err);
-            }
-        }
-
-        function showError(msg) {
-            document.body.innerHTML = `<div class="container" style="border-color: #e74c3c;"><h2 style="color: #e74c3c; margin-bottom: 15px;">⚠️ عذراً</h2><p>${msg}</p></div>`;
-        }
-
-        async function activatePager() {
-            if (!pagerToken) return;
-
-            // 1. Unlock Audio for iOS synchronously FIRST (must happen before any await)
-            unlockAudio();
-
-            // 2. Register Service Worker and Push Subscription
-            if ('serviceWorker' in navigator && 'PushManager' in window) {
-                try {
-                    const registration = await navigator.serviceWorker.register('/sw.js');
-                    console.log('Service Worker registered:', registration);
-                    
-                    const permission = await Notification.requestPermission();
-                    if (permission === 'granted') {
-                        const VAPID_PUBLIC_KEY = 'BKe-1dNnwMG5m2OXO40FdH2hIAuZTnfufkm5TTq7Cr6vyG9urSG2d_wR3D454hjE4XTjteJlqDYXprBjkSZZri8';
-                        
-                        const subscription = await registration.pushManager.subscribe({
-                            userVisibleOnly: true,
-                            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-                        });
-
-                        await fetch('/api/push/subscribe', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                pagerToken: pagerToken,
-                                subscription: subscription,
-                                deviceType: getDeviceType(),
-                                userAgent: navigator.userAgent
-                            })
-                        });
-                        console.log('Push subscription successful');
-                    } else {
-                        console.warn('Notification permission denied, falling back to Long Polling only.');
-                    }
-                } catch (e) {
-                    console.error('Push Registration failed:', e);
-                }
+        // ============================================
+        // 1. منطق التطبيق الذكي (يعمل لكل الطلبات)
+        // ============================================
+        function initSmartApp() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlToken = urlParams.get('token');
+            const savedToken = localStorage.getItem(STORAGE_KEY);
+            
+            if (urlToken && /^[a-f0-9]{16,32}$/.test(urlToken)) {
+                // جاء من مسح باركود جديد
+                pagerToken = urlToken;
+                localStorage.setItem(STORAGE_KEY, urlToken);
+                window.history.replaceState({}, '', '/pager.html');
+                checkOrderStatus();
+                
+            } else if (savedToken) {
+                // فتح التطبيق من الشاشة الرئيسية
+                pagerToken = savedToken;
+                checkOrderStatus();
+                
             } else {
-                console.warn('Push messaging is not supported, falling back to Long Polling only.');
+                // لا يوجد أي طلب
+                showWelcomeScreen();
             }
+        }
 
-            // 3. Request Wake Lock
+        // ============================================
+        // 2. التحقق من حالة الطلب
+        // ============================================
+        async function checkOrderStatus() {
             try {
-                if ('wakeLock' in navigator) {
-                    let wakeLock = await navigator.wakeLock.request('screen');
-                    document.addEventListener('visibilitychange', async () => {
-                        if (wakeLock !== null && document.visibilityState === 'visible') {
-                            wakeLock = await navigator.wakeLock.request('screen');
-                        }
-                    });
+                const res = await fetch(\`/api/pager/\${pagerToken}\`);
+                const data = await res.json();
+                
+                if (!data.success) {
+                    showWelcomeScreen('رابط غير صالح أو طلب منتهي');
+                    return;
                 }
+                
+                orderNumber = data.orderId;
+                document.getElementById('displayOrderNumWait').innerText = orderNumber;
+                
+                // الحالة: طلب مكتمل
+                if (data.status === 'completed') {
+                    const hasRated = getRatedOrders().includes(data.orderId);
+                    if (!hasRated) {
+                        // لم يُقيّم بعد → زر التقييم
+                        showCompletedScreen(data.orderId, false);
+                    } else {
+                        // قَيّم بالفعل → شكر + روابط
+                        showCompletedScreen(data.orderId, true);
+                    }
+                    return;
+                }
+                
+                // الحالة: طلب جاهز
+                if (data.status === 'ready') {
+                    showReadyScreen();
+                    startPolling();
+                    return;
+                }
+                
+                // الحالة: طلب نشط
+                showWaitingScreen();
+                startPolling();
+                
             } catch (err) {
-                console.log("Wake Lock error:", err);
+                console.error('Check status error:', err);
+                showWelcomeScreen('خطأ في الاتصال');
             }
+        }
 
-            // 4. Switch UI
+        // ============================================
+        // 3. شاشة الترحيب (للعميل الجديد أو العائد)
+        // ============================================
+        function showWelcomeScreen(message = null) {
+            const container = document.getElementById('initialScreen');
+            
+            let messageHtml = message ? \`
+                <div style="padding: 15px; background: rgba(212, 175, 55, 0.1); 
+                            border: 1px solid var(--primary-color); border-radius: 12px; 
+                            color: var(--primary-color); margin-bottom: 25px;">
+                    \${message}
+                </div>
+            \` : '';
+            
+            container.innerHTML = \`
+                <div style="text-align: center;">
+                    <div style="font-size: 50px; margin-bottom: 15px;">🌹</div>
+                    <div class="order-label">مرحباً بك في Yellow Rose</div>
+                    
+                    \${messageHtml}
+                    
+                    <p style="color: #bbb; margin-bottom: 25px; line-height: 1.6; font-size: 15px;">
+                        \${message || 'لعرض حالة طلبك، يرجى مسح الباركود الذي أعطاه لك الموظف.'}
+                    </p>
+                    
+                    <button class="btn" onclick="startScanner()" 
+                            style="background: linear-gradient(135deg, #d4af37, #f6e27a); color: #000;">
+                        📷 مسح باركود الطلب
+                    </button>
+                    
+                    <button class="btn" onclick="showManualInput()" 
+                            style="background: transparent; border: 2px solid var(--primary-color); 
+                                   color: var(--primary-color);">
+                        🔢 إدخال رقم الطلب يدوياً
+                    </button>
+                    
+                    <!-- حقل الإدخال اليدوي -->
+                    <div id="manualInputSection" style="display: none; margin-top: 20px;">
+                        <input type="text" id="manualTokenInput" 
+                               placeholder="أدخل رقم الطلب (مثل: YR-2026-147)"
+                               style="width: 100%; padding: 14px; border-radius: 10px; 
+                                      border: 1px solid #444; background: #2a2a2a; color: #fff;
+                                      text-align: center; font-size: 16px; margin-bottom: 12px;">
+                        <button onclick="submitManualToken()" class="btn" 
+                                style="background: var(--primary-color); color: #000;">
+                            تأكيد
+                        </button>
+                    </div>
+                    
+                    <!-- روابط الزيارة -->
+                    <div style="margin-top: 30px; padding-top: 25px; border-top: 1px solid #333;">
+                        <p style="color: #888; font-size: 13px; margin-bottom: 15px;">
+                            اكتشف أحدث تصاميمنا 🌸
+                        </p>
+                        
+                        <a href="https://yelrose2026.vercel.app" target="_blank" rel="noopener"
+                           style="display: flex; align-items: center; justify-content: center; gap: 8px;
+                                  padding: 14px; background: transparent; 
+                                  border: 2px solid var(--primary-color); color: var(--primary-color);
+                                  text-decoration: none; border-radius: 50px; font-weight: bold; 
+                                  margin-bottom: 12px; font-size: 14px;">
+                            🌸 زيارة الموقع الرسمي
+                        </a>
+                        
+                        <!-- السوشيال ميديا -->
+                        <div class="social-buttons">
+                            <a href="https://www.instagram.com/yelrose11" target="_blank" rel="noopener" class="social-btn social-instagram">
+                                <i class="fab fa-instagram"></i>
+                            </a>
+                            <a href="https://www.snapchat.com/add/yelrose11" target="_blank" rel="noopener" class="social-btn social-snapchat">
+                                <i class="fab fa-snapchat-ghost"></i>
+                            </a>
+                            <a href="https://www.tiktok.com/@yelrose11" target="_blank" rel="noopener" class="social-btn social-tiktok">
+                                <i class="fab fa-tiktok"></i>
+                            </a>
+                            <a href="https://wa.me/966582739397" target="_blank" rel="noopener" class="social-btn social-whatsapp">
+                                <i class="fab fa-whatsapp"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            \`;
+        }
+
+        // ============================================
+        // 4. شاشة الطلب المكتمل مع روابط التقييم
+        // ============================================
+        function showCompletedScreen(orderId, hasRated) {
+            const container = document.getElementById('initialScreen');
+            const GOOGLE_MAPS_URL = 'https://maps.app.goo.gl/mQVuqixcRywvdfzRA';
+            const WEBSITE_URL = 'https://yelrose2026.vercel.app';
+            
+            let contentHtml = '';
+            
+            if (!hasRated) {
+                contentHtml = \`
+                    <div style="padding: 20px; background: rgba(212, 175, 55, 0.1); 
+                                border: 1px solid var(--primary-color); border-radius: 15px; 
+                                margin-bottom: 25px;">
+                        <h3 style="color: var(--primary-color); margin-bottom: 8px;">
+                            🎉 طلبك اكتمل بنجاح!
+                        </h3>
+                        <p style="color: #ccc; font-size: 14px; line-height: 1.6;">
+                            كيف كانت تجربتك معنا؟
+                        </p>
+                    </div>
+                    
+                    <button onclick="window.location.href = '/rating.html?order=\${encodeURIComponent(orderId)}'" 
+                            class="btn"
+                            style="background: linear-gradient(135deg, #d4af37, #f6e27a); 
+                                   color: #000; font-size: 17px; padding: 18px;
+                                   box-shadow: 0 4px 20px rgba(212, 175, 55, 0.3);">
+                        ⭐ قيّم تجربتك الآن
+                    </button>
+                    
+                    <div style="margin: 20px 0; color: #666; font-size: 13px;">
+                        ─── أو ───
+                    </div>
+                \`;
+            } else {
+                contentHtml = \`
+                    <div style="text-align: center; margin-bottom: 25px;">
+                        <div style="font-size: 60px; margin-bottom: 10px;">🌹</div>
+                        <h2 style="color: var(--primary-color); margin-bottom: 10px;">
+                            شكراً لتقييمك!
+                        </h2>
+                        <p style="color: #ccc; line-height: 1.6;">
+                            نتطلع لخدمتك مرة أخرى
+                        </p>
+                    </div>
+                \`;
+            }
+            
+            container.innerHTML = \`
+                <div style="text-align: center;">
+                    \${contentHtml}
+                    
+                    <!-- زيارة الموقع الرسمي -->
+                    <a href="\${WEBSITE_URL}" target="_blank" rel="noopener"
+                       style="display: flex; align-items: center; justify-content: center; gap: 10px;
+                              padding: 16px; background: transparent; 
+                              border: 2px solid var(--primary-color); color: var(--primary-color);
+                              text-decoration: none; border-radius: 50px; font-weight: bold; 
+                              margin-bottom: 12px; font-size: 15px;">
+                        🌸 تصفح أحدث تصاميمنا
+                    </a>
+                    
+                    <!-- تقييم Google Maps -->
+                    <a href="\${GOOGLE_MAPS_URL}" target="_blank" rel="noopener"
+                       style="display: flex; align-items: center; justify-content: center; gap: 10px;
+                              padding: 16px; background: \${!hasRated ? 'transparent' : '#4285F4'}; 
+                              border: \${!hasRated ? '1px solid #4285F4' : 'none'}; 
+                              color: \${!hasRated ? '#4285F4' : 'white'};
+                              text-decoration: none; border-radius: 50px; font-weight: bold; 
+                              margin-bottom: 20px; font-size: 15px;">
+                        📍 \${!hasRated ? 'أو قيّمنا على خرائط Google' : 'شارك تجربتك على خرائط Google'}
+                    </a>
+                    
+                    <!-- السوشيال ميديا -->
+                    <div class="social-buttons">
+                        <a href="https://www.instagram.com/yelrose11" target="_blank" rel="noopener" class="social-btn social-instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://www.snapchat.com/add/yelrose11" target="_blank" rel="noopener" class="social-btn social-snapchat">
+                            <i class="fab fa-snapchat-ghost"></i>
+                        </a>
+                        <a href="https://www.tiktok.com/@yelrose11" target="_blank" rel="noopener" class="social-btn social-tiktok">
+                            <i class="fab fa-tiktok"></i>
+                        </a>
+                        <a href="https://wa.me/966582739397" target="_blank" rel="noopener" class="social-btn social-whatsapp">
+                            <i class="fab fa-whatsapp"></i>
+                        </a>
+                    </div>
+                    
+                    <button onclick="window.close()" 
+                            style="padding: 10px 25px; background: transparent; 
+                                   border: 1px solid #444; color: #888; border-radius: 50px; 
+                                   cursor: pointer; font-size: 13px; margin-top: 15px;">
+                        إغلاق التطبيق
+                    </button>
+                </div>
+            \`;
+        }
+
+        // ============================================
+        // 5. شاشات الانتظار والجاهز
+        // ============================================
+        function showWaitingScreen() {
             document.getElementById('initialScreen').classList.add('hidden');
             document.getElementById('waitingScreen').classList.remove('hidden');
-
-            // 4. Start Polling
-            startPolling();
-        }
-
-        function startPolling() {
-            // Poll every 4 seconds
-            pollInterval = setInterval(async () => {
-                try {
-                    const res = await fetch(`/api/pager/${pagerToken}?t=${Date.now()}`);
-                    const data = await res.json();
-                    
-                    
-                    if (data.success && data.status === 'completed') {
-                        window.location.href = '/'; // Redirect to main site when completed
-                        return;
-                    }
-                    if (data.success && data.status === 'ready') {
-
-                        // First time changing to ready
-                        if (!hasTriggeredInitialReady) {
-                            hasTriggeredInitialReady = true;
-                            if (data.lastPingAt) lastSeenPing = data.lastPingAt;
-                            triggerReadyAlert();
-                        } else if (data.lastPingAt && data.lastPingAt !== lastSeenPing) {
-                            // Employee manually pinged the customer again
-                            lastSeenPing = data.lastPingAt;
-                            triggerReadyAlert();
-                        }
-                    }
-                } catch (err) {
-                    // Ignore transient network errors
-                }
-            }, 4000);
-        }
-
-        function triggerReadyAlert() {
-            showReadyScreen();
-
-            // Vibrate (long continuous pattern for ~5 seconds)
-            if (navigator.vibrate) {
-                navigator.vibrate([500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500]);
-            }
-
-            // Play loud continuous sound for 5 seconds using Web Audio API
-            playLoudAlarm();
-
-            // Show Push Notification
-            if (Notification.permission === "granted") {
-                new Notification("Yellow Rose 🌹", {
-                    body: `طلبك رقم ${orderNumber} أصبح جاهزاً للاستلام!`,
-                    icon: "/assets/logo.png"
-                });
-            }
         }
 
         function showReadyScreen() {
@@ -376,20 +586,212 @@
             document.getElementById('readyScreen').classList.remove('hidden');
         }
 
-        
-        // Check Standalone (A2HS)
-        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-        
-        if (!isStandalone && isIOS) {
-            document.getElementById('iosInstallPrompt').classList.remove('hidden');
+        // ============================================
+        // 6. Polling لتحديث حالة الطلب
+        // ============================================
+        function startPolling() {
+            pollInterval = setInterval(async () => {
+                try {
+                    const res = await fetch(\`/api/pager/\${pagerToken}?t=\${Date.now()}\`);
+                    const data = await res.json();
+                    
+                    if (!data.success) return;
+                    
+                    // الطلب مكتمل
+                    if (data.status === 'completed') {
+                        clearInterval(pollInterval);
+                        const hasRated = getRatedOrders().includes(data.orderId);
+                        showCompletedScreen(data.orderId, hasRated);
+                        return;
+                    }
+                    
+                    // الطلب جاهز
+                    if (data.status === 'ready') {
+                        if (!hasTriggeredInitialReady) {
+                            hasTriggeredInitialReady = true;
+                            if (data.lastPingAt) lastSeenPing = data.lastPingAt;
+                            triggerReadyAlert();
+                        } else if (data.lastPingAt && data.lastPingAt !== lastSeenPing) {
+                            lastSeenPing = data.lastPingAt;
+                            triggerReadyAlert();
+                        }
+                    }
+                    
+                } catch (err) {
+                    // تجاهل أخطاء الشبكة المؤقتة
+                }
+            }, 4000);
         }
 
-        // Initialize
-        fetchInitialStatus();
+        function triggerReadyAlert() {
+            showReadyScreen();
+            
+            if (navigator.vibrate) {
+                navigator.vibrate([500, 200, 500, 200, 500, 200, 500, 200, 500]);
+            }
+            
+            playLoudAlarm();
+            
+            if (Notification.permission === "granted") {
+                new Notification("Yellow Rose 🌹", {
+                    body: \`طلبك رقم \${orderNumber} أصبح جاهزاً للاستلام!\`,
+                    icon: "/assets/logo.png"
+                });
+            }
+        }
 
+        // ============================================
+        // 7. نداء العميل للموظف
+        // ============================================
+        async function sendCall(type) {
+            const lastCall = lastCallTimes[type] || 0;
+            const now = Date.now();
+            
+            if (now - lastCall < CALL_COOLDOWN_MS) {
+                const remaining = Math.ceil((CALL_COOLDOWN_MS - (now - lastCall)) / 1000);
+                showToast(\`⏱️ انتظر \${remaining} ثانية قبل إعادة النداء\`);
+                return;
+            }
+            
+            const btnId = \`call\${type.charAt(0).toUpperCase() + type.slice(1)}Btn\`;
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+            }
+            
+            try {
+                const res = await fetch(\`/api/pager/\${pagerToken}/call\`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type })
+                });
+                
+                const data = await res.json();
+                
+                if (data.success) {
+                    lastCallTimes[type] = now;
+                    showToast('✅ تم إرسال النداء للموظف');
+                    if (navigator.vibrate) navigator.vibrate(200);
+                } else {
+                    showToast('❌ ' + (data.error || 'فشل الإرسال'));
+                }
+                
+            } catch (err) {
+                showToast('❌ خطأ في الاتصال');
+            } finally {
+                setTimeout(() => {
+                    if (btn) {
+                        btn.disabled = false;
+                        const labels = {
+                            arrived: '🏪 أنا الآن في المتجر',
+                            help: '❓ أحتاج مساعدة',
+                            ontheway: '🚗 سأصل خلال دقائق'
+                        };
+                        btn.innerHTML = labels[type];
+                    }
+                }, CALL_COOLDOWN_MS);
+            }
+        }
 
-        // Helper functions
+        // ============================================
+        // 8. مسح الباركود والإدخال اليدوي
+        // ============================================
+        function startScanner() {
+            const instructions = document.createElement('div');
+            instructions.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; padding: 30px; display: flex; align-items: center; justify-content: center;';
+            instructions.innerHTML = \`
+                <div style="max-width: 400px; text-align: center;">
+                    <div style="font-size: 60px; margin-bottom: 20px;">📷</div>
+                    <h3 style="color: #fff; margin-bottom: 20px;">كيفية مسح الباركود</h3>
+                    <ol style="color: #ccc; text-align: right; line-height: 2;">
+                        <li>افتح تطبيق <strong>الكاميرا</strong> في هاتفك</li>
+                        <li>وجّه الكاميرا نحو <strong>الباركود</strong> الذي أعطاه لك الموظف</li>
+                        <li>اضغط على <strong>الإشعار</strong> الذي يظهر فوق الباركود</li>
+                        <li>سيُفتح التطبيق تلقائياً ويبدأ تتبع طلبك الجديد</li>
+                    </ol>
+                    <button onclick="this.closest('div').parentElement.remove()" 
+                            style="margin-top: 20px; padding: 12px 30px; background: var(--primary-color); 
+                                   color: #000; border: none; border-radius: 50px; cursor: pointer;">
+                        فهمت ✓
+                    </button>
+                </div>
+            \`;
+            document.body.appendChild(instructions);
+        }
+
+        function showManualInput() {
+            document.getElementById('manualInputSection').style.display = 'block';
+        }
+
+        async function submitManualToken() {
+            const input = document.getElementById('manualTokenInput').value.trim();
+            
+            if (!input) {
+                showToast('❌ يرجى إدخال رقم الطلب');
+                return;
+            }
+            
+            try {
+                const res = await fetch(\`/api/orders/\${encodeURIComponent(input)}/token\`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    localStorage.setItem(STORAGE_KEY, data.token);
+                    window.location.reload();
+                } else {
+                    showToast('❌ ' + (data.error || 'لم يتم العثور على هذا الطلب'));
+                }
+            } catch {
+                showToast('❌ خطأ في الاتصال');
+            }
+        }
+
+        // ============================================
+        // 9. التسجيل للإشعارات
+        // ============================================
+        async function registerPushNotifications() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                return;
+            }
+            
+            try {
+                const registration = await navigator.serviceWorker.register('/sw.js');
+                const permission = await Notification.requestPermission();
+                
+                if (permission === 'granted') {
+                    const subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+                    });
+                    
+                    await fetch('/api/push/subscribe', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            pagerToken: pagerToken,
+                            subscription: subscription,
+                            deviceType: getDeviceType(),
+                            userAgent: navigator.userAgent
+                        })
+                    });
+                }
+            } catch (e) {
+                console.error('Push registration failed:', e);
+            }
+        }
+
+        // ============================================
+        // 10. دوال مساعدة
+        // ============================================
+        function getRatedOrders() {
+            try {
+                return JSON.parse(localStorage.getItem(RATED_KEY) || '[]');
+            } catch {
+                return [];
+            }
+        }
+
         function getDeviceType() {
             const ua = navigator.userAgent;
             if (/android/i.test(ua)) return 'android';
@@ -407,6 +809,60 @@
             }
             return outputArray;
         }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        function playLoudAlarm() {
+            const audio = document.getElementById('cleanAlarmSound');
+            if (audio) {
+                audio.currentTime = 0;
+                audio.play().catch(e => console.log('Audio play failed:', e));
+            }
+        }
+
+        function playTestAlarm() {
+            playLoudAlarm();
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+        }
+
+        function unlockAudio() {
+            const audio = document.getElementById('cleanAlarmSound');
+            if (audio) {
+                audio.play().then(() => {
+                    audio.pause();
+                    audio.currentTime = 0;
+                }).catch(e => console.log('Audio unlock failed:', e));
+            }
+        }
+
+        // ============================================
+        // 11. التهيئة عند التحميل
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // iOS Install Prompt
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+            
+            if (!isStandalone && isIOS) {
+                document.getElementById('iosInstallPrompt').classList.remove('hidden');
+            }
+            
+            // بدء التطبيق الذكي
+            initSmartApp();
+            
+            // تسجيل الإشعارات إذا كان هناك طلب نشط
+            if (pagerToken) {
+                registerPushNotifications();
+            }
+        });
     </script>
+    
+    <!-- Font Awesome للأيقونات -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 </body>
 </html>
