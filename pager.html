@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>تنبيه الطلب | Yellow Rose</title>
     
-    <!-- PWA Manifest (يُحقن ديناميكياً) -->
+    <!-- PWA Manifest -->
     <link rel="manifest" href="/api/manifest.json">
     
     <!-- Apple PWA Meta Tags (إلزامية لـ iOS) -->
@@ -21,9 +21,13 @@
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     
+    <!-- مكتبة ماسح الباركود المدمج -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    
     <style>
         :root {
             --primary-color: #E2B93B;
+            --primary-gradient: linear-gradient(135deg, #E2B93B 0%, #d4a82f 100%);
             --bg-color: #111111;
             --text-color: #ffffff;
             --success-color: #2ecc71;
@@ -43,6 +47,7 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
+            position: relative;
         }
         
         .logo {
@@ -76,7 +81,7 @@
         
         .btn { 
             padding: 16px 32px; 
-            font-size: 18px; 
+            font-size: 17px; 
             font-family: 'Tajawal', sans-serif;
             font-weight: bold; 
             background: var(--primary-color);
@@ -88,7 +93,10 @@
             transition: all 0.2s;
             margin-top: 15px;
             text-decoration: none;
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
             text-align: center;
         }
         
@@ -163,17 +171,10 @@
             transition: opacity 0.3s;
             z-index: 10000;
             font-size: 14px;
+            pointer-events: none;
         }
         
         .toast.show { opacity: 1; }
-        
-        /* أزرار النداء من العميل */
-        .call-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 25px;
-        }
         
         /* أزرار السوشيال */
         .social-buttons {
@@ -202,6 +203,141 @@
         .social-snapchat { background: #FFFC00; color: #000; }
         .social-tiktok { background: #000; border: 1px solid #333; }
         .social-whatsapp { background: #25D366; }
+
+        /* ============================================ */
+        /* زر تثبيت التطبيق PWA                         */
+        /* ============================================ */
+        .install-btn {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--primary-gradient);
+            color: #111;
+            border: none;
+            padding: 12px 26px;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: 'Tajawal', sans-serif;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 20px rgba(226, 185, 59, 0.4);
+            transition: all 0.3s ease;
+            z-index: 999;
+            animation: slideUp 0.5s ease;
+        }
+
+        .install-btn:hover {
+            transform: translateX(-50%) translateY(-2px);
+            box-shadow: 0 6px 25px rgba(226, 185, 59, 0.6);
+        }
+
+        .install-btn:active {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        /* ============================================ */
+        /* ماسح الباركود المدمج QR Scanner             */
+        /* ============================================ */
+        .qr-scanner-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .scanner-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            max-width: 500px;
+            width: 100%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .scanner-header h3 {
+            color: #fff;
+            font-size: 18px;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        #qr-reader {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            max-width: 500px;
+            margin: 0 auto;
+            width: 100%;
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 2px solid #333;
+        }
+
+        #qr-reader video {
+            border-radius: 12px;
+            max-width: 100%;
+            object-fit: cover;
+        }
+
+        .scanner-hint {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 15px;
+            margin-top: 20px;
+        }
+
+        #qr-reader__scan_region {
+            border: 3px solid var(--primary-color) !important;
+            border-radius: 14px !important;
+            overflow: hidden;
+        }
+
+        #qr-reader__dashboard {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
@@ -221,7 +357,7 @@
         </div>
     </div>
 
-    <!-- Audio for Alarm -->
+    <!-- Audio for Alarm (احتياطي) -->
     <audio id="cleanAlarmSound" preload="auto">
         <source src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3" type="audio/mpeg">
     </audio>
@@ -243,28 +379,13 @@
         <div class="warning">
             🔒 شاشة هاتفك ستبقى مضاءة تلقائياً
         </div>
-                <button class="btn" onclick="activateNotifications()" id="activateNotifBtn" style="background: linear-gradient(135deg, #d4af37, #f6e27a); color: #000; margin-top: 20px;">🔔 تفعيل التنبيهات</button>
         
-        <!-- أزرار النداء للموظف -->
-        <div class="call-buttons">
-            <button class="btn" onclick="sendCall('arrived')" id="callArrivedBtn"
-                    style="background: linear-gradient(135deg, #d4af37, #f6e27a); color: #000;">
-                🏪 أنا الآن في المتجر
-            </button>
-            
-            <button class="btn" onclick="sendCall('help')" id="callHelpBtn"
-                    style="background: transparent; border: 2px solid var(--primary-color); color: var(--primary-color);">
-                ❓ أحتاج مساعدة
-            </button>
-            
-            <button class="btn" onclick="sendCall('ontheway')" id="callOnthewayBtn"
-                    style="background: transparent; border: 2px solid #666; color: #aaa;">
-                🚗 سأصل خلال دقائق
-            </button>
-        </div>
+        <button class="btn" onclick="activateNotifications()" id="activateNotifBtn" style="background: linear-gradient(135deg, #d4af37, #f6e27a); color: #000; margin-top: 20px;">
+            🔔 تفعيل التنبيهات والصوت
+        </button>
         
-        <button class="btn" style="margin-top: 20px; background: transparent; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 10px;" onclick="playTestAlarm()">
-            🔊 تجربة قوة التنبيه
+        <button class="btn" style="margin-top: 15px; background: transparent; border: 1px solid var(--primary-color); color: var(--primary-color); padding: 12px;" onclick="testAlarmAndSound()">
+            🔔 تجربة صوت التنبيه والاهتزاز
         </button>
     </div>
 
@@ -276,26 +397,39 @@
             تفضل بزيارتنا عند الكاونتر لاستلام طلبك
         </p>
         
-        <div class="call-buttons">
-            <button onclick="sendCall('arrived')" id="callArrivedBtn2"
-                    style="padding: 14px; background: linear-gradient(135deg, #d4af37, #f6e27a); 
-                           color: #000; border: none; border-radius: 50px; font-weight: bold;
-                           font-size: 16px; cursor: pointer;">
-                🏪 أنا الآن في المتجر
-            </button>
-            
+        <div style="margin-top: 25px;">
             <a href="https://yelrose2026.vercel.app" target="_blank" rel="noopener"
-               style="padding: 12px; background: transparent; 
-                      border: 1px solid #444; color: #888;
+               style="display: block; padding: 14px; background: transparent; 
+                      border: 1px solid #444; color: #aaa;
                       text-decoration: none; border-radius: 50px; 
-                      font-size: 13px; text-align: center;">
+                      font-size: 14px; text-align: center;">
                 🌟 تصفح منتجاتنا أثناء الانتظار
             </a>
         </div>
         
-        <p style="color: #888; font-size: 13px; margin-top: 15px;">
+        <p style="color: #888; font-size: 13px; margin-top: 20px;">
             شكراً لاختيارك <span style="color: var(--primary-color);">Yellow Rose</span>
         </p>
+    </div>
+
+    <!-- زر تثبيت التطبيق PWA -->
+    <button id="install-app-btn" class="install-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        <span>تثبيت التطبيق</span>
+    </button>
+
+    <!-- حاوية الكاميرا لمسح الباركود -->
+    <div id="qr-scanner-container" class="qr-scanner-container" style="display: none;">
+        <div class="scanner-header">
+            <h3>امسح باركود الطلب</h3>
+            <button id="close-scanner-btn" class="close-btn" onclick="closeScanner()">✕</button>
+        </div>
+        <div id="qr-reader"></div>
+        <p class="scanner-hint">وجّه الكاميرا نحو باركود الطلب</p>
     </div>
 
     <!-- Toast Notification -->
@@ -314,11 +448,9 @@
         let pollInterval = null;
         let lastSeenPing = null;
         let hasTriggeredInitialReady = false;
-        const lastCallTimes = {};
-        const CALL_COOLDOWN_MS = 30000;
 
         // ============================================
-        // 1. منطق التطبيق الذكي (يعمل لكل الطلبات)
+        // 1. منطق التطبيق الذكي
         // ============================================
         function initSmartApp() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -362,13 +494,7 @@
                 // الحالة: طلب مكتمل
                 if (data.status === 'completed') {
                     const hasRated = getRatedOrders().includes(data.orderId);
-                    if (!hasRated) {
-                        // لم يُقيّم بعد → زر التقييم
-                        showCompletedScreen(data.orderId, false);
-                    } else {
-                        // قَيّم بالفعل → شكر + روابط
-                        showCompletedScreen(data.orderId, true);
-                    }
+                    showCompletedScreen(data.orderId, hasRated);
                     return;
                 }
                 
@@ -390,7 +516,7 @@
         }
 
         // ============================================
-        // 3. شاشة الترحيب (للعميل الجديد أو العائد)
+        // 3. شاشة الترحيب
         // ============================================
         function showWelcomeScreen(message = null) {
             const container = document.getElementById('initialScreen');
@@ -414,7 +540,7 @@
                         ${message || 'لعرض حالة طلبك، يرجى مسح الباركود الذي أعطاه لك الموظف.'}
                     </p>
                     
-                    <button class="btn" onclick="showScannerInstructions()" 
+                    <button class="btn" onclick="startQrScanner()" 
                             style="background: linear-gradient(135deg, #d4af37, #f6e27a); color: #000;">
                         📷 مسح باركود الطلب
                     </button>
@@ -422,16 +548,16 @@
                     <button class="btn" onclick="showManualInput()" 
                             style="background: transparent; border: 2px solid var(--primary-color); 
                                    color: var(--primary-color);">
-                        🔢 إدخال رقم الطلب يدوياً
+                        🔢 إدخال رمز المتابعة يدوياً
                     </button>
                     
                     <!-- حقل الإدخال اليدوي -->
                     <div id="manualInputSection" style="display: none; margin-top: 20px;">
                         <input type="text" id="manualTokenInput" 
-                               placeholder="أدخل رقم الطلب (مثل: YR-2026-147)"
+                               placeholder="أدخل رمز المتابعة (Token)"
                                style="width: 100%; padding: 14px; border-radius: 10px; 
                                       border: 1px solid #444; background: #2a2a2a; color: #fff;
-                                      text-align: center; font-size: 16px; margin-bottom: 12px;">
+                                      text-align: center; font-size: 15px; margin-bottom: 12px;">
                         <button onclick="submitManualToken()" class="btn" 
                                 style="background: var(--primary-color); color: #000;">
                             تأكيد
@@ -478,6 +604,10 @@
         // ============================================
         function showCompletedScreen(orderId, hasRated) {
             const container = document.getElementById('initialScreen');
+            document.getElementById('waitingScreen').classList.add('hidden');
+            document.getElementById('readyScreen').classList.add('hidden');
+            container.classList.remove('hidden');
+
             const GOOGLE_MAPS_URL = 'https://maps.app.goo.gl/mQVuqixcRywvdfzRA';
             const WEBSITE_URL = 'https://yelrose2026.vercel.app';
             
@@ -496,7 +626,7 @@
                         </p>
                     </div>
                     
-                    <button onclick="window.location.href = '/rating.html?order=${encodeURIComponent(orderId)}'" 
+                    <button onclick="window.location.href = '/rating.html?order=' + encodeURIComponent('${orderId}')" 
                             class="btn"
                             style="background: linear-gradient(135deg, #d4af37, #f6e27a); 
                                    color: #000; font-size: 17px; padding: 18px;
@@ -579,6 +709,7 @@
         function showWaitingScreen() {
             document.getElementById('initialScreen').classList.add('hidden');
             document.getElementById('waitingScreen').classList.remove('hidden');
+            document.getElementById('readyScreen').classList.add('hidden');
         }
 
         function showReadyScreen() {
@@ -591,6 +722,7 @@
         // 6. Polling لتحديث حالة الطلب
         // ============================================
         function startPolling() {
+            if (pollInterval) clearInterval(pollInterval);
             pollInterval = setInterval(async () => {
                 try {
                     const res = await fetch(`/api/pager/${pagerToken}?t=${Date.now()}`);
@@ -619,49 +751,100 @@
                     }
                     
                 } catch (err) {
-                    // تجاهل أخطاء الشبكة المؤقتة
+                    // تجاهل أخطاء الشبكة العابرة
                 }
             }, 4000);
+        }
+
+        // ============================================
+        // 7. صوت الجرس والاهتزاز البرمجي (Web Audio API)
+        // ============================================
+        function playYellowRoseBell() {
+            try {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContextClass) return;
+                const ctx = new AudioContextClass();
+                
+                // نغمة الجرس الأساسية (نغمتان متتاليتان مثل جرس المطعم)
+                const notes = [
+                    { freq: 880, start: 0, duration: 0.15 },      // A5 - النغمة الأولى
+                    { freq: 1175, start: 0.15, duration: 0.35 }   // D6 - النغمة الثانية (أعلى)
+                ];
+                
+                notes.forEach(note => {
+                    const oscillator = ctx.createOscillator();
+                    const gainNode = ctx.createGain();
+                    
+                    oscillator.type = 'sine'; // موجة جيبية ناعمة ونقية
+                    oscillator.frequency.value = note.freq;
+                    
+                    const startTime = ctx.currentTime + note.start;
+                    gainNode.gain.setValueAtTime(0, startTime);
+                    gainNode.gain.linearRampToValueAtTime(0.6, startTime + 0.02);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + note.duration);
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(ctx.destination);
+                    
+                    oscillator.start(startTime);
+                    oscillator.stop(startTime + note.duration);
+                });
+                
+                console.log('🔔 Yellow Rose bell chime played');
+            } catch (error) {
+                console.error('❌ Bell sound error:', error);
+            }
+        }
+
+        // تشغيل النغمة 3 مرات متتالية عند جاهزية الطلب
+        function playReadyNotification() {
+            playYellowRoseBell();
+            setTimeout(() => playYellowRoseBell(), 500);
+            setTimeout(() => playYellowRoseBell(), 1000);
+        }
+
+        // اهتزاز متزامن مع الصوت
+        function vibrateWithSound() {
+            if ('vibrate' in navigator) {
+                navigator.vibrate([200, 100, 200, 100, 200]);
+            }
+            playReadyNotification();
         }
 
         function triggerReadyAlert() {
             showReadyScreen();
             
-            if (navigator.vibrate) {
-                navigator.vibrate([500, 200, 500, 200, 500, 200, 500, 200, 500]);
-            }
+            // تشغيل الصوت البرمجي والاهتزاز
+            vibrateWithSound();
             
+            // تشغيل ملف الصوت الاحتياطي
             playLoudAlarm();
             
+            // إشعار المتصفح إن توفر الإذن
             if (Notification.permission === "granted") {
-                new Notification("Yellow Rose ✨", {
-                    body: `طلبك رقم ${orderNumber} أصبح جاهزاً للاستلام!`,
-                    icon: "/assets/logo.png"
-                });
+                try {
+                    new Notification("Yellow Rose ✨", {
+                        body: `طلبك رقم ${orderNumber} أصبح جاهزاً للاستلام!`,
+                        icon: "/assets/logo.png"
+                    });
+                } catch (e) {
+                    console.log('Notification error:', e);
+                }
             }
-        }
-
-        // ============================================
-        // 7. نداء العميل للموظف
-        // ============================================
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg;
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3000);
         }
 
         function playLoudAlarm() {
             const audio = document.getElementById('cleanAlarmSound');
             if (audio) {
                 audio.currentTime = 0;
-                audio.play().catch(e => console.log('Audio play failed:', e));
+                audio.play().catch(e => console.log('Audio play fallback failed:', e));
             }
         }
 
-        function playTestAlarm() {
+        function testAlarmAndSound() {
+            vibrateWithSound();
             playLoudAlarm();
-            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            showToast('🔔 تم تشغيل صوت التنبيه والاهتزاز');
         }
 
         function unlockAudio() {
@@ -675,22 +858,317 @@
         }
 
         // ============================================
-        // 11. التهيئة عند التحميل
+        // 8. تفعيل إشعارات الـ Push
         // ============================================
-        document.addEventListener('DOMContentLoaded', () => {
-            // iOS Install Prompt
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-            const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-            
-            if (!isStandalone && isIOS) {
-                document.getElementById('iosInstallPrompt').classList.remove('hidden');
+        async function activateNotifications() {
+            const btn = document.getElementById('activateNotifBtn');
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '⏳ جاري التفعيل...';
             }
             
-            // بدء التطبيق الذكي
+            unlockAudio();
+            playYellowRoseBell(); // تفعيل AudioContext بإيماءة المستخدم
+            
+            if (!('Notification' in window)) {
+                showToast('⚠️ متصفحك لا يدعم الإشعارات');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '🔔 تفعيل التنبيهات والصوت';
+                }
+                return;
+            }
+            
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    showToast('✅ تم تفعيل التنبيهات بنجاح');
+                    if (btn) {
+                        btn.style.display = 'none';
+                    }
+                    if (pagerToken) {
+                        await registerPushNotifications();
+                    }
+                } else {
+                    showToast('⚠️ لم يتم منح إذن الإشعارات');
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.innerHTML = '🔔 تفعيل التنبيهات والصوت';
+                    }
+                }
+            } catch (err) {
+                console.error('Notification permission error:', err);
+                showToast('❌ تعذر تفعيل التنبيهات');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '🔔 تفعيل التنبيهات والصوت';
+                }
+            }
+        }
+
+        async function registerPushNotifications() {
+            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+                return;
+            }
+            
+            try {
+                const registration = await navigator.serviceWorker.register('/sw.js');
+                if (Notification.permission !== 'granted') return;
+                
+                let subscription = await registration.pushManager.getSubscription();
+                if (!subscription) {
+                    subscription = await registration.pushManager.subscribe({
+                        userVisibleOnly: true,
+                        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+                    });
+                }
+                
+                await fetch('/api/push/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        pagerToken: pagerToken,
+                        subscription: subscription,
+                        deviceType: getDeviceType(),
+                        userAgent: navigator.userAgent
+                    })
+                });
+                console.log('✅ Push subscription registered');
+            } catch (e) {
+                console.error('Push registration failed:', e);
+            }
+        }
+
+        // ============================================
+        // 9. ماسح الباركود المدمج (QR Scanner)
+        // ============================================
+        let html5QrCode = null;
+
+        async function startQrScanner() {
+            const scannerContainer = document.getElementById('qr-scanner-container');
+            try {
+                if (typeof Html5Qrcode === 'undefined') {
+                    alert('عذراً، جاري تحميل مكتبة الماسح، يرجى المحاولة بعد قليل');
+                    return;
+                }
+                
+                scannerContainer.style.display = 'flex';
+                html5QrCode = new Html5Qrcode('qr-reader');
+                
+                await html5QrCode.start(
+                    { facingMode: 'environment' },
+                    {
+                        fps: 10,
+                        qrbox: { width: 250, height: 250 }
+                    },
+                    onScanSuccess,
+                    onScanFailure
+                );
+                console.log('✅ QR Scanner started');
+            } catch (error) {
+                console.error('❌ QR Scanner error:', error);
+                alert('تعذر فتح الكاميرا. يرجى التأكد من منح صلاحية الكاميرا للمتصفح والتأكد من استخدام رابط آمن (HTTPS).');
+                closeScanner();
+            }
+        }
+
+        function closeScanner() {
+            const scannerContainer = document.getElementById('qr-scanner-container');
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    html5QrCode = null;
+                }).catch(err => {
+                    console.warn('Error stopping scanner:', err);
+                    html5QrCode = null;
+                });
+            }
+            if (scannerContainer) {
+                scannerContainer.style.display = 'none';
+            }
+        }
+
+        function onScanSuccess(decodedText) {
+            console.log('✅ QR Code scanned:', decodedText);
+            closeScanner();
+            
+            if (!decodedText) return;
+            
+            try {
+                // إذا كان رابطاً كاملاً
+                if (decodedText.startsWith('http://') || decodedText.startsWith('https://')) {
+                    const url = new URL(decodedText);
+                    const token = url.searchParams.get('token');
+                    if (token && /^[a-f0-9]{16,32}$/.test(token)) {
+                        localStorage.setItem(STORAGE_KEY, token);
+                        window.location.href = `/pager.html?token=${token}`;
+                        return;
+                    }
+                    if (url.pathname.includes('pager.html')) {
+                        window.location.href = decodedText;
+                        return;
+                    }
+                }
+                
+                // إذا كان التوكن مباشرة
+                const trimmed = decodedText.trim();
+                if (/^[a-f0-9]{16,32}$/.test(trimmed)) {
+                    localStorage.setItem(STORAGE_KEY, trimmed);
+                    window.location.href = `/pager.html?token=${trimmed}`;
+                    return;
+                }
+            } catch (e) {
+                console.warn('Parse QR error:', e);
+            }
+            
+            if (decodedText.startsWith('http://') || decodedText.startsWith('https://')) {
+                window.location.href = decodedText;
+            } else {
+                alert('باركود غير صالح، يرجى مسح باركود طلب Yellow Rose');
+            }
+        }
+
+        function onScanFailure(error) {
+            // تجاهل أخطاء البحث أثناء المسح التلقائي
+        }
+
+        window.addEventListener('beforeunload', () => {
+            if (html5QrCode) {
+                html5QrCode.stop().catch(() => {});
+            }
+        });
+
+        // ============================================
+        // 10. زر تثبيت التطبيق (PWA Install Prompt)
+        // ============================================
+        let deferredInstallPrompt = null;
+        const installButton = document.getElementById('install-app-btn');
+
+        function isAppInstalled() {
+            return window.matchMedia('(display-mode: standalone)').matches || 
+                   window.navigator.standalone === true;
+        }
+
+        window.addEventListener('beforeinstallprompt', (event) => {
+            event.preventDefault();
+            deferredInstallPrompt = event;
+            
+            if (installButton && !isAppInstalled()) {
+                installButton.style.display = 'flex';
+                console.log('✅ Install prompt captured, button displayed');
+            }
+        });
+
+        if (installButton) {
+            installButton.addEventListener('click', async () => {
+                if (!deferredInstallPrompt) {
+                    console.log('ℹ️ No install prompt available');
+                    return;
+                }
+                
+                deferredInstallPrompt.prompt();
+                const { outcome } = await deferredInstallPrompt.userChoice;
+                
+                if (outcome === 'accepted') {
+                    console.log('✅ User accepted install prompt');
+                    installButton.style.display = 'none';
+                } else {
+                    console.log('❌ User dismissed install prompt');
+                }
+                
+                deferredInstallPrompt = null;
+            });
+        }
+
+        window.addEventListener('appinstalled', () => {
+            console.log('✅ App installed successfully');
+            if (installButton) {
+                installButton.style.display = 'none';
+            }
+            deferredInstallPrompt = null;
+        });
+
+        if (isAppInstalled() && installButton) {
+            installButton.style.display = 'none';
+        }
+
+        // ============================================
+        // 11. دوال مساعدة وإدخال يدوي
+        // ============================================
+        function showManualInput() {
+            const sec = document.getElementById('manualInputSection');
+            if (sec) sec.style.display = 'block';
+        }
+
+        function submitManualToken() {
+            const input = document.getElementById('manualTokenInput')?.value.trim();
+            if (!input) {
+                showToast('❌ يرجى إدخال رمز المتابعة (Token)');
+                return;
+            }
+            if (/^[a-f0-9]{16,32}$/.test(input)) {
+                localStorage.setItem(STORAGE_KEY, input);
+                window.location.href = `/pager.html?token=${input}`;
+            } else {
+                showToast('❌ رمز غير صالح، يرجى مسح الباركود بالكاميرا');
+            }
+        }
+
+        function getRatedOrders() {
+            try {
+                return JSON.parse(localStorage.getItem(RATED_KEY) || '[]');
+            } catch {
+                return [];
+            }
+        }
+
+        function getDeviceType() {
+            const ua = navigator.userAgent;
+            if (/android/i.test(ua)) return 'android';
+            if (/iphone|ipad|ipod/i.test(ua)) return 'ios';
+            return 'desktop';
+        }
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        function closeApp() {
+            localStorage.removeItem(STORAGE_KEY);
+            window.location.href = '/pager.html';
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        // ============================================
+        // 12. التهيئة عند التحميل
+        // ============================================
+        document.addEventListener('DOMContentLoaded', () => {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isStandalone = isAppInstalled();
+            
+            if (!isStandalone && isIOS) {
+                const iosBox = document.getElementById('iosInstallPrompt');
+                if (iosBox) iosBox.classList.remove('hidden');
+            }
+            
             initSmartApp();
             
-            // تسجيل الإشعارات إذا كان هناك طلب نشط
-            
+            if (pagerToken) {
+                registerPushNotifications();
+            }
         });
     </script>
     
