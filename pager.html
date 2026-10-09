@@ -243,6 +243,7 @@
         <div class="warning">
             🔒 شاشة هاتفك ستبقى مضاءة تلقائياً
         </div>
+                <button class="btn" onclick="activateNotifications()" id="activateNotifBtn" style="background: linear-gradient(135deg, #d4af37, #f6e27a); color: #000; margin-top: 20px;">🔔 تفعيل التنبيهات</button>
         
         <!-- أزرار النداء للموظف -->
         <div class="call-buttons">
@@ -288,7 +289,7 @@
                       border: 1px solid #444; color: #888;
                       text-decoration: none; border-radius: 50px; 
                       font-size: 13px; text-align: center;">
-                🌸 تصفح منتجاتنا أثناء الانتظار
+                🌟 تصفح منتجاتنا أثناء الانتظار
             </a>
         </div>
         
@@ -404,7 +405,7 @@
             
             container.innerHTML = `
                 <div style="text-align: center;">
-                    <div style="font-size: 50px; margin-bottom: 15px;">🌹</div>
+                    <div style="font-size: 50px; margin-bottom: 15px;">💛</div>
                     <div class="order-label">مرحباً بك في Yellow Rose</div>
                     
                     ${messageHtml}
@@ -413,7 +414,7 @@
                         ${message || 'لعرض حالة طلبك، يرجى مسح الباركود الذي أعطاه لك الموظف.'}
                     </p>
                     
-                    <button class="btn" onclick="startScanner()" 
+                    <button class="btn" onclick="showScannerInstructions()" 
                             style="background: linear-gradient(135deg, #d4af37, #f6e27a); color: #000;">
                         📷 مسح باركود الطلب
                     </button>
@@ -440,7 +441,7 @@
                     <!-- روابط الزيارة -->
                     <div style="margin-top: 30px; padding-top: 25px; border-top: 1px solid #333;">
                         <p style="color: #888; font-size: 13px; margin-bottom: 15px;">
-                            اكتشف أحدث تصاميمنا 🌸
+                            اكتشف أحدث تصاميمنا 🌟
                         </p>
                         
                         <a href="https://yelrose2026.vercel.app" target="_blank" rel="noopener"
@@ -449,7 +450,7 @@
                                   border: 2px solid var(--primary-color); color: var(--primary-color);
                                   text-decoration: none; border-radius: 50px; font-weight: bold; 
                                   margin-bottom: 12px; font-size: 14px;">
-                            🌸 زيارة الموقع الرسمي
+                            🌟 زيارة الموقع الرسمي
                         </a>
                         
                         <!-- السوشيال ميديا -->
@@ -510,7 +511,7 @@
             } else {
                 contentHtml = `
                     <div style="text-align: center; margin-bottom: 25px;">
-                        <div style="font-size: 60px; margin-bottom: 10px;">🌹</div>
+                        <div style="font-size: 60px; margin-bottom: 10px;">✨</div>
                         <h2 style="color: var(--primary-color); margin-bottom: 10px;">
                             شكراً لتقييمك!
                         </h2>
@@ -532,7 +533,7 @@
                               border: 2px solid var(--primary-color); color: var(--primary-color);
                               text-decoration: none; border-radius: 50px; font-weight: bold; 
                               margin-bottom: 12px; font-size: 15px;">
-                        🌸 تصفح أحدث تصاميمنا
+                        🌟 تصفح أحدث تصاميمنا
                     </a>
                     
                     <!-- تقييم Google Maps -->
@@ -562,7 +563,7 @@
                         </a>
                     </div>
                     
-                    <button onclick="window.close()" 
+                    <button onclick="closeApp()" 
                             style="padding: 10px 25px; background: transparent; 
                                    border: 1px solid #444; color: #888; border-radius: 50px; 
                                    cursor: pointer; font-size: 13px; margin-top: 15px;">
@@ -633,7 +634,7 @@
             playLoudAlarm();
             
             if (Notification.permission === "granted") {
-                new Notification("Yellow Rose 🌹", {
+                new Notification("Yellow Rose ✨", {
                     body: `طلبك رقم ${orderNumber} أصبح جاهزاً للاستلام!`,
                     icon: "/assets/logo.png"
                 });
@@ -697,107 +698,64 @@
         // ============================================
         // 8. مسح الباركود والإدخال اليدوي
         // ============================================
-        function startScanner() {
-            const instructions = document.createElement('div');
-            instructions.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; padding: 30px; display: flex; align-items: center; justify-content: center;';
-            instructions.innerHTML = `
-                <div style="max-width: 400px; text-align: center;">
-                    <div style="font-size: 60px; margin-bottom: 20px;">📷</div>
-                    <h3 style="color: #fff; margin-bottom: 20px;">كيفية مسح الباركود</h3>
-                    <ol style="color: #ccc; text-align: right; line-height: 2;">
-                        <li>افتح تطبيق <strong>الكاميرا</strong> في هاتفك</li>
-                        <li>وجّه الكاميرا نحو <strong>الباركود</strong> الذي أعطاه لك الموظف</li>
-                        <li>اضغط على <strong>الإشعار</strong> الذي يظهر فوق الباركود</li>
-                        <li>سيُفتح التطبيق تلقائياً ويبدأ تتبع طلبك الجديد</li>
-                    </ol>
-                    <button onclick="this.closest('div').parentElement.remove()" 
-                            style="margin-top: 20px; padding: 12px 30px; background: var(--primary-color); 
-                                   color: #000; border: none; border-radius: 50px; cursor: pointer;">
-                        فهمت ✓
-                    </button>
+        
+function showScannerInstructions() {
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; padding: 30px; display: flex; align-items: center; justify-content: center; overflow-y: auto;';
+    
+    modal.innerHTML = `
+        <div style="max-width: 400px; text-align: center; color: #fff;">
+            <div style="font-size: 60px; margin-bottom: 20px;">📱</div>
+            <h3 style="margin-bottom: 20px; color: var(--primary-color);">
+                كيف تبدأ تتبع طلبك؟
+            </h3>
+            
+            <div style="text-align: right; line-height: 2; margin-bottom: 25px; background: #2a2a2a; padding: 20px; border-radius: 15px;">
+                <div style="margin-bottom: 15px;">
+                    <strong style="color: var(--primary-color);">1️⃣ امسح الباركود</strong><br>
+                    <span style="color: #ccc; font-size: 14px;">
+                        افتح <strong>تطبيق الكاميرا</strong> في هاتفك<br>
+                        ووجّهها نحو الباركود الذي أعطاه لك الموظف
+                    </span>
                 </div>
-            `;
-            document.body.appendChild(instructions);
-        }
-
-        function showManualInput() {
-            document.getElementById('manualInputSection').style.display = 'block';
-        }
-
-        async function submitManualToken() {
-            const input = document.getElementById('manualTokenInput').value.trim();
-            
-            if (!input) {
-                showToast('❌ يرجى إدخال رقم الطلب');
-                return;
-            }
-            
-            try {
-                const res = await fetch(`/api/orders/${encodeURIComponent(input)}/token`);
-                const data = await res.json();
                 
-                if (data.success) {
-                    localStorage.setItem(STORAGE_KEY, data.token);
-                    window.location.reload();
-                } else {
-                    showToast('❌ ' + (data.error || 'لم يتم العثور على هذا الطلب'));
-                }
-            } catch {
-                showToast('❌ خطأ في الاتصال');
-            }
-        }
-
-        // ============================================
-        // 9. التسجيل للإشعارات
-        // ============================================
-        async function registerPushNotifications() {
-            if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
-                return;
-            }
-            
-            try {
-                const registration = await navigator.serviceWorker.register('/sw.js');
-                const permission = await Notification.requestPermission();
+                <div style="margin-bottom: 15px;">
+                    <strong style="color: var(--primary-color);">2️⃣ اضغط الإشعار</strong><br>
+                    <span style="color: #ccc; font-size: 14px;">
+                        سيظهر إشعار فوق الباركود.<br>
+                        اضغط عليه لفتح التطبيق تلقائياً
+                    </span>
+                </div>
                 
-                if (permission === 'granted') {
-                    const subscription = await registration.pushManager.subscribe({
-                        userVisibleOnly: true,
-                        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-                    });
-                    
-                    await fetch('/api/push/subscribe', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            pagerToken: pagerToken,
-                            subscription: subscription,
-                            deviceType: getDeviceType(),
-                            userAgent: navigator.userAgent
-                        })
-                    });
-                }
-            } catch (e) {
-                console.error('Push registration failed:', e);
-            }
-        }
+                <div>
+                    <strong style="color: var(--primary-color);">3️⃣ تم! 🎉</strong><br>
+                    <span style="color: #ccc; font-size: 14px;">
+                        سيبدأ التطبيق تتبع طلبك مباشرة<br>
+                        ويُشعرك فور جاهزيته
+                    </span>
+                </div>
+            </div>
+            
+            <div style="background: rgba(212, 175, 55, 0.1); border: 1px solid var(--primary-color); padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                <p style="color: var(--primary-color); font-size: 13px; margin: 0;">
+                    💡 <strong>نصيحة:</strong> بعد الفتح، يمكنك إضافة التطبيق للشاشة الرئيسية لتسهيل الاستخدام مستقبلاً
+                </p>
+            </div>
+            
+            <button onclick="this.closest('div').parentElement.remove()" 
+                    style="padding: 14px 40px; background: linear-gradient(135deg, #d4af37, #f6e27a); 
+                           color: #000; border: none; border-radius: 50px; font-weight: bold; 
+                           font-size: 16px; cursor: pointer;">
+                فهمت ✓
+            </button>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+}
 
-        // ============================================
-        // 10. دوال مساعدة
-        // ============================================
-        function getRatedOrders() {
-            try {
-                return JSON.parse(localStorage.getItem(RATED_KEY) || '[]');
-            } catch {
-                return [];
-            }
-        }
 
-        function getDeviceType() {
-            const ua = navigator.userAgent;
-            if (/android/i.test(ua)) return 'android';
-            if (/iPad|iPhone|iPod/.test(ua)) return 'ios';
-            return 'desktop';
-        }
+        
 
         function urlBase64ToUint8Array(base64String) {
             const padding = '='.repeat((4 - base64String.length % 4) % 4);
@@ -809,6 +767,13 @@
             }
             return outputArray;
         }
+
+        
+function closeApp() {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(RATED_KEY);
+    window.location.href = '/pager.html';
+}
 
         function showToast(msg) {
             const t = document.getElementById('toast');
@@ -856,9 +821,7 @@
             initSmartApp();
             
             // تسجيل الإشعارات إذا كان هناك طلب نشط
-            if (pagerToken) {
-                registerPushNotifications();
-            }
+            
         });
     </script>
     

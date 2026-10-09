@@ -107,7 +107,7 @@ self.addEventListener('push', function(event) {
     };
     
     event.waitUntil(
-        self.registration.showNotification(data.title || 'Yellow Rose 🌹', options)
+        self.registration.showNotification(data.title || 'Yellow Rose ✨', options)
     );
 });
 

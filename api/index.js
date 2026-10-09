@@ -29,6 +29,9 @@ if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
 
 const app = express();
 
+// ✅ مهم جداً لبيئة Vercel Serverless
+app.set('trust proxy', 1);
+
 // ============================================
 // Security Middleware
 // ============================================
@@ -198,49 +201,57 @@ function secureCompare(a, b) {
 const loginLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
-    message: { success: false, error: 'Too many login attempts' }
+    message: { success: false, error: 'Too many login attempts' },
+validate: { xForwardedForHeader: false, forwardedHeader: false, ip: false }
 });
 
 const subscribeLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
-    message: { success: false, error: 'Too many subscribe attempts' }
+    message: { success: false, error: 'Too many subscribe attempts' },
+validate: { xForwardedForHeader: false, forwardedHeader: false, ip: false }
 });
 
 const pingLimiter = rateLimit({
     windowMs: 60 * 1000,
     max: 10,
-    message: { success: false, error: 'Too many ping attempts' }
+    message: { success: false, error: 'Too many ping attempts' },
+validate: { xForwardedForHeader: false, forwardedHeader: false, ip: false }
 });
 
 const refreshLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
-    message: { success: false, error: 'Too many refresh attempts' }
+    message: { success: false, error: 'Too many refresh attempts' },
+validate: { xForwardedForHeader: false, forwardedHeader: false, ip: false }
 });
 
 const pagerLimiter = rateLimit({
     windowMs: 60 * 1000,
     max: 30,
-    message: { success: false, error: 'Too many requests' }
+    message: { success: false, error: 'Too many requests' },
+validate: { xForwardedForHeader: false, forwardedHeader: false, ip: false }
 });
 
 const ratingLimiter = rateLimit({
     windowMs: 60 * 60 * 1000,
     max: 5,
-    message: { success: false, error: 'تم تجاوز الحد المسموح للتقييم' }
+    message: { success: false, error: 'تم تجاوز الحد المسموح للتقييم' },
+validate: { xForwardedForHeader: false, forwardedHeader: false, ip: false }
 });
 
 const marketingSubscribeLimiter = rateLimit({
     windowMs: 60 * 60 * 1000,
     max: 5,
-    message: { success: false, error: 'محاولات اشتراك تسويقي كثيرة' }
+    message: { success: false, error: 'محاولات اشتراك تسويقي كثيرة' },
+validate: { xForwardedForHeader: false, forwardedHeader: false, ip: false }
 });
 
 const campaignLimiter = rateLimit({
     windowMs: 60 * 60 * 1000,
     max: 3,
-    message: { success: false, error: 'الحد الأقصى 3 حملات في الساعة' }
+    message: { success: false, error: 'الحد الأقصى 3 حملات في الساعة' },
+validate: { xForwardedForHeader: false, forwardedHeader: false, ip: false }
 });
 
 // ============================================
@@ -393,7 +404,7 @@ app.post('/api/albums', authMiddleware, async (req, res) => {
         const savedAlbum = await Album.findOneAndUpdate(
             { id: albumData.id },
             albumData,
-            { new: true, upsert: true }
+            { returnDocument: 'after', upsert: true }
         );
         res.status(201).json({ success: true, album: savedAlbum });
     } catch (error) {
@@ -431,7 +442,7 @@ app.post('/api/categories', authMiddleware, async (req, res) => {
             data.order = (isNaN(order) || order < 0) ? 0 : order;
         }
         if (!data.id) data.id = `cat_${Date.now()}`;
-        const saved = await Category.findOneAndUpdate({ id: data.id }, data, { new: true, upsert: true });
+        const saved = await Category.findOneAndUpdate({ id: data.id }, data, { returnDocument: 'after', upsert: true });
         res.status(201).json({ success: true, category: saved });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -467,7 +478,7 @@ app.post('/api/subcategories', authMiddleware, async (req, res) => {
             data.order = (isNaN(order) || order < 0) ? 0 : order;
         }
         if (!data.id) data.id = `subcat_${Date.now()}`;
-        const saved = await Subcategory.findOneAndUpdate({ id: data.id }, data, { new: true, upsert: true });
+        const saved = await Subcategory.findOneAndUpdate({ id: data.id }, data, { returnDocument: 'after', upsert: true });
         res.status(201).json({ success: true, subcategory: saved });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -523,7 +534,7 @@ app.post('/api/products', authMiddleware, async (req, res) => {
             });
         }
         
-        const saved = await Product.findOneAndUpdate({ id: data.id }, data, { new: true, upsert: true });
+        const saved = await Product.findOneAndUpdate({ id: data.id }, data, { returnDocument: 'after', upsert: true });
         res.status(201).json({ success: true, product: saved });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -607,7 +618,7 @@ app.patch('/api/orders/:id/print', employeeAuthMiddleware, async (req, res) => {
         const updated = await Order.findOneAndUpdate(
             { orderId: req.params.id },
             { status: 'printed', printedAt: new Date() },
-            { new: true }
+            { returnDocument: 'after' }
         );
         res.json({ success: true, order: updated });
     } catch (error) {
@@ -624,7 +635,7 @@ app.patch('/api/orders/:id/status', employeeAuthMiddleware, async (req, res) => 
         const updated = await Order.findOneAndUpdate(
             { orderId: req.params.id },
             updateData,
-            { new: true }
+            { returnDocument: 'after' }
         );
         res.json({ success: true, order: updated });
     } catch (error) {
@@ -637,7 +648,7 @@ app.post('/api/orders/:id/ping', employeeAuthMiddleware, pingLimiter, async (req
         const updated = await Order.findOneAndUpdate(
             { orderId: req.params.id },
             { lastPingAt: new Date() },
-            { new: true }
+            { returnDocument: 'after' }
         );
         
         if (!updated) {
@@ -649,7 +660,7 @@ app.post('/api/orders/:id/ping', employeeAuthMiddleware, pingLimiter, async (req
                 const subDoc = await PushSubscription.findById(updated.pushSubscription).lean();
                 if (subDoc) {
                     const payload = JSON.stringify({
-                        title: 'Yellow Rose 🌹',
+                        title: 'Yellow Rose ✨',
                         body: `طلبك رقم ${updated.orderId} جاهز للاستلام!`,
                         url: `/pager.html?token=${updated.pagerToken}`,
                         orderId: updated.orderId
@@ -688,6 +699,56 @@ app.get('/api/pager/:token', pagerLimiter, async (req, res) => {
         // Validate token format
         if (!/^[a-f0-9]{16,32}$/.test(req.params.token)) {
             return res.status(400).json({ success: false, error: 'Invalid token format' });
+
+// ============================================
+// نداء من العميل للموظف (Reverse Paging)
+// ============================================
+const callLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 3,
+    message: { success: false, error: 'انتظر قليلاً قبل إعادة النداء' },
+    validate: { xForwardedForHeader: false, forwardedHeader: false, ip: false }
+});
+
+app.post('/api/pager/:token/call', callLimiter, async (req, res) => {
+    try {
+        if (!/^[a-f0-9]{16,32}$/.test(req.params.token)) {
+            return res.status(400).json({ success: false, error: 'Token غير صالح' });
+        }
+        
+        const callType = req.body.type || 'arrived';
+        const validTypes = ['arrived', 'help', 'ontheway'];
+        if (!validTypes.includes(callType)) {
+            return res.status(400).json({ success: false, error: 'نوع نداء غير صالح' });
+        }
+        
+        const order = await Order.findOneAndUpdate(
+            { pagerToken: req.params.token },
+            { 
+                lastCallAt: new Date(),
+                callType: callType
+            },
+            { returnDocument: 'after' }
+        );
+        
+        if (!order) {
+            return res.status(404).json({ success: false, error: 'الطلب غير موجود' });
+        }
+        
+        console.log(`[CALL] order=${order.orderId}, type=${callType}`);
+        
+        res.json({ 
+            success: true, 
+            orderId: order.orderId,
+            message: 'تم إرسال النداء للموظف' 
+        });
+        
+    } catch (error) {
+        console.error('[CALL] Error:', error);
+        res.status(500).json({ success: false, error: 'خطأ في السيرفر' });
+    }
+});
+
         }
         
         const order = await Order.findOne({ pagerToken: req.params.token }).lean();
@@ -741,7 +802,7 @@ app.post('/api/push/subscribe', subscribeLimiter, async (req, res) => {
                     lastUsedAt: new Date()
                 }
             },
-            { upsert: true, new: true, setDefaultsOnInsert: true }
+            { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
         );
         
         await Order.findOneAndUpdate(
@@ -959,7 +1020,7 @@ app.post('/api/marketing/subscribe', marketingSubscribeLimiter, async (req, res)
                     consentMethod: 'in_app'
                 }
             },
-            { upsert: true, new: true, setDefaultsOnInsert: true }
+            { upsert: true, returnDocument: 'after', setDefaultsOnInsert: true }
         );
         
         console.log(`[MARKETING] New subscriber: ${savedSub._id}`);

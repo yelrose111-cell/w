@@ -53,7 +53,6 @@ const orderSchema = new mongoose.Schema({
         type: String, 
         required: true,
         unique: true,
-        index: true,
         match: /^[a-f0-9]{16,32}$/,
         default: () => require('crypto').randomBytes(16).toString('hex')
     },
@@ -70,6 +69,5 @@ const orderSchema = new mongoose.Schema({
 });
 
 orderSchema.index({ status: 1, createdAt: -1 });
-orderSchema.index({ pagerToken: 1 });
 
 module.exports = mongoose.models.Order || mongoose.model('Order', orderSchema);

@@ -28,7 +28,7 @@ const pushSubscriptionSchema = new mongoose.Schema({
         default: '',
         maxlength: 500
     },
-    lastUsedAt: { type: Date, default: Date.now, index: true }
+    lastUsedAt: { type: Date, default: Date.now }
 }, { timestamps: true });
 
 pushSubscriptionSchema.index(
