@@ -32,6 +32,24 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(cookieParser());
 
+// Dynamic Manifest for PWA iOS Tokens
+app.get('/api/manifest.json', (req, res) => {
+    const token = req.query.token;
+    res.json({
+      "name": "Yellow Rose Pager",
+      "short_name": "YR Pager",
+      "start_url": token ? `/pager.html?token=${token}` : "/pager.html",
+      "display": "standalone",
+      "background_color": "#1c1c1e",
+      "theme_color": "#d4af37",
+      "description": "نظام النداء الآلي لمتجر Yellow Rose",
+      "icons": [
+        { "src": "/assets/images/yr-icon-192.png", "sizes": "192x192", "type": "image/png" },
+        { "src": "/assets/images/yr-icon-512.png", "sizes": "512x512", "type": "image/png" }
+      ]
+    });
+});
+
 // Configure Cloudinary
 if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
   cloudinary.config({

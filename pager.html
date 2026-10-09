@@ -180,6 +180,10 @@
         const urlParams = new URLSearchParams(window.location.search);
         let pagerToken = urlParams.get('token');
         
+        if (pagerToken) {
+            document.querySelector('link[rel="manifest"]').href = `/api/manifest.json?token=${pagerToken}`;
+        }
+        
         // Save to localStorage so it survives Add to Home Screen (PWA)
         if (pagerToken) {
             localStorage.setItem('yellowrose_pager_token', pagerToken);
