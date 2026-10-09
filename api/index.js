@@ -1093,6 +1093,11 @@ app.post('/api/run-migration-once', async (req, res) => {
         await db.collection('marketingsubscriptions').createIndex({ isActive: 1, interests: 1 });
         
         // فهارس الطلبات
+        try {
+            await db.collection('orders').dropIndex('pagerToken_1');
+        } catch(e) {
+            // تجاهل الخطأ إذا كان الفهرس غير موجود
+        }
         await db.collection('orders').createIndex({ pagerToken: 1 }, { unique: true, sparse: true });
         await db.collection('orders').createIndex({ status: 1, createdAt: -1 });
         
