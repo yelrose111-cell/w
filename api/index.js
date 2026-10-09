@@ -945,6 +945,13 @@ app.post('/api/run-migration-once', migrateLimiter, async (req, res) => {
         const result = await Order.bulkWrite(ops, { ordered: false });
         console.log(`[MIGRATION] Updated ${result.modifiedCount} orders`);
         
+        // Drop old non-unique index to avoid conflict
+        try {
+            await Order.collection.dropIndex("pagerToken_1");
+        } catch (e) {
+            // Ignore if index doesn't exist
+        }
+        
         await Order.syncIndexes();
         await PushSubscription.syncIndexes();
         
