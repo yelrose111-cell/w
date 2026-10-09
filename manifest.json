@@ -1,7 +1,6 @@
 {
   "name": "Yellow Rose Pager",
   "short_name": "YR Pager",
-  "start_url": "/pager.html",
   "display": "standalone",
   "background_color": "#1c1c1e",
   "theme_color": "#d4af37",
