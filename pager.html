@@ -347,7 +347,7 @@
         // ============================================
         async function checkOrderStatus() {
             try {
-                const res = await fetch(\`/api/pager/\${pagerToken}\`);
+                const res = await fetch(`/api/pager/${pagerToken}`);
                 const data = await res.json();
                 
                 if (!data.success) {
@@ -394,23 +394,23 @@
         function showWelcomeScreen(message = null) {
             const container = document.getElementById('initialScreen');
             
-            let messageHtml = message ? \`
+            let messageHtml = message ? `
                 <div style="padding: 15px; background: rgba(212, 175, 55, 0.1); 
                             border: 1px solid var(--primary-color); border-radius: 12px; 
                             color: var(--primary-color); margin-bottom: 25px;">
-                    \${message}
+                    ${message}
                 </div>
-            \` : '';
+            ` : '';
             
-            container.innerHTML = \`
+            container.innerHTML = `
                 <div style="text-align: center;">
                     <div style="font-size: 50px; margin-bottom: 15px;">🌹</div>
                     <div class="order-label">مرحباً بك في Yellow Rose</div>
                     
-                    \${messageHtml}
+                    ${messageHtml}
                     
                     <p style="color: #bbb; margin-bottom: 25px; line-height: 1.6; font-size: 15px;">
-                        \${message || 'لعرض حالة طلبك، يرجى مسح الباركود الذي أعطاه لك الموظف.'}
+                        ${message || 'لعرض حالة طلبك، يرجى مسح الباركود الذي أعطاه لك الموظف.'}
                     </p>
                     
                     <button class="btn" onclick="startScanner()" 
@@ -469,7 +469,7 @@
                         </div>
                     </div>
                 </div>
-            \`;
+            `;
         }
 
         // ============================================
@@ -483,7 +483,7 @@
             let contentHtml = '';
             
             if (!hasRated) {
-                contentHtml = \`
+                contentHtml = `
                     <div style="padding: 20px; background: rgba(212, 175, 55, 0.1); 
                                 border: 1px solid var(--primary-color); border-radius: 15px; 
                                 margin-bottom: 25px;">
@@ -495,7 +495,7 @@
                         </p>
                     </div>
                     
-                    <button onclick="window.location.href = '/rating.html?order=\${encodeURIComponent(orderId)}'" 
+                    <button onclick="window.location.href = '/rating.html?order=${encodeURIComponent(orderId)}'" 
                             class="btn"
                             style="background: linear-gradient(135deg, #d4af37, #f6e27a); 
                                    color: #000; font-size: 17px; padding: 18px;
@@ -506,9 +506,9 @@
                     <div style="margin: 20px 0; color: #666; font-size: 13px;">
                         ─── أو ───
                     </div>
-                \`;
+                `;
             } else {
-                contentHtml = \`
+                contentHtml = `
                     <div style="text-align: center; margin-bottom: 25px;">
                         <div style="font-size: 60px; margin-bottom: 10px;">🌹</div>
                         <h2 style="color: var(--primary-color); margin-bottom: 10px;">
@@ -518,15 +518,15 @@
                             نتطلع لخدمتك مرة أخرى
                         </p>
                     </div>
-                \`;
+                `;
             }
             
-            container.innerHTML = \`
+            container.innerHTML = `
                 <div style="text-align: center;">
-                    \${contentHtml}
+                    ${contentHtml}
                     
                     <!-- زيارة الموقع الرسمي -->
-                    <a href="\${WEBSITE_URL}" target="_blank" rel="noopener"
+                    <a href="${WEBSITE_URL}" target="_blank" rel="noopener"
                        style="display: flex; align-items: center; justify-content: center; gap: 10px;
                               padding: 16px; background: transparent; 
                               border: 2px solid var(--primary-color); color: var(--primary-color);
@@ -536,14 +536,14 @@
                     </a>
                     
                     <!-- تقييم Google Maps -->
-                    <a href="\${GOOGLE_MAPS_URL}" target="_blank" rel="noopener"
+                    <a href="${GOOGLE_MAPS_URL}" target="_blank" rel="noopener"
                        style="display: flex; align-items: center; justify-content: center; gap: 10px;
-                              padding: 16px; background: \${!hasRated ? 'transparent' : '#4285F4'}; 
-                              border: \${!hasRated ? '1px solid #4285F4' : 'none'}; 
-                              color: \${!hasRated ? '#4285F4' : 'white'};
+                              padding: 16px; background: ${!hasRated ? 'transparent' : '#4285F4'}; 
+                              border: ${!hasRated ? '1px solid #4285F4' : 'none'}; 
+                              color: ${!hasRated ? '#4285F4' : 'white'};
                               text-decoration: none; border-radius: 50px; font-weight: bold; 
                               margin-bottom: 20px; font-size: 15px;">
-                        📍 \${!hasRated ? 'أو قيّمنا على خرائط Google' : 'شارك تجربتك على خرائط Google'}
+                        📍 ${!hasRated ? 'أو قيّمنا على خرائط Google' : 'شارك تجربتك على خرائط Google'}
                     </a>
                     
                     <!-- السوشيال ميديا -->
@@ -569,7 +569,7 @@
                         إغلاق التطبيق
                     </button>
                 </div>
-            \`;
+            `;
         }
 
         // ============================================
@@ -592,7 +592,7 @@
         function startPolling() {
             pollInterval = setInterval(async () => {
                 try {
-                    const res = await fetch(\`/api/pager/\${pagerToken}?t=\${Date.now()}\`);
+                    const res = await fetch(`/api/pager/${pagerToken}?t=${Date.now()}`);
                     const data = await res.json();
                     
                     if (!data.success) return;
@@ -634,7 +634,7 @@
             
             if (Notification.permission === "granted") {
                 new Notification("Yellow Rose 🌹", {
-                    body: \`طلبك رقم \${orderNumber} أصبح جاهزاً للاستلام!\`,
+                    body: `طلبك رقم ${orderNumber} أصبح جاهزاً للاستلام!`,
                     icon: "/assets/logo.png"
                 });
             }
@@ -649,11 +649,11 @@
             
             if (now - lastCall < CALL_COOLDOWN_MS) {
                 const remaining = Math.ceil((CALL_COOLDOWN_MS - (now - lastCall)) / 1000);
-                showToast(\`⏱️ انتظر \${remaining} ثانية قبل إعادة النداء\`);
+                showToast(`⏱️ انتظر ${remaining} ثانية قبل إعادة النداء`);
                 return;
             }
             
-            const btnId = \`call\${type.charAt(0).toUpperCase() + type.slice(1)}Btn\`;
+            const btnId = `call${type.charAt(0).toUpperCase() + type.slice(1)}Btn`;
             const btn = document.getElementById(btnId);
             if (btn) {
                 btn.disabled = true;
@@ -661,7 +661,7 @@
             }
             
             try {
-                const res = await fetch(\`/api/pager/\${pagerToken}/call\`, {
+                const res = await fetch(`/api/pager/${pagerToken}/call`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ type })
@@ -700,7 +700,7 @@
         function startScanner() {
             const instructions = document.createElement('div');
             instructions.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 9999; padding: 30px; display: flex; align-items: center; justify-content: center;';
-            instructions.innerHTML = \`
+            instructions.innerHTML = `
                 <div style="max-width: 400px; text-align: center;">
                     <div style="font-size: 60px; margin-bottom: 20px;">📷</div>
                     <h3 style="color: #fff; margin-bottom: 20px;">كيفية مسح الباركود</h3>
@@ -716,7 +716,7 @@
                         فهمت ✓
                     </button>
                 </div>
-            \`;
+            `;
             document.body.appendChild(instructions);
         }
 
@@ -733,7 +733,7 @@
             }
             
             try {
-                const res = await fetch(\`/api/orders/\${encodeURIComponent(input)}/token\`);
+                const res = await fetch(`/api/orders/${encodeURIComponent(input)}/token`);
                 const data = await res.json();
                 
                 if (data.success) {

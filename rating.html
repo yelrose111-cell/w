@@ -326,7 +326,7 @@
             
             // عرض رقم الطلب
             document.getElementById('orderIdDisplay').innerHTML = 
-                `📋 رقم الطلب: <strong>\${orderId}</strong>`;
+                `📋 رقم الطلب: <strong>${orderId}</strong>`;
             
             // إعداد النجوم
             setupStars();
@@ -436,7 +436,7 @@
             const thankYouScreen = document.getElementById('thankYouScreen');
             thankYouScreen.classList.remove('hidden');
             
-            thankYouScreen.innerHTML = \`
+            thankYouScreen.innerHTML = `
                 <div style="text-align: center; padding: 20px 0;">
                     
                     <!-- أيقونة النجاح -->
@@ -452,7 +452,7 @@
                     
                     <!-- عرض التقييم المقدم -->
                     <div style="margin: 15px 0; font-size: 22px;">
-                        \${starsHtml}
+                        ${starsHtml}
                     </div>
                     
                     <p style="color: #ccc; margin-bottom: 25px; line-height: 1.7;">
@@ -505,7 +505,7 @@
                         🌹 Yellow Rose — هنا حيث تزهر مشاعرك
                     </p>
                 </div>
-            \`;
+            `;
         }
 
         // ============================================
