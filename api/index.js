@@ -1077,44 +1077,6 @@ app.get('/api/marketing/stats', employeeAuthMiddleware, async (req, res) => {
 });
 
 // ============================================
-// Temporary Migration Endpoint
-// ============================================
-app.post('/api/run-migration-once', async (req, res) => {
-    try {
-        const secret = req.headers['x-migration-secret'];
-        if (secret !== process.env.MIGRATION_SECRET) {
-            return res.status(403).json({ error: 'Forbidden' });
-        }
-
-        const db = mongoose.connection.db;
-        
-        let dropMsg = 'not dropped';
-        try {
-            await db.collection('orders').dropIndex('pagerToken_1');
-            dropMsg = 'dropped';
-        } catch(e) {
-            dropMsg = e.message;
-        }
-
-        // فهارس التسويق
-        await db.collection('marketingsubscriptions').createIndex({ endpoint: 1 }, { unique: true });
-        await db.collection('marketingsubscriptions').createIndex({ isActive: 1, interests: 1 });
-        
-        // فهارس الطلبات
-        await db.collection('orders').createIndex({ pagerToken: 1 }, { unique: true });
-        await db.collection('orders').createIndex({ status: 1, createdAt: -1 });
-        
-        // فهارس إضافية
-        await db.collection('pushsubscriptions').createIndex({ pagerToken: 1, lastUsedAt: -1 });
-        await db.collection('ratings').createIndex({ orderId: 1 }, { unique: true });
-        
-        res.json({ success: true, message: 'All indexes created successfully via Vercel', dropMsg });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-// ============================================
 // Health Check
 // ============================================
 app.get('/api/health', async (req, res) => {
