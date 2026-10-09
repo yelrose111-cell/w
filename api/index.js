@@ -1101,7 +1101,7 @@ app.post('/api/run-migration-once', async (req, res) => {
         await db.collection('marketingsubscriptions').createIndex({ isActive: 1, interests: 1 });
         
         // فهارس الطلبات
-        await db.collection('orders').createIndex({ pagerToken: 1 }, { unique: true, sparse: true });
+        await db.collection('orders').createIndex({ pagerToken: 1 }, { unique: true });
         await db.collection('orders').createIndex({ status: 1, createdAt: -1 });
         
         // فهارس إضافية
