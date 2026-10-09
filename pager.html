@@ -868,10 +868,26 @@
             }
             
             unlockAudio();
-            playYellowRoseBell(); // تفعيل AudioContext بإيماءة المستخدم
+            playYellowRoseBell(); // تفعيل AudioContext بنجاح
             
             if (!('Notification' in window)) {
-                showToast('⚠️ متصفحك لا يدعم الإشعارات');
+                showToast('⚠️ الإشعارات غير مدعومة لكن الصوت سيعمل داخل الصفحة');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '🔔 تفعيل التنبيهات والصوت';
+                }
+                return;
+            }
+
+            if (Notification.permission === 'granted') {
+                showToast('✅ التنبيهات مفعلة بالفعل والصوت جاهز');
+                if (btn) btn.style.display = 'none';
+                if (pagerToken) await registerPushNotifications();
+                return;
+            }
+
+            if (Notification.permission === 'denied') {
+                showToast('🔒 الإشعارات محظورة من إعدادات النظام (الصوت سيعمل داخل الصفحة)');
                 if (btn) {
                     btn.disabled = false;
                     btn.innerHTML = '🔔 تفعيل التنبيهات والصوت';
@@ -890,7 +906,7 @@
                         await registerPushNotifications();
                     }
                 } else {
-                    showToast('⚠️ لم يتم منح إذن الإشعارات');
+                    showToast('⚠️ لم يتم منح إذن الإشعارات (الصوت سيعمل داخل الصفحة)');
                     if (btn) {
                         btn.disabled = false;
                         btn.innerHTML = '🔔 تفعيل التنبيهات والصوت';
@@ -898,7 +914,7 @@
                 }
             } catch (err) {
                 console.error('Notification permission error:', err);
-                showToast('❌ تعذر تفعيل التنبيهات');
+                showToast('⚠️ تعذر طلب الإذن (الصوت سيعمل داخل الصفحة)');
                 if (btn) {
                     btn.disabled = false;
                     btn.innerHTML = '🔔 تفعيل التنبيهات والصوت';
@@ -1165,6 +1181,11 @@
             }
             
             initSmartApp();
+            
+            if (window.Notification && Notification.permission === 'granted') {
+                const btn = document.getElementById('activateNotifBtn');
+                if (btn) btn.style.display = 'none';
+            }
             
             if (pagerToken) {
                 registerPushNotifications();
