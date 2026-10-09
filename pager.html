@@ -22,7 +22,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     
     <!-- مكتبة ماسح الباركود المدمج -->
-    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" crossorigin="anonymous"></script>
     
     <style>
         :root {
@@ -430,6 +430,17 @@
         </div>
         <div id="qr-reader"></div>
         <p class="scanner-hint">وجّه الكاميرا نحو باركود الطلب</p>
+        
+        <!-- مسح من صورة الباركود (الاستوديو) -->
+        <input type="file" id="qr-file-input" accept="image/*" style="display: none;">
+        <button id="scan-file-btn" class="scan-btn" onclick="document.getElementById('qr-file-input').click()" style="margin-top: 15px; border-radius: 50px; background: rgba(226, 185, 59, 0.15); border: 1px solid var(--primary-color); color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; width: auto; max-width: 320px; margin-left: auto; margin-right: auto; padding: 12px 24px; font-size: 14px; cursor: pointer;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+            <span>اختيار صورة الباركود من الاستوديو</span>
+        </button>
     </div>
 
     <!-- Toast Notification -->
@@ -542,12 +553,16 @@
                     
                     <button class="btn" onclick="startQrScanner()" 
                             style="background: linear-gradient(135deg, #d4af37, #f6e27a); color: #000;">
-                        📷 مسح باركود الطلب
+                        📷 مسح باركود الطلب بالكاميرا
+                    </button>
+                    
+                    <button class="btn" onclick="document.getElementById('qr-file-input').click()" 
+                            style="background: rgba(255, 255, 255, 0.08); border: 1px dashed var(--primary-color); color: var(--primary-color);">
+                        🖼️ اختيار صورة الباركود من الاستوديو
                     </button>
                     
                     <button class="btn" onclick="showManualInput()" 
-                            style="background: transparent; border: 2px solid var(--primary-color); 
-                                   color: var(--primary-color);">
+                            style="background: transparent; border: 1px solid #555; color: #ccc;">
                         🔢 إدخال رمز المتابعة يدوياً
                     </button>
                     
@@ -847,19 +862,71 @@
             showToast('🔔 تم تشغيل صوت التنبيه والاهتزاز');
         }
 
+        let isAudioUnlocked = false;
+
         function unlockAudio() {
-            const audio = document.getElementById('cleanAlarmSound');
-            if (audio) {
-                audio.play().then(() => {
-                    audio.pause();
-                    audio.currentTime = 0;
-                }).catch(e => console.log('Audio unlock failed:', e));
-            }
+            if (isAudioUnlocked) return;
+            try {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) {
+                    const ctx = new AudioContextClass();
+                    if (ctx.state === 'suspended') {
+                        ctx.resume();
+                    }
+                }
+                const audio = document.getElementById('cleanAlarmSound');
+                if (audio) {
+                    audio.play().then(() => {
+                        audio.pause();
+                        audio.currentTime = 0;
+                        isAudioUnlocked = true;
+                        console.log('✅ Audio context unlocked');
+                    }).catch(() => {});
+                }
+            } catch(e) {}
         }
 
+        document.addEventListener('click', unlockAudio, { once: true });
+        document.addEventListener('touchstart', unlockAudio, { once: true });
+
         // ============================================
-        // 8. تفعيل إشعارات الـ Push
+        // 8. نافذة إرشادات الإشعارات وتفعيل الـ Push
         // ============================================
+        function showNotificationSettingsModal() {
+            const existing = document.getElementById('notif-settings-modal');
+            if (existing) existing.remove();
+
+            const modal = document.createElement('div');
+            modal.id = 'notif-settings-modal';
+            modal.style.cssText = `
+                position: fixed; inset: 0; background: rgba(0,0,0,0.88); z-index: 10000;
+                display: flex; align-items: center; justify-content: center; padding: 20px;
+            `;
+            modal.innerHTML = `
+                <div style="background: #1c1c1e; border: 1px solid var(--primary-color); border-radius: 20px; max-width: 380px; width: 100%; padding: 25px; text-align: center; color: #fff; direction: rtl; box-shadow: 0 10px 40px rgba(0,0,0,0.6);">
+                    <div style="font-size: 44px; margin-bottom: 10px;">🔔</div>
+                    <h3 style="color: var(--primary-color); margin-bottom: 12px; font-size: 18px;">تفعيل إشعارات التنبيه</h3>
+                    <p style="color: #ccc; font-size: 14px; line-height: 1.6; margin-bottom: 15px;">
+                        الإشعارات محظورة حالياً في إعدادات النظام أو المتصفح. لتلقي تنبيهات عند جاهزية طلبك:
+                    </p>
+                    <div style="background: #2a2a2a; padding: 14px 16px; border-radius: 12px; text-align: right; font-size: 13px; line-height: 1.8; color: #ddd; margin-bottom: 16px;">
+                        1️⃣ اضغط على أيقونة <strong>القفل 🔒</strong> أو <strong>الإعدادات ⚙️</strong> بجانب الرابط.<br>
+                        2️⃣ اختر <strong>الإشعارات (Notifications)</strong>.<br>
+                        3️⃣ غيّر الخيار إلى <strong>سماح (Allow)</strong>.<br>
+                        <span style="color: #E2B93B; display: block; margin-top: 6px; font-size: 12px;">* مستخدمي الماك/آيفون: افتح (إعدادات النظام ➔ الإشعارات ➔ YR Pager).</span>
+                    </div>
+                    <div style="background: rgba(46, 204, 113, 0.12); border: 1px solid #2ecc71; border-radius: 10px; padding: 10px; font-size: 13px; color: #2ecc71; margin-bottom: 20px;">
+                        💡 <strong>تأكيد:</strong> صوت الجرس والاهتزاز يعملان داخل الصفحة دائماً وبدون أي إذن!
+                    </div>
+                    <button onclick="document.getElementById('notif-settings-modal').remove()" style="
+                        background: var(--primary-gradient); color: #000; border: none; padding: 13px 30px;
+                        border-radius: 50px; font-weight: bold; cursor: pointer; width: 100%; font-size: 15px; font-family: inherit;
+                    ">فهمت ✓</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        }
+
         async function activateNotifications() {
             const btn = document.getElementById('activateNotifBtn');
             if (btn) {
@@ -887,7 +954,7 @@
             }
 
             if (Notification.permission === 'denied') {
-                showToast('🔒 الإشعارات محظورة من إعدادات النظام (الصوت سيعمل داخل الصفحة)');
+                showNotificationSettingsModal();
                 if (btn) {
                     btn.disabled = false;
                     btn.innerHTML = '🔔 تفعيل التنبيهات والصوت';
@@ -899,14 +966,10 @@
                 const permission = await Notification.requestPermission();
                 if (permission === 'granted') {
                     showToast('✅ تم تفعيل التنبيهات بنجاح');
-                    if (btn) {
-                        btn.style.display = 'none';
-                    }
-                    if (pagerToken) {
-                        await registerPushNotifications();
-                    }
+                    if (btn) btn.style.display = 'none';
+                    if (pagerToken) await registerPushNotifications();
                 } else {
-                    showToast('⚠️ لم يتم منح إذن الإشعارات (الصوت سيعمل داخل الصفحة)');
+                    showNotificationSettingsModal();
                     if (btn) {
                         btn.disabled = false;
                         btn.innerHTML = '🔔 تفعيل التنبيهات والصوت';
@@ -914,7 +977,7 @@
                 }
             } catch (err) {
                 console.error('Notification permission error:', err);
-                showToast('⚠️ تعذر طلب الإذن (الصوت سيعمل داخل الصفحة)');
+                showNotificationSettingsModal();
                 if (btn) {
                     btn.disabled = false;
                     btn.innerHTML = '🔔 تفعيل التنبيهات والصوت';
@@ -956,7 +1019,7 @@
         }
 
         // ============================================
-        // 9. ماسح الباركود المدمج (QR Scanner)
+        // 9. ماسح الباركود المدمج (كاميرا + استوديو)
         // ============================================
         let html5QrCode = null;
 
@@ -975,7 +1038,8 @@
                     { facingMode: 'environment' },
                     {
                         fps: 10,
-                        qrbox: { width: 250, height: 250 }
+                        qrbox: { width: 250, height: 250 },
+                        aspectRatio: 1.0
                     },
                     onScanSuccess,
                     onScanFailure
@@ -983,8 +1047,7 @@
                 console.log('✅ QR Scanner started');
             } catch (error) {
                 console.error('❌ QR Scanner error:', error);
-                alert('تعذر فتح الكاميرا. يرجى التأكد من منح صلاحية الكاميرا للمتصفح والتأكد من استخدام رابط آمن (HTTPS).');
-                closeScanner();
+                alert('تعذر فتح الكاميرا. يمكنك استخدام خيار "اختيار صورة الباركود من الاستوديو" بالأسفل.');
             }
         }
 
@@ -995,13 +1058,14 @@
                     html5QrCode.clear();
                     html5QrCode = null;
                 }).catch(err => {
-                    console.warn('Error stopping scanner:', err);
                     html5QrCode = null;
                 });
             }
             if (scannerContainer) {
                 scannerContainer.style.display = 'none';
             }
+            const hint = document.querySelector('.scanner-hint');
+            if (hint) hint.innerText = 'وجّه الكاميرا نحو باركود الطلب';
         }
 
         function onScanSuccess(decodedText) {
@@ -1011,42 +1075,58 @@
             if (!decodedText) return;
             
             try {
-                // إذا كان رابطاً كاملاً
+                const allowedOrigin = window.location.origin;
+
+                // 1. إذا كان رابطاً كاملاً - فحص أمني ضد Open Redirect
                 if (decodedText.startsWith('http://') || decodedText.startsWith('https://')) {
                     const url = new URL(decodedText);
-                    const token = url.searchParams.get('token');
-                    if (token && /^[a-f0-9]{16,32}$/.test(token)) {
-                        localStorage.setItem(STORAGE_KEY, token);
-                        window.location.href = `/pager.html?token=${token}`;
+                    
+                    // منع إعادة التوجيه لروابط خارجية غير موثوقة
+                    if (url.origin !== allowedOrigin) {
+                        alert('⚠️ هذا الباركود يحمل رابطاً غير موثوق ولا ينتمي لـ Yellow Rose.');
                         return;
                     }
+
                     if (url.pathname.includes('pager.html')) {
-                        window.location.href = decodedText;
+                        const token = url.searchParams.get('token');
+                        if (token && /^[a-f0-9]{16,32}$/.test(token)) {
+                            localStorage.setItem(STORAGE_KEY, token);
+                            window.location.href = `/pager.html?token=${encodeURIComponent(token)}`;
+                            return;
+                        } else {
+                            alert('الباركود لا يحتوي على معرف طلب صالح.');
+                            return;
+                        }
+                    } else {
+                        window.open(url.href, '_blank', 'noopener');
                         return;
                     }
                 }
                 
-                // إذا كان التوكن مباشرة
+                // 2. إذا كان المقروء هو التوكن مباشرة
                 const trimmed = decodedText.trim();
                 if (/^[a-f0-9]{16,32}$/.test(trimmed)) {
                     localStorage.setItem(STORAGE_KEY, trimmed);
-                    window.location.href = `/pager.html?token=${trimmed}`;
+                    window.location.href = `/pager.html?token=${encodeURIComponent(trimmed)}`;
                     return;
                 }
             } catch (e) {
                 console.warn('Parse QR error:', e);
             }
             
-            if (decodedText.startsWith('http://') || decodedText.startsWith('https://')) {
-                window.location.href = decodedText;
-            } else {
-                alert('باركود غير صالح، يرجى مسح باركود طلب Yellow Rose');
-            }
+            alert('الباركود غير صالح أو تالف.');
         }
 
         function onScanFailure(error) {
             // تجاهل أخطاء البحث أثناء المسح التلقائي
         }
+
+        // إيقاف الكاميرا فوراً إذا غادر المستخدم الصفحة أو قلل التطبيق
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && html5QrCode) {
+                closeScanner();
+            }
+        });
 
         window.addEventListener('beforeunload', () => {
             if (html5QrCode) {
@@ -1187,6 +1267,30 @@
                 if (btn) btn.style.display = 'none';
             }
             
+            // ربط مسح الباركود من صور الاستوديو
+            const fileInput = document.getElementById('qr-file-input');
+            if (fileInput) {
+                fileInput.addEventListener('change', async (e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    if (!html5QrCode) html5QrCode = new Html5Qrcode('qr-reader');
+                    
+                    try {
+                        const hint = document.querySelector('.scanner-hint');
+                        if (hint) hint.innerText = 'جاري تحليل الصورة...';
+                        
+                        const decodedText = await html5QrCode.scanFile(file, true);
+                        onScanSuccess(decodedText);
+                    } catch (err) {
+                        alert('لم يتم العثور على باركود واضح في هذه الصورة. يرجى تجربة صورة أخرى أو توجيه الكاميرا.');
+                        const hint = document.querySelector('.scanner-hint');
+                        if (hint) hint.innerText = 'وجّه الكاميرا نحو باركود الطلب';
+                    }
+                    e.target.value = '';
+                });
+            }
+
             if (pagerToken) {
                 registerPushNotifications();
             }

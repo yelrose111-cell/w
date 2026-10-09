@@ -84,42 +84,90 @@ async function handleLogin(e) {
   }
 }
 
+let ordersPollingTimer = null;
+let lastKnownOrdersCount = 0;
+
+function playNewOrderChime() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+    osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.4);
+  } catch(e) {}
+}
+
+function startPollingOrders() {
+  if (ordersPollingTimer) clearInterval(ordersPollingTimer);
+  ordersPollingTimer = setInterval(() => {
+    fetchOrders(true);
+  }, 5000);
+}
+
+function stopPollingOrders() {
+  if (ordersPollingTimer) {
+    clearInterval(ordersPollingTimer);
+    ordersPollingTimer = null;
+  }
+}
+
 async function handleLogout() {
+  stopPollingOrders();
   await fetch('/api/auth/logout', { method: 'POST' });
   showLogin();
   document.getElementById('pinInput').value = '';
 }
 
 function showLogin() {
+  stopPollingOrders();
   document.getElementById('loginOverlay').style.display = 'flex';
   document.getElementById('mainContent').style.display = 'none';
 }
 function showDashboard() {
   document.getElementById('loginOverlay').style.display = 'none';
   document.getElementById('mainContent').style.display = 'block';
+  startPollingOrders();
 }
 
-async function fetchOrders() {
+async function fetchOrders(isSilent = false) {
   const icon = document.getElementById('refreshIcon');
-  if (icon) icon.className = 'fas fa-spinner spinner';
+  if (icon && !isSilent) icon.className = 'fas fa-spinner spinner';
 
   try {
     const res = await fetch('/api/orders');
     if (res.status === 401 || res.status === 403) {
+      stopPollingOrders();
       showLogin();
       return;
     }
     const data = await res.json();
     if (data.success) {
-      allOrders = (data.orders || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      const newOrders = (data.orders || []).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      
+      if (lastKnownOrdersCount > 0 && newOrders.length > lastKnownOrdersCount) {
+        playNewOrderChime();
+        showToast('🔔 وصل طلب جديد للتو!');
+      }
+      lastKnownOrdersCount = newOrders.length;
+      allOrders = newOrders;
+      
       applyFilters();
       updateStats();
-      showToast('تم تحديث الطلبات ✓');
+      if (!isSilent) showToast('تم تحديث الطلبات ✓');
     }
   } catch {
-    showToast('خطأ في الاتصال بالخادم');
+    if (!isSilent) showToast('خطأ في الاتصال بالخادم');
   } finally {
-    if (icon) icon.className = 'fas fa-sync-alt';
+    if (icon && !isSilent) icon.className = 'fas fa-sync-alt';
   }
 }
 
@@ -201,6 +249,23 @@ function renderOrders(orders) {
         
         const waPhone = (order.customerPhone || '').replace(/\D/g, '');
         
+        let reviewSection = '';
+        if (order.review && order.review.rating) {
+            const safeRating = Math.min(5, Math.max(1, order.review.rating));
+            const stars = '⭐'.repeat(safeRating);
+            const safeComment = order.review.comment 
+                ? `<div style="font-size: 0.85rem; color: #166534; margin-top: 4px;">"${escapeHtml(order.review.comment)}"</div>` 
+                : '<div style="font-size: 0.8rem; color: #888; margin-top: 2px;">(عميل لم يترك تعليقاً)</div>';
+            reviewSection = `
+                <div class="order-review" style="margin-top: 0.6rem; background: #f0fdf4; border-radius: 8px; padding: 0.6rem 0.8rem; border: 1px solid #bbf7d0;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <span style="font-weight: 700; font-size: 0.85rem; color: #166534;"><i class="fas fa-star" style="color: #f59e0b;"></i> تقييم العميل</span>
+                        <span style="font-size: 0.95rem; letter-spacing: 2px;">${stars}</span>
+                    </div>
+                    ${safeComment}
+                </div>`;
+        }
+
         const card = document.createElement('article');
         card.className = 'order-card';
         card.id = `order-${safeOrderId}`;
@@ -233,6 +298,7 @@ function renderOrders(orders) {
                 </div>
                 ${tags.length > 0 ? `<div class="tags">${tags.join('')}</div>` : ''}
                 ${cardSection}
+                ${reviewSection}
             </div>
             
             <div class="card-footer">

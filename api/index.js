@@ -608,6 +608,21 @@ app.get('/api/orders', employeeAuthMiddleware, async (req, res) => {
         const status = req.query.status;
         const filter = status && status !== 'all' ? { status } : {};
         const items = await Order.find(filter).sort({ createdAt: -1 }).limit(500).lean();
+        
+        if (items.length > 0) {
+            const orderIds = items.map(o => o.orderId);
+            const ratings = await Rating.find({ orderId: { $in: orderIds } }).lean();
+            const ratingMap = {};
+            ratings.forEach(r => {
+                ratingMap[r.orderId] = { rating: r.rating, comment: r.comment, createdAt: r.createdAt };
+            });
+            items.forEach(o => {
+                if (ratingMap[o.orderId]) {
+                    o.review = ratingMap[o.orderId];
+                }
+            });
+        }
+        
         res.json({ success: true, orders: items });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
