@@ -178,7 +178,14 @@
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
-        const pagerToken = urlParams.get('token');
+        let pagerToken = urlParams.get('token');
+        
+        // Save to localStorage so it survives Add to Home Screen (PWA)
+        if (pagerToken) {
+            localStorage.setItem('yellowrose_pager_token', pagerToken);
+        } else {
+            pagerToken = localStorage.getItem('yellowrose_pager_token');
+        }
         let orderNumber = '---';
         let pollInterval = null;
         let audioCtx = null;
