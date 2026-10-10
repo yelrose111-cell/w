@@ -973,30 +973,45 @@ app.get('/api/migrate-codes', authMiddleware, async (req, res) => {
 // ============================================
 app.post('/api/ratings', ratingLimiter, async (req, res) => {
     try {
-        const { orderId, rating, comment } = req.body;
+        let { orderId, rating, comment } = req.body;
         
-        if (!orderId || !/^[A-Z]{2,3}-[\dA-Z-]{4,15}$/i.test(orderId)) {
-            return res.status(400).json({ success: false, error: 'رقم الطلب غير صالح' });
+        if (!orderId) {
+            return res.status(400).json({ success: false, error: 'رقم الطلب مطلوب' });
+        }
+        
+        const rawId = String(orderId).trim().toUpperCase();
+        const formattedId = rawId.startsWith('YR-') ? rawId : `YR-${rawId}`;
+
+        if (!/^[A-Z]{2,3}-[\dA-Z-]{4,15}$/i.test(formattedId)) {
+            return res.status(400).json({ success: false, error: 'صيغة رقم الطلب غير صحيحة' });
         }
         
         if (!rating || typeof rating !== 'number' || rating < 1 || rating > 5) {
-            return res.status(400).json({ success: false, error: 'تقييم غير صالح' });
+            return res.status(400).json({ success: false, error: 'يرجى اختيار عدد النجوم (من 1 إلى 5)' });
         }
         
-        const order = await Order.findOne({ orderId }).lean();
+        const order = await Order.findOne({
+            $or: [
+                { orderId: rawId },
+                { orderId: formattedId }
+            ]
+        }).lean();
+
         if (!order) {
-            return res.status(404).json({ success: false, error: 'الطلب غير موجود' });
+            return res.status(404).json({ success: false, error: 'الطلب غير موجود في النظام' });
         }
 
-        const existingRating = await Rating.findOne({ orderId });
+        const targetOrderId = order.orderId;
+
+        const existingRating = await Rating.findOne({ orderId: targetOrderId });
         if (existingRating) {
-            return res.status(400).json({ success: false, error: 'لقد قمت بتقييم هذا الطلب مسبقاً' });
+            return res.status(400).json({ success: false, error: 'لقد قمت بتقييم هذا الطلب مسبقاً، شكراً لك!' });
         }
 
         const savedRating = await Rating.create({
-            orderId,
+            orderId: targetOrderId,
             rating,
-            comment: comment || '',
+            comment: comment ? String(comment).trim() : '',
             customerName: order.customerName,
             customerPhone: order.customerPhone
         });

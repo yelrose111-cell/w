@@ -339,7 +339,7 @@ function renderOrders(orders) {
                 ${order.pagerToken && order.status !== 'ready' && order.status !== 'completed' ? `<button class="action-btn btn-dark" onclick="showQrModal('${escapeHtml(order.pagerToken)}', '${safeOrderId}', '${escapeHtml(order.customerPhone && order.customerPhone !== '0500000000' && order.customerPhone !== '0000000000' ? order.customerPhone : '')}', '${safeCustomerName}')">
                     <i class="fas fa-qrcode"></i> باركود ومشاركة
                 </button>` : ''}
-                ${order.status === 'completed' ? `<button class="action-btn btn-dark" onclick="showRatingQrModal('${safeOrderId}')">
+                ${order.status === 'completed' ? `<button class="action-btn btn-dark" onclick="showRatingQrModal('${safeOrderId}', '${escapeHtml(order.customerPhone && order.customerPhone !== '0500000000' && order.customerPhone !== '0000000000' ? order.customerPhone : '')}', '${safeCustomerName}')">
                     <i class="fas fa-star"></i> تقييم
                 </button>` : ''}
                 ${waPhone && waPhone !== '0000000000' && waPhone !== '0500000000' ? `<a class="action-btn btn-green" href="https://wa.me/${formatWhatsAppPhone(order.customerPhone)}?text=${encodeURIComponent(buildOrderShareMessage(safeOrderId, window.location.origin + '/pager.html?token=' + encodeURIComponent(safeOrderId), safeCustomerName))}" target="_blank" rel="noopener" title="إرسال رابط المتابعة للعميل">
@@ -408,7 +408,7 @@ async function updateStatus(orderId, newStatus) {
       renderOrders(allOrders);
       showToast('تم تحديث حالة الطلب ✓');
       if (newStatus === 'completed') {
-        showRatingQrModal(orderId);
+        showRatingQrModal(orderId, order?.customerPhone, order?.customerName);
       }
     } else {
       showToast('فشل تحديث الحالة ✗');
@@ -572,7 +572,7 @@ function showQrModal(token, orderId = null, customerPhone = null, customerName =
   modal.classList.add('active');
 }
 
-function showRatingQrModal(orderId) {
+function showRatingQrModal(orderId, customerPhone = null, customerName = null) {
   const modal = document.getElementById('qrModal');
   const ratingUrl = window.location.origin + '/rating.html?order=' + encodeURIComponent(orderId);
   
@@ -583,7 +583,9 @@ function showRatingQrModal(orderId) {
 
   const custDisplay = document.getElementById('qrCustomerDisplay');
   if (custDisplay) {
-    custDisplay.textContent = '🌟 نسعد برأيك وتقييمك لخدمتنا';
+    custDisplay.textContent = (customerName && customerName !== '---')
+      ? `👤 العميل: ${customerName} | 🌟 نسعد برأيك وتقييمك لخدمتنا`
+      : '🌟 نسعد برأيك وتقييمك لخدمتنا';
   }
   
   new QRious({
@@ -594,12 +596,28 @@ function showRatingQrModal(orderId) {
     foreground: 'black'
   });
 
-  const ratingText = `عميلنا العزيز في Yellow Rose، نسعد بتقييم تجربتك معنا للطلب رقم *${orderId}* عبر الرابط التالي:\n${ratingUrl}`;
+  const ratingGreeting = (customerName && customerName !== '---')
+    ? `مرحباً بك عميلنا العزيز ${customerName} في Yellow Rose 💛`
+    : `مرحباً بك عميلنا العزيز في Yellow Rose 💛`;
 
+  const ratingText = `${ratingGreeting}
+
+يسعدنا ويشرفنا رأيك وتقييمك لتجربتك معنا للطلب رقم *${orderId}* عبر الرابط التالي:
+${ratingUrl}
+
+رأيك يهمنا ويساعدنا دائماً على تقديم الأفضل ✨`;
+
+  const cleanPhone = formatWhatsAppPhone(customerPhone);
   const waBtn = document.getElementById('qrWaShareBtn');
   if (waBtn) {
-    waBtn.href = `https://wa.me/?text=${encodeURIComponent(ratingText)}`;
-    waBtn.innerHTML = `<i class="fab fa-whatsapp" style="font-size: 1.25rem;"></i> إرسال رابط التقييم بالواتساب`;
+    const waUrl = cleanPhone 
+      ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(ratingText)}`
+      : `https://wa.me/?text=${encodeURIComponent(ratingText)}`;
+    waBtn.href = waUrl;
+    waBtn.style.display = 'flex';
+    waBtn.innerHTML = cleanPhone 
+      ? `<i class="fab fa-whatsapp" style="font-size: 1.25rem;"></i> إرسال رابط التقييم بالواتساب (${customerPhone})`
+      : `<i class="fab fa-whatsapp" style="font-size: 1.25rem;"></i> إرسال رابط التقييم بالواتساب`;
   }
 
   const nativeBtn = document.getElementById('qrNativeShareBtn');

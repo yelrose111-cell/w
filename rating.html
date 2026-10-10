@@ -84,20 +84,26 @@
         }
         
         .star {
-            font-size: 45px;
+            font-size: 46px;
             color: #444;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            display: inline-block;
+            padding: 2px 5px;
         }
         
         .star:hover,
         .star.active {
             color: var(--primary-color);
-            transform: scale(1.15);
+            transform: scale(1.18);
         }
         
         .star.active {
-            text-shadow: 0 0 15px rgba(212, 175, 55, 0.5);
+            text-shadow: 0 0 18px rgba(226, 185, 59, 0.6);
         }
         
         /* تعليق */
@@ -275,11 +281,16 @@
             
             <!-- النجوم -->
             <div class="stars-container" id="starsContainer">
-                <span class="star" data-rating="1">★</span>
-                <span class="star" data-rating="2">★</span>
-                <span class="star" data-rating="3">★</span>
-                <span class="star" data-rating="4">★</span>
-                <span class="star" data-rating="5">★</span>
+                <span class="star" data-rating="1" title="نجمة واحدة">★</span>
+                <span class="star" data-rating="2" title="نجمتان">★</span>
+                <span class="star" data-rating="3" title="3 نجوم">★</span>
+                <span class="star" data-rating="4" title="4 نجوم">★</span>
+                <span class="star" data-rating="5" title="5 نجوم">★</span>
+            </div>
+            
+            <!-- وصف التقييم التفاعلي -->
+            <div id="ratingText" style="color: #888; font-size: 15px; margin: -10px 0 20px; min-height: 24px; font-weight: 500; transition: all 0.2s;">
+                انقر على النجوم لتحديد تقييمك
             </div>
             
             <!-- التعليق -->
@@ -309,27 +320,53 @@
         // ============================================
         let selectedRating = 0;
         let orderId = null;
+
+        const ratingLabels = {
+            1: 'نعتذر منك، سنعمل جاهدين على التحسين 😞',
+            2: 'نأسف لعدم رضاك الكامل، ملاحظتك تهمنا 🙁',
+            3: 'شكراً لك، نسعى دائماً لتقديم الأفضل 😐',
+            4: 'سعداء جداً بتجربتك الرائعة 😊',
+            5: 'ممتاز وفوق التوقعات! نشكر ثقتك الغالية 🌟💛'
+        };
         
+        function escapeHtml(str) {
+            if (!str) return '';
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
         // ============================================
         // 1. التهيئة عند التحميل
         // ============================================
         document.addEventListener('DOMContentLoaded', () => {
+            // تفعيل النجوم دائماً وأولاً لضمان إمكانية التحديد
+            setupStars();
+
             // قراءة رقم الطلب من URL
             const urlParams = new URLSearchParams(window.location.search);
-            orderId = urlParams.get('order');
-            
-            // التحقق من صيغة رقم الطلب
-            if (!orderId || !/^[A-Z]{2,3}-\d{4}-\d{4}$/.test(orderId)) {
-                showError('رابط غير صالح. يرجى مسح الباركود من جديد.');
-                return;
+            let rawOrder = (urlParams.get('order') || urlParams.get('orderId') || urlParams.get('id') || '').trim();
+
+            if (rawOrder) {
+                rawOrder = rawOrder.toUpperCase();
+                if (!rawOrder.startsWith('YR-') && /^\d{4,8}$/.test(rawOrder)) {
+                    rawOrder = `YR-${rawOrder}`;
+                }
+                orderId = rawOrder;
+                
+                // عرض رقم الطلب
+                document.getElementById('orderIdDisplay').innerHTML = 
+                    `📋 رقم الطلب: <strong>${escapeHtml(orderId)}</strong>`;
+            } else {
+                // في حال فتح الرابط بدون معلمة، توفير حقل إدخال سلس
+                document.getElementById('orderIdDisplay').innerHTML = `
+                    <div style="text-align: right;">
+                        <label style="display: block; font-size: 13px; color: var(--primary-color); font-weight: bold; margin-bottom: 6px;">رقم الطلب:</label>
+                        <input type="text" id="manualOrderInput" placeholder="أدخل رقم طلبك (مثال: YR-726207)" 
+                               style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #444; background: #222; color: #fff; font-family: 'Tajawal', sans-serif; font-size: 15px; text-align: center; direction: ltr;">
+                    </div>
+                `;
             }
-            
-            // عرض رقم الطلب
-            document.getElementById('orderIdDisplay').innerHTML = 
-                `📋 رقم الطلب: <strong>${orderId}</strong>`;
-            
-            // إعداد النجوم
-            setupStars();
         });
 
         // ============================================
@@ -338,43 +375,79 @@
         function setupStars() {
             const stars = document.querySelectorAll('.star');
             
-            stars.forEach((star, index) => {
-                star.addEventListener('click', () => {
-                    selectedRating = index + 1;
+            stars.forEach((star) => {
+                const ratingValue = parseInt(star.getAttribute('data-rating')) || 1;
+
+                const handleSelect = (e) => {
+                    selectedRating = ratingValue;
                     updateStars();
+                };
+
+                star.addEventListener('click', handleSelect);
+                star.addEventListener('pointerdown', (e) => {
+                    if (e.pointerType === 'touch') {
+                        handleSelect(e);
+                    }
                 });
                 
                 star.addEventListener('mouseenter', () => {
-                    highlightStars(index + 1);
+                    highlightStars(ratingValue);
                 });
             });
             
             // إعادة التلوين الأصلي عند الخروج
-            document.getElementById('starsContainer').addEventListener('mouseleave', () => {
-                updateStars();
-            });
+            const container = document.getElementById('starsContainer');
+            if (container) {
+                container.addEventListener('mouseleave', () => {
+                    updateStars();
+                });
+            }
         }
 
         function updateStars() {
             const stars = document.querySelectorAll('.star');
-            stars.forEach((star, index) => {
-                if (index < selectedRating) {
+            const ratingText = document.getElementById('ratingText');
+
+            stars.forEach((star) => {
+                const val = parseInt(star.getAttribute('data-rating')) || 1;
+                star.style.color = '';
+                if (val <= selectedRating) {
                     star.classList.add('active');
                 } else {
                     star.classList.remove('active');
                 }
             });
+
+            if (ratingText) {
+                if (selectedRating > 0) {
+                    ratingText.textContent = ratingLabels[selectedRating] || `${selectedRating} من 5 نجوم`;
+                    ratingText.style.color = 'var(--primary-color)';
+                    ratingText.style.fontWeight = 'bold';
+                } else {
+                    ratingText.textContent = 'انقر على النجوم لتحديد تقييمك';
+                    ratingText.style.color = '#888';
+                    ratingText.style.fontWeight = 'normal';
+                }
+            }
         }
 
         function highlightStars(count) {
             const stars = document.querySelectorAll('.star');
-            stars.forEach((star, index) => {
-                if (index < count) {
+            const ratingText = document.getElementById('ratingText');
+
+            stars.forEach((star) => {
+                const val = parseInt(star.getAttribute('data-rating')) || 1;
+                if (val <= count) {
                     star.style.color = 'var(--primary-color)';
                 } else {
                     star.style.color = '#444';
                 }
             });
+
+            if (ratingText && count > 0) {
+                ratingText.textContent = ratingLabels[count] || `${count} من 5 نجوم`;
+                ratingText.style.color = 'var(--primary-color)';
+            }
         }
 
         // ============================================
@@ -384,6 +457,25 @@
             // التحقق من اختيار تقييم
             if (selectedRating === 0) {
                 showError('يرجى اختيار عدد النجوم أولاً');
+                return;
+            }
+
+            // التحقق من رقم الطلب (سواء من الرابط أو الإدخال اليدوي)
+            if (!orderId) {
+                const manual = (document.getElementById('manualOrderInput')?.value || '').trim();
+                if (manual) {
+                    let clean = manual.toUpperCase();
+                    if (!clean.startsWith('YR-') && /^\d{4,8}$/.test(clean)) {
+                        clean = `YR-${clean}`;
+                    }
+                    orderId = clean;
+                }
+            }
+
+            if (!orderId) {
+                showError('يرجى إدخال رقم الطلب لإتمام التقييم');
+                const inp = document.getElementById('manualOrderInput');
+                if (inp) inp.focus();
                 return;
             }
             
