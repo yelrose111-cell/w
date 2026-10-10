@@ -23,18 +23,18 @@ function formatWhatsAppPhone(phone) {
 
 function buildOrderShareMessage(orderId, pagerUrl, customerName) {
   const greeting = (customerName && customerName !== '---')
-    ? `مرحباً بك أستاذ/ة ${customerName} في Yellow Rose 💛`
-    : `مرحباً بك في Yellow Rose 💛`;
+    ? `مرحباً بك عميلنا العزيز ${customerName}، يسعدنا ونتشرف بخدمتك في Yellow Rose 💛`
+    : `مرحباً بك عميلنا العزيز، يسعدنا ونتشرف بخدمتك في Yellow Rose 💛`;
     
   return `${greeting}
 
-تم استلام وتجهيز طلبك برقم:
+تم استلام طلبك وبدأنا في تجهيزه بكل عناية واهتمام برقم:
 🔢 *${orderId}*
 
-📱 يمكنك متابعة حالة الطلب مباشرة واستلام تنبيه فوري عند الجاهزية عبر الرابط:
+📱 يمكنك متابعة حالة طلبك مباشرة واستلام تنبيه فوري عند جاهزيته عبر الرابط التالي:
 ${pagerUrl}
 
-نسعد دائماً بخدمتك ✨`;
+شاكرين وممتنين لاختيارك لنا، ونسعد دائماً بخدمتك ✨`;
 }
 
 // Cooldown tracking for ping buttons
