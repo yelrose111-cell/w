@@ -513,23 +513,22 @@
         // ============================================
         function initSmartApp() {
             const urlParams = new URLSearchParams(window.location.search);
-            const urlToken = urlParams.get('token');
+            const rawParam = urlParams.get('token') || urlParams.get('order');
             const savedToken = localStorage.getItem(STORAGE_KEY);
             
-            if (urlToken && /^[a-f0-9]{16,32}$/.test(urlToken)) {
-                // جاء من مسح باركود جديد
-                pagerToken = urlToken;
-                localStorage.setItem(STORAGE_KEY, urlToken);
+            const extracted = rawParam ? extractToken(rawParam) : null;
+            
+            if (extracted) {
+                pagerToken = extracted;
+                localStorage.setItem(STORAGE_KEY, extracted);
                 window.history.replaceState({}, '', '/pager.html');
                 checkOrderStatus();
                 
             } else if (savedToken) {
-                // فتح التطبيق من الشاشة الرئيسية
                 pagerToken = savedToken;
                 checkOrderStatus();
                 
             } else {
-                // لا يوجد أي طلب
                 showWelcomeScreen();
             }
         }
@@ -539,16 +538,27 @@
         // ============================================
         async function checkOrderStatus() {
             try {
-                const res = await fetch(`/api/pager/${pagerToken}`);
+                const res = await fetch(`/api/pager/${encodeURIComponent(pagerToken)}`);
                 const data = await res.json();
                 
                 if (!data.success) {
-                    showWelcomeScreen('رابط غير صالح أو طلب منتهي');
+                    showWelcomeScreen('رقم الطلب غير صحيح أو الرابط غير صالح');
                     return;
+                }
+                
+                // تحديث الـ Token في حال كان البحث برقم الطلب القصير
+                if (data.pagerToken) {
+                    pagerToken = data.pagerToken;
+                    localStorage.setItem(STORAGE_KEY, data.pagerToken);
                 }
                 
                 orderNumber = data.orderId;
                 document.getElementById('displayOrderNumWait').innerText = orderNumber;
+                
+                // تسجيل الإشعارات بالـ Token الحقيقي
+                if (pagerToken) {
+                    registerPushNotifications();
+                }
                 
                 // الحالة: طلب مكتمل
                 if (data.status === 'completed') {
@@ -596,19 +606,19 @@
                     ${messageHtml}
                     
                     <p style="color: #bbb; margin-bottom: 20px; line-height: 1.6; font-size: 15px;">
-                        ${message || 'لمتابعة حالة طلبك مباشرة، يرجى إدخال رابط الطلب أو رمز المتابعة:'}
+                        ${message || 'لمتابعة حالة طلبك مباشرة، يرجى إدخال رقم الطلب أو لصق الرابط:'}
                     </p>
                     
-                    <!-- حقل إدخال رابط الطلب للمتابعة اليدوية -->
+                    <!-- حقل إدخال رقم أو رابط الطلب للمتابعة -->
                     <div id="manualInputSection" style="margin-top: 15px;">
                         <input type="text" id="manualOrderInput" 
-                               placeholder="الصق رابط الطلب هنا أو رمز المتابعة"
+                               placeholder="أدخل رقم الطلب (مثال: 842915) أو الصق الرابط"
                                dir="ltr"
                                autocomplete="off"
                                onkeydown="if(event.key === 'Enter') submitManualOrderLink()"
                                style="width: 100%; padding: 15px 16px; border-radius: 12px; 
                                       border: 1px solid var(--primary-color); background: #222; color: #fff;
-                                      text-align: center; font-size: 14px; outline: none; margin-bottom: 14px;
+                                      text-align: center; font-size: 15px; outline: none; margin-bottom: 14px;
                                       box-shadow: 0 0 15px rgba(212, 175, 55, 0.15);">
                         <button onclick="submitManualOrderLink()" class="btn" 
                                 style="background: linear-gradient(135deg, #d4af37, #f6e27a); color: #000; font-weight: bold; font-size: 16px; padding: 14px;">
@@ -1226,34 +1236,57 @@
         }
 
         // ============================================
-        // 11. استخراج الرمز والمتابعة بالرابط
+        // 11. استخراج الرمز أو رقم الطلب والمتابعة
         // ============================================
         function extractToken(rawInput) {
             if (!rawInput) return null;
             const text = rawInput.trim();
             
-            // 1. إذا كان الرمز المباشر 16-32 hex
+            // 1. رقم طلب مباشر مكون من 6 أرقام (مثال: 842915)
+            if (/^\d{6}$/.test(text)) {
+                return `YR-${text}`;
+            }
+            
+            // 2. رقم طلب بصيغة YR-XXXXXX
+            if (/^YR-\d{6}$/i.test(text)) {
+                return text.toUpperCase();
+            }
+            
+            // 3. صيغ أرقام الطلبات السابقة أو المخصصة (مثل YR-2026-1234)
+            if (/^[A-Z]{2,3}-[\dA-Z-]{4,15}$/i.test(text)) {
+                return text.toUpperCase();
+            }
+            
+            // 4. إذا كان الرمز المباشر 16-32 hex (الـ pagerToken الأصلي)
             if (/^[a-f0-9]{16,32}$/i.test(text)) {
                 return text.toLowerCase();
             }
             
-            // 2. إذا كان رابط يحتوي على /p/TOKEN
-            const pMatch = text.match(/\/p\/([a-f0-9]{16,32})/i);
+            // 5. إذا كان رابط يحتوي على /p/IDENTIFIER (سواء كان توكن أو رقم طلب)
+            const pMatch = text.match(/\/p\/([a-zA-Z0-9_-]+)/i);
             if (pMatch) {
-                return pMatch[1].toLowerCase();
+                const sub = extractToken(pMatch[1]);
+                if (sub) return sub;
             }
             
-            // 3. إذا كان رابط يحتوي على ?token=...
+            // 6. إذا كان رابط يحتوي على ?token=... أو ?order=...
             try {
                 const urlToParse = text.startsWith('http') ? text : `https://${text}`;
                 const parsed = new URL(urlToParse);
-                const queryToken = parsed.searchParams.get('token');
-                if (queryToken && /^[a-f0-9]{16,32}$/i.test(queryToken)) {
-                    return queryToken.toLowerCase();
+                const queryVal = parsed.searchParams.get('token') || parsed.searchParams.get('order');
+                if (queryVal) {
+                    const sub = extractToken(queryVal);
+                    if (sub) return sub;
                 }
             } catch (_) {}
             
-            // 4. استخراج أي تسلسل hex بطول 16-32 داخل النص
+            // 7. استخراج أي تسلسل 6 أرقام داخل النص المنسوخ
+            const sixDigitsMatch = text.match(/\b\d{6}\b/);
+            if (sixDigitsMatch) {
+                return `YR-${sixDigitsMatch[0]}`;
+            }
+            
+            // 8. استخراج أي تسلسل hex بطول 16-32 داخل النص
             const generalMatch = text.match(/[a-f0-9]{16,32}/i);
             if (generalMatch) {
                 return generalMatch[0].toLowerCase();
@@ -1265,15 +1298,15 @@
         function submitManualOrderLink() {
             const input = (document.getElementById('manualOrderInput')?.value || document.getElementById('manualTokenInput')?.value || '').trim();
             if (!input) {
-                showToast('❌ يرجى لصق رابط الطلب أو إدخال رمز المتابعة');
+                showToast('❌ يرجى إدخال رقم الطلب أو لصق الرابط');
                 return;
             }
             const token = extractToken(input);
             if (token) {
                 localStorage.setItem(STORAGE_KEY, token);
-                window.location.href = `/pager.html?token=${token}`;
+                window.location.href = `/pager.html?token=${encodeURIComponent(token)}`;
             } else {
-                showToast('❌ رابط غير صالح، تأكد من صحة الرابط أو الرمز');
+                showToast('❌ رقم طلب غير صالح، تأكد من صحة الرقم أو الرابط');
             }
         }
 

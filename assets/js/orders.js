@@ -311,8 +311,8 @@ function renderOrders(orders) {
                 ${order.pagerToken && order.status === 'ready' ? `<button class="action-btn btn-dark" id="ping-${safeOrderId}" onclick="pingOrder('${safeOrderId}')" title="جعل هاتف العميل يرن مرة أخرى">
                     <i class="fas fa-bell"></i> إعادة النداء
                 </button>` : ''}
-                ${order.pagerToken && order.status !== 'ready' && order.status !== 'completed' ? `<button class="action-btn btn-dark" onclick="showQrModal('${escapeHtml(order.pagerToken)}')">
-                    <i class="fas fa-qrcode"></i> باركود
+                ${order.pagerToken && order.status !== 'ready' && order.status !== 'completed' ? `<button class="action-btn btn-dark" onclick="showQrModal('${escapeHtml(order.pagerToken)}', '${safeOrderId}')">
+                    <i class="fas fa-qrcode"></i> باركود ورقم
                 </button>` : ''}
                 ${order.status === 'completed' ? `<button class="action-btn btn-dark" onclick="showRatingQrModal('${safeOrderId}')">
                     <i class="fas fa-star"></i> تقييم
@@ -443,7 +443,7 @@ async function handleNewOrderSubmit(e) {
       showToast('تم إنشاء الطلب بنجاح ✓');
       await fetchOrders();
       if (data.order && data.order.pagerToken) {
-        showQrModal(data.order.pagerToken);
+        showQrModal(data.order.pagerToken, data.order.orderId);
       }
     } else {
       showToast('فشل إنشاء الطلب: ' + data.error);
@@ -456,10 +456,15 @@ async function handleNewOrderSubmit(e) {
   }
 }
 
-function showQrModal(token) {
+function showQrModal(token, orderId = null) {
   const modal = document.getElementById('qrModal');
-  const pagerUrl = window.location.origin + '/pager.html?token=' + token;
+  const pagerUrl = window.location.origin + '/pager.html?token=' + encodeURIComponent(token);
   document.getElementById('qrLink').href = pagerUrl;
+  
+  const displayEl = document.getElementById('qrOrderDisplay');
+  if (displayEl) {
+    displayEl.textContent = orderId ? `رقم الطلب: ${orderId}` : '';
+  }
   
   new QRious({
     element: document.getElementById('qrCanvas'),
@@ -476,6 +481,11 @@ function showRatingQrModal(orderId) {
   const modal = document.getElementById('qrModal');
   const ratingUrl = window.location.origin + '/rating.html?order=' + encodeURIComponent(orderId);
   document.getElementById('qrLink').href = ratingUrl;
+  
+  const displayEl = document.getElementById('qrOrderDisplay');
+  if (displayEl) {
+    displayEl.textContent = orderId ? `تقييم الطلب: ${orderId}` : '';
+  }
   
   new QRious({
     element: document.getElementById('qrCanvas'),

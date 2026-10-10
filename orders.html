@@ -609,10 +609,11 @@
   <div class="modal-overlay" id="qrModal">
     <div class="modal-box" style="text-align: center; max-width: 350px;">
       <div class="modal-header">
-        <h3 class="modal-title">باركود النداء للعميل</h3>
+        <h3 class="modal-title">باركود ومتابعة الطلب للعميل</h3>
         <button class="modal-close" id="btnCloseQrModal">&times;</button>
       </div>
-      <p style="margin-bottom: 15px; font-size: 0.95rem; color: #555;">يرجى مسح الباركود للعميل ليتمكن من متابعة حالة الطلب واستلام تنبيه عند الجاهزية.</p>
+      <p style="margin-bottom: 10px; font-size: 0.95rem; color: #555;">يرجى مسح الباركود للعميل أو تزويده برقم الطلب لمتابعة الجاهزية مباشرة.</p>
+      <div id="qrOrderDisplay" style="margin-bottom: 14px; font-size: 1.25rem; font-weight: 800; color: #b8860b; letter-spacing: 1px;"></div>
       <canvas id="qrCanvas" style="margin: 0 auto; display: block; max-width: 100%; border-radius: 12px; border: 1px solid #eee; padding: 10px;"></canvas>
       <div style="margin-top: 20px;">
         <a id="qrLink" href="#" target="_blank" style="display: block; padding: 12px; background: #f4f5f7; border-radius: 8px; color: var(--dark); font-weight: bold; text-decoration: none; border: 1px solid #ddd;">

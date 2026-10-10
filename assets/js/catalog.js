@@ -672,7 +672,7 @@ window.handleGiftWhatsAppOrder = async function(e, index) {
   const baseCode = currentAlbum && currentAlbum.productCode ? currentAlbum.productCode : 'YR-00';
   const photoCode = typeof photo === "object" && photo.code ? photo.code : `${baseCode}-${index + 1}`;
 
-  const generalOrderId = 'YR-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
+  const generalOrderId = 'YR-' + Math.floor(100000 + Math.random() * 900000);
   let giftData = { generalOrderId: generalOrderId };
   const enableGiftCheck = document.getElementById("enableGiftCheck");
   const nestedGiftCardCheck = document.getElementById("nestedGiftCardCheck");
