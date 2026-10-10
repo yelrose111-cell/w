@@ -491,27 +491,6 @@
         <span>تثبيت التطبيق</span>
     </button>
 
-    <!-- حاوية الكاميرا لمسح الباركود -->
-    <div id="qr-scanner-container" class="qr-scanner-container" style="display: none;">
-        <div class="scanner-header">
-            <h3>امسح باركود الطلب</h3>
-            <button id="close-scanner-btn" class="close-btn" onclick="closeScanner()">✕</button>
-        </div>
-        <div id="qr-reader"></div>
-        <p class="scanner-hint">وجّه الكاميرا نحو باركود الطلب</p>
-        
-        <!-- مسح من صورة الباركود (الاستوديو) -->
-        <input type="file" id="qr-file-input" accept="image/*" style="display: none;">
-        <button id="scan-file-btn" class="scan-btn" onclick="document.getElementById('qr-file-input').click()" style="margin-top: 15px; border-radius: 50px; background: rgba(226, 185, 59, 0.15); border: 1px solid var(--primary-color); color: #fff; display: flex; align-items: center; justify-content: center; gap: 8px; width: auto; max-width: 320px; margin-left: auto; margin-right: auto; padding: 12px 24px; font-size: 14px; cursor: pointer;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                <circle cx="8.5" cy="8.5" r="1.5"></circle>
-                <polyline points="21 15 16 10 5 21"></polyline>
-            </svg>
-            <span>اختيار صورة الباركود من الاستوديو</span>
-        </button>
-    </div>
-
     <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
@@ -616,35 +595,24 @@
                     
                     ${messageHtml}
                     
-                    <p style="color: #bbb; margin-bottom: 25px; line-height: 1.6; font-size: 15px;">
-                        ${message || 'لعرض حالة طلبك، يرجى مسح الباركود الذي أعطاه لك الموظف.'}
+                    <p style="color: #bbb; margin-bottom: 20px; line-height: 1.6; font-size: 15px;">
+                        ${message || 'لمتابعة حالة طلبك مباشرة، يرجى إدخال رابط الطلب أو رمز المتابعة:'}
                     </p>
                     
-                    <button class="btn" onclick="startQrScanner()" 
-                            style="background: linear-gradient(135deg, #d4af37, #f6e27a); color: #000;">
-                        📷 مسح باركود الطلب بالكاميرا
-                    </button>
-                    
-                    <button class="btn" onclick="document.getElementById('qr-file-input').click()" 
-                            style="background: rgba(255, 255, 255, 0.08); border: 1px dashed var(--primary-color); color: var(--primary-color);">
-                        🖼️ اختيار صورة الباركود من الاستوديو
-                    </button>
-                    
-                    <button class="btn" onclick="showManualInput()" 
-                            style="background: transparent; border: 1px solid #555; color: #ccc;">
-                        🔢 إدخال رمز المتابعة يدوياً
-                    </button>
-                    
-                    <!-- حقل الإدخال اليدوي -->
-                    <div id="manualInputSection" style="display: none; margin-top: 20px;">
-                        <input type="text" id="manualTokenInput" 
-                               placeholder="أدخل رمز المتابعة (Token)"
-                               style="width: 100%; padding: 14px; border-radius: 10px; 
-                                      border: 1px solid #444; background: #2a2a2a; color: #fff;
-                                      text-align: center; font-size: 15px; margin-bottom: 12px;">
-                        <button onclick="submitManualToken()" class="btn" 
-                                style="background: var(--primary-color); color: #000;">
-                            تأكيد
+                    <!-- حقل إدخال رابط الطلب للمتابعة اليدوية -->
+                    <div id="manualInputSection" style="margin-top: 15px;">
+                        <input type="text" id="manualOrderInput" 
+                               placeholder="الصق رابط الطلب هنا أو رمز المتابعة"
+                               dir="ltr"
+                               autocomplete="off"
+                               onkeydown="if(event.key === 'Enter') submitManualOrderLink()"
+                               style="width: 100%; padding: 15px 16px; border-radius: 12px; 
+                                      border: 1px solid var(--primary-color); background: #222; color: #fff;
+                                      text-align: center; font-size: 14px; outline: none; margin-bottom: 14px;
+                                      box-shadow: 0 0 15px rgba(212, 175, 55, 0.15);">
+                        <button onclick="submitManualOrderLink()" class="btn" 
+                                style="background: linear-gradient(135deg, #d4af37, #f6e27a); color: #000; font-weight: bold; font-size: 16px; padding: 14px;">
+                            🔍 متابعة حالة الطلب
                         </button>
                     </div>
                     
@@ -1258,25 +1226,64 @@
         }
 
         // ============================================
-        // 11. دوال مساعدة وإدخال يدوي
+        // 11. استخراج الرمز والمتابعة بالرابط
         // ============================================
-        function showManualInput() {
-            const sec = document.getElementById('manualInputSection');
-            if (sec) sec.style.display = 'block';
+        function extractToken(rawInput) {
+            if (!rawInput) return null;
+            const text = rawInput.trim();
+            
+            // 1. إذا كان الرمز المباشر 16-32 hex
+            if (/^[a-f0-9]{16,32}$/i.test(text)) {
+                return text.toLowerCase();
+            }
+            
+            // 2. إذا كان رابط يحتوي على /p/TOKEN
+            const pMatch = text.match(/\/p\/([a-f0-9]{16,32})/i);
+            if (pMatch) {
+                return pMatch[1].toLowerCase();
+            }
+            
+            // 3. إذا كان رابط يحتوي على ?token=...
+            try {
+                const urlToParse = text.startsWith('http') ? text : `https://${text}`;
+                const parsed = new URL(urlToParse);
+                const queryToken = parsed.searchParams.get('token');
+                if (queryToken && /^[a-f0-9]{16,32}$/i.test(queryToken)) {
+                    return queryToken.toLowerCase();
+                }
+            } catch (_) {}
+            
+            // 4. استخراج أي تسلسل hex بطول 16-32 داخل النص
+            const generalMatch = text.match(/[a-f0-9]{16,32}/i);
+            if (generalMatch) {
+                return generalMatch[0].toLowerCase();
+            }
+            
+            return null;
+        }
+
+        function submitManualOrderLink() {
+            const input = (document.getElementById('manualOrderInput')?.value || document.getElementById('manualTokenInput')?.value || '').trim();
+            if (!input) {
+                showToast('❌ يرجى لصق رابط الطلب أو إدخال رمز المتابعة');
+                return;
+            }
+            const token = extractToken(input);
+            if (token) {
+                localStorage.setItem(STORAGE_KEY, token);
+                window.location.href = `/pager.html?token=${token}`;
+            } else {
+                showToast('❌ رابط غير صالح، تأكد من صحة الرابط أو الرمز');
+            }
         }
 
         function submitManualToken() {
-            const input = document.getElementById('manualTokenInput')?.value.trim();
-            if (!input) {
-                showToast('❌ يرجى إدخال رمز المتابعة (Token)');
-                return;
-            }
-            if (/^[a-f0-9]{16,32}$/.test(input)) {
-                localStorage.setItem(STORAGE_KEY, input);
-                window.location.href = `/pager.html?token=${input}`;
-            } else {
-                showToast('❌ رمز غير صالح، يرجى مسح الباركود بالكاميرا');
-            }
+            submitManualOrderLink();
+        }
+
+        function showManualInput() {
+            const sec = document.getElementById('manualInputSection');
+            if (sec) sec.style.display = 'block';
         }
 
         function getRatedOrders() {
@@ -1336,28 +1343,10 @@
                 if (btn) btn.style.display = 'none';
             }
             
-            // ربط مسح الباركود من صور الاستوديو
-            const fileInput = document.getElementById('qr-file-input');
-            if (fileInput) {
-                fileInput.addEventListener('change', async (e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-
-                    if (!html5QrCode) html5QrCode = new Html5Qrcode('qr-reader');
-                    
-                    try {
-                        const hint = document.querySelector('.scanner-hint');
-                        if (hint) hint.innerText = 'جاري تحليل الصورة...';
-                        
-                        const decodedText = await html5QrCode.scanFile(file, true);
-                        onScanSuccess(decodedText);
-                    } catch (err) {
-                        alert('لم يتم العثور على باركود واضح في هذه الصورة. يرجى تجربة صورة أخرى أو توجيه الكاميرا.');
-                        const hint = document.querySelector('.scanner-hint');
-                        if (hint) hint.innerText = 'وجّه الكاميرا نحو باركود الطلب';
-                    }
-                    e.target.value = '';
-                });
+            // تركيز تلقائي على حقل إدخال رابط الطلب
+            const orderInput = document.getElementById('manualOrderInput');
+            if (orderInput && !pagerToken) {
+                setTimeout(() => orderInput.focus(), 300);
             }
 
             if (pagerToken) {
