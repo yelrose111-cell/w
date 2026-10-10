@@ -1169,6 +1169,66 @@ app.get('/api/health', async (req, res) => {
 });
 
 // ============================================
+// Deep Linking (/p/:token) & Share Target
+// ============================================
+app.get('/p/:token', async (req, res) => {
+    try {
+        const { token } = req.params;
+        
+        // التحقق من صحة تنسيق الـ Token (16-32 خانة hex)
+        if (!/^[a-f0-9]{16,32}$/.test(token)) {
+            return res.status(400).send(`
+                <!DOCTYPE html>
+                <html lang="ar" dir="rtl">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>رابط غير صالح - Yellow Rose</title>
+                </head>
+                <body style="text-align:center; padding:50px 20px; font-family:-apple-system,BlinkMacSystemFont,sans-serif; background:#111; color:#fff;">
+                    <h1 style="color:#e74c3c;">⚠️ رابط طلب غير صالح</h1>
+                    <p style="color:#aaa;">تأكد من صحة الرابط أو امسح الباركود مرة أخرى</p>
+                    <a href="/" style="display:inline-block; margin-top:20px; padding:10px 24px; background:#d4af37; color:#111; text-decoration:none; border-radius:8px; font-weight:bold;">العودة للصفحة الرئيسية</a>
+                </body>
+                </html>
+            `);
+        }
+
+        const order = await Order.findOne({ pagerToken: token }).lean();
+        
+        if (!order) {
+            return res.status(404).send(`
+                <!DOCTYPE html>
+                <html lang="ar" dir="rtl">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>الطلب غير موجود - Yellow Rose</title>
+                </head>
+                <body style="text-align:center; padding:50px 20px; font-family:-apple-system,BlinkMacSystemFont,sans-serif; background:#111; color:#fff;">
+                    <h1 style="color:#e74c3c;">❌ الطلب غير موجود</h1>
+                    <p style="color:#aaa; font-size:16px;">تأكد من صحة الرابط أو تواصل مع المتجر</p>
+                    <a href="/" style="display:inline-block; margin-top:20px; padding:10px 24px; background:#d4af37; color:#111; text-decoration:none; border-radius:8px; font-weight:bold;">العودة للصفحة الرئيسية</a>
+                </body>
+                </html>
+            `);
+        }
+
+        // إعادة التوجيه للرابط الأصلي المتوافق مع النظام
+        res.redirect(`/pager.html?token=${encodeURIComponent(token)}`);
+    } catch (error) {
+        console.error('Deep link error:', error);
+        res.status(500).send('خطأ في السيرفر');
+    }
+});
+
+app.get('/share-target', (req, res) => {
+    const { url } = req.query;
+    if (url) {
+        return res.redirect(url);
+    }
+    res.redirect('/');
+});
+
+// ============================================
 // Server Start
 // ============================================
 if (require.main === module) {

@@ -180,10 +180,18 @@ self.addEventListener('pushsubscriptionchange', function(event) {
 });
 
 // ============================================
-// 6. استقبال الرسائل من الصفحة (لحفظ الـ token)
+// 6. استقبال الرسائل من الصفحة والتحديث التلقائي
 // ============================================
 self.addEventListener('message', function(event) {
     if (event.data?.type === 'SAVE_PAGER_TOKEN' && event.data?.token) {
         savePagerToken(event.data.token);
     }
+    if (event.data?.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
+});
+
+// تفعيل النسخة الجديدة فوراً للعملاء النشطين
+self.addEventListener('activate', function(event) {
+    event.waitUntil(self.clients.claim());
 });

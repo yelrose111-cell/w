@@ -1,20 +1,45 @@
 {
-  "name": "Yellow Rose Pager",
-  "short_name": "YR Pager",
+  "name": "Yellow Rose - نظام الطلبات",
+  "short_name": "Yellow Rose",
+  "description": "نظام تنبيه الطلبات الذكي - يلو روز",
+  "start_url": "/?source=pwa",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#1c1c1e",
-  "theme_color": "#d4af37",
-  "description": "نظام النداء الآلي لمتجر Yellow Rose",
+  "orientation": "portrait",
+  "background_color": "#111111",
+  "theme_color": "#E2B93B",
+  "lang": "ar",
+  "dir": "rtl",
+  "categories": ["food", "lifestyle", "utilities"],
   "icons": [
     {
       "src": "/assets/images/yr-icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/assets/images/yr-icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "تتبع طلب",
+      "short_name": "تتبع",
+      "description": "فتح صفحة تتبع الطلب مباشرة",
+      "url": "/pager.html",
+      "icons": [{ "src": "/assets/images/yr-icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "share_target": {
+    "action": "/share-target",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "url": "url"
+    }
+  }
 }
