@@ -582,8 +582,12 @@
       </div>
       <form id="newOrderForm">
         <div class="form-group">
-          <label class="form-label">اسم العميل / رقم الطلب</label>
-          <input type="text" id="noCustomerName" class="form-input" placeholder="مثال: أحمد، أو طلب رقم 102" required>
+          <label class="form-label">اسم العميل / وصف الطلب</label>
+          <input type="text" id="noCustomerName" class="form-input" placeholder="مثال: أحمد، أو طاولة 4" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label"><i class="fab fa-whatsapp" style="color: #25D366;"></i> رقم جوال العميل (واتساب)</label>
+          <input type="tel" id="noCustomerPhone" class="form-input" placeholder="مثال: 0582739397 (اختياري لمشاركة الرابط فوراً)" dir="ltr">
         </div>
         <div class="form-group">
           <label class="form-label">نوع الطلب</label>
@@ -595,7 +599,7 @@
         </div>
         <div class="form-group">
           <label class="form-label">تفاصيل إضافية (اختياري)</label>
-          <textarea id="noNotes" class="form-input" rows="3" placeholder="ملاحظات حول الطلب..."></textarea>
+          <textarea id="noNotes" class="form-input" rows="2" placeholder="ملاحظات حول الطلب..."></textarea>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn-cancel" id="btnCancelNewOrder">إلغاء</button>
@@ -607,18 +611,49 @@
 
   <!-- QR Pager Modal -->
   <div class="modal-overlay" id="qrModal">
-    <div class="modal-box" style="text-align: center; max-width: 350px;">
+    <div class="modal-box" style="text-align: center; max-width: 380px;">
       <div class="modal-header">
-        <h3 class="modal-title">باركود ومتابعة الطلب للعميل</h3>
+        <h3 class="modal-title"><i class="fas fa-qrcode text-gold"></i> باركود ومتابعة الطلب</h3>
         <button class="modal-close" id="btnCloseQrModal">&times;</button>
       </div>
-      <p style="margin-bottom: 10px; font-size: 0.95rem; color: #555;">يرجى مسح الباركود للعميل أو تزويده برقم الطلب لمتابعة الجاهزية مباشرة.</p>
-      <div id="qrOrderDisplay" style="margin-bottom: 14px; font-size: 1.25rem; font-weight: 800; color: #b8860b; letter-spacing: 1px;"></div>
-      <canvas id="qrCanvas" style="margin: 0 auto; display: block; max-width: 100%; border-radius: 12px; border: 1px solid #eee; padding: 10px;"></canvas>
-      <div style="margin-top: 20px;">
-        <a id="qrLink" href="#" target="_blank" style="display: block; padding: 12px; background: #f4f5f7; border-radius: 8px; color: var(--dark); font-weight: bold; text-decoration: none; border: 1px solid #ddd;">
-          <i class="fas fa-external-link-alt"></i> فتح رابط النداء
+
+      <!-- بطاقة رقم الطلب ومعلومات العميل -->
+      <div style="background: #fdf8eb; border: 1px solid #fae6b2; border-radius: 10px; padding: 12px; margin-bottom: 12px;">
+        <div style="font-size: 0.8rem; color: #856404; margin-bottom: 2px;">رقم الطلب للمتابعة</div>
+        <div id="qrOrderDisplay" style="font-size: 1.35rem; font-weight: 800; color: #b8860b; letter-spacing: 1px;">---</div>
+        <div id="qrCustomerDisplay" style="font-size: 0.85rem; color: #555; margin-top: 4px;"></div>
+      </div>
+
+      <p style="margin-bottom: 10px; font-size: 0.85rem; color: #666;">امسح الباركود للعميل أو أرسل له رابط ورقم المتابعة مباشرة:</p>
+      
+      <!-- كانفاس الباركود -->
+      <canvas id="qrCanvas" style="margin: 0 auto; display: block; max-width: 100%; border-radius: 12px; border: 1px solid #eee; padding: 10px; background: #fff;"></canvas>
+
+      <!-- حزمة أزرار المشاركة والتواصل -->
+      <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px;">
+        <!-- زر مشاركة واتساب مباشر -->
+        <a id="qrWaShareBtn" href="#" target="_blank" rel="noopener" 
+           style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 11px; background: #25D366; color: white; border-radius: 8px; font-weight: bold; text-decoration: none; font-size: 0.95rem; box-shadow: 0 2px 6px rgba(37, 211, 102, 0.3);">
+          <i class="fab fa-whatsapp" style="font-size: 1.25rem;"></i> إرسال الرابط للعميل بالواتساب
         </a>
+
+        <!-- زر مشاركة النظام المدمجة (Web Share API) -->
+        <button id="qrNativeShareBtn" type="button" 
+                style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px; background: var(--dark); color: #fff; border: 1px solid #444; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem;">
+          <i class="fas fa-share-alt" style="color: var(--gold);"></i> مشاركة الطلب (تطبيقات أخرى)
+        </button>
+
+        <!-- أزرار النسخ والفتح السريع -->
+        <div style="display: flex; gap: 8px;">
+          <button id="qrCopyLinkBtn" type="button" 
+                  style="flex: 1; padding: 9px; background: #f4f5f7; border: 1px solid #ddd; border-radius: 8px; color: var(--dark); font-weight: 600; cursor: pointer; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <i class="fas fa-copy"></i> نسخ الرابط
+          </button>
+          <a id="qrLink" href="#" target="_blank" 
+             style="flex: 1; padding: 9px; background: #f4f5f7; border: 1px solid #ddd; border-radius: 8px; color: var(--dark); font-weight: 600; text-decoration: none; text-align: center; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <i class="fas fa-external-link-alt"></i> فتح الصفحة
+          </a>
+        </div>
       </div>
     </div>
   </div>

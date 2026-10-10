@@ -853,16 +853,23 @@
                 });
                 
                 console.log('🔔 Yellow Rose bell chime played');
+                return true;
             } catch (error) {
                 console.error('❌ Bell sound error:', error);
+                return false;
             }
         }
 
         // تشغيل النغمة 3 مرات متتالية عند جاهزية الطلب
         function playReadyNotification() {
-            playYellowRoseBell();
-            setTimeout(() => playYellowRoseBell(), 500);
-            setTimeout(() => playYellowRoseBell(), 1000);
+            const chimePlayed = playYellowRoseBell();
+            if (chimePlayed) {
+                setTimeout(() => playYellowRoseBell(), 500);
+                setTimeout(() => playYellowRoseBell(), 1000);
+            } else {
+                // إذا لم يدعم المتصفح Web Audio API، يتم تشغيل ملف الصوت الاحتياطي
+                playLoudAlarm();
+            }
         }
 
         // اهتزاز متزامن مع الصوت
@@ -876,11 +883,8 @@
         function triggerReadyAlert() {
             showReadyScreen();
             
-            // تشغيل الصوت البرمجي والاهتزاز
+            // تشغيل الصوت الموحد والاهتزاز
             vibrateWithSound();
-            
-            // تشغيل ملف الصوت الاحتياطي
-            playLoudAlarm();
             
             // إشعار المتصفح إن توفر الإذن
             if (Notification.permission === "granted") {
@@ -905,7 +909,6 @@
 
         function testAlarmAndSound() {
             vibrateWithSound();
-            playLoudAlarm();
             showToast('🔔 تم تشغيل صوت التنبيه والاهتزاز');
         }
 

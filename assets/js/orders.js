@@ -12,6 +12,31 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function formatWhatsAppPhone(phone) {
+  if (!phone) return '';
+  let clean = phone.replace(/\D/g, '');
+  if (clean.startsWith('00966')) clean = clean.substring(2);
+  if (clean.startsWith('05')) clean = '966' + clean.substring(1);
+  else if (clean.startsWith('5') && clean.length === 9) clean = '966' + clean;
+  return clean;
+}
+
+function buildOrderShareMessage(orderId, pagerUrl, customerName) {
+  const greeting = (customerName && customerName !== '---')
+    ? `مرحباً بك أستاذ/ة ${customerName} في Yellow Rose 💛`
+    : `مرحباً بك في Yellow Rose 💛`;
+    
+  return `${greeting}
+
+تم استلام وتجهيز طلبك برقم:
+🔢 *${orderId}*
+
+📱 يمكنك متابعة حالة الطلب مباشرة واستلام تنبيه فوري عند الجاهزية عبر الرابط:
+${pagerUrl}
+
+نسعد دائماً بخدمتك ✨`;
+}
+
 // Cooldown tracking for ping buttons
 const pingCooldowns = new Map();
 
@@ -311,13 +336,13 @@ function renderOrders(orders) {
                 ${order.pagerToken && order.status === 'ready' ? `<button class="action-btn btn-dark" id="ping-${safeOrderId}" onclick="pingOrder('${safeOrderId}')" title="جعل هاتف العميل يرن مرة أخرى">
                     <i class="fas fa-bell"></i> إعادة النداء
                 </button>` : ''}
-                ${order.pagerToken && order.status !== 'ready' && order.status !== 'completed' ? `<button class="action-btn btn-dark" onclick="showQrModal('${escapeHtml(order.pagerToken)}', '${safeOrderId}')">
-                    <i class="fas fa-qrcode"></i> باركود ورقم
+                ${order.pagerToken && order.status !== 'ready' && order.status !== 'completed' ? `<button class="action-btn btn-dark" onclick="showQrModal('${escapeHtml(order.pagerToken)}', '${safeOrderId}', '${escapeHtml(order.customerPhone && order.customerPhone !== '0500000000' && order.customerPhone !== '0000000000' ? order.customerPhone : '')}', '${safeCustomerName}')">
+                    <i class="fas fa-qrcode"></i> باركود ومشاركة
                 </button>` : ''}
                 ${order.status === 'completed' ? `<button class="action-btn btn-dark" onclick="showRatingQrModal('${safeOrderId}')">
                     <i class="fas fa-star"></i> تقييم
                 </button>` : ''}
-                ${waPhone ? `<a class="action-btn btn-green" href="https://wa.me/${waPhone}" target="_blank" rel="noopener">
+                ${waPhone && waPhone !== '0000000000' && waPhone !== '0500000000' ? `<a class="action-btn btn-green" href="https://wa.me/${formatWhatsAppPhone(order.customerPhone)}?text=${encodeURIComponent(buildOrderShareMessage(safeOrderId, window.location.origin + '/p/' + safeOrderId, safeCustomerName))}" target="_blank" rel="noopener" title="إرسال رابط المتابعة للعميل">
                     <i class="fab fa-whatsapp"></i> واتساب
                 </a>` : ''}
             </div>
@@ -418,12 +443,16 @@ async function handleNewOrderSubmit(e) {
   btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإنشاء...';
 
   const customerName = document.getElementById('noCustomerName').value.trim();
+  const rawCustomerPhone = (document.getElementById('noCustomerPhone')?.value || '').trim();
   const orderType = document.getElementById('noOrderType').value;
   const notes = document.getElementById('noNotes').value.trim();
 
+  // تنظيف وتجهيز رقم الجوال بما يوافق متطلبات السيرفر
+  const customerPhone = rawCustomerPhone ? rawCustomerPhone.replace(/[^\d+]/g, '') : '0500000000';
+
   const newOrder = {
     customerName,
-    customerPhone: '0000000000', // Default phone to pass schema validation
+    customerPhone: customerPhone || '0500000000',
     productTitle: orderType,
     notes,
     status: 'pending',
@@ -443,7 +472,8 @@ async function handleNewOrderSubmit(e) {
       showToast('تم إنشاء الطلب بنجاح ✓');
       await fetchOrders();
       if (data.order && data.order.pagerToken) {
-        showQrModal(data.order.pagerToken, data.order.orderId);
+        const dispPhone = (rawCustomerPhone && rawCustomerPhone.length >= 8) ? rawCustomerPhone : '';
+        showQrModal(data.order.pagerToken, data.order.orderId, dispPhone, data.order.customerName);
       }
     } else {
       showToast('فشل إنشاء الطلب: ' + data.error);
@@ -456,16 +486,21 @@ async function handleNewOrderSubmit(e) {
   }
 }
 
-function showQrModal(token, orderId = null) {
+function showQrModal(token, orderId = null, customerPhone = null, customerName = null) {
   const modal = document.getElementById('qrModal');
-  const pagerUrl = window.location.origin + '/pager.html?token=' + encodeURIComponent(token);
-  document.getElementById('qrLink').href = pagerUrl;
+  const safeOrderId = orderId || 'طلبك';
+  const pagerUrl = window.location.origin + '/p/' + (orderId || token);
   
   const displayEl = document.getElementById('qrOrderDisplay');
   if (displayEl) {
-    displayEl.textContent = orderId ? `رقم الطلب: ${orderId}` : '';
+    displayEl.textContent = orderId ? `رقم الطلب: ${orderId}` : '---';
   }
-  
+
+  const custDisplay = document.getElementById('qrCustomerDisplay');
+  if (custDisplay) {
+    custDisplay.textContent = (customerName && customerName !== '---') ? `👤 العميل: ${customerName}` : '';
+  }
+
   new QRious({
     element: document.getElementById('qrCanvas'),
     value: pagerUrl,
@@ -473,6 +508,66 @@ function showQrModal(token, orderId = null) {
     background: 'white',
     foreground: 'black'
   });
+
+  const shareText = buildOrderShareMessage(safeOrderId, pagerUrl, customerName);
+  const cleanPhone = formatWhatsAppPhone(customerPhone);
+
+  // زر واتساب المباشر
+  const waBtn = document.getElementById('qrWaShareBtn');
+  if (waBtn) {
+    const waUrl = cleanPhone 
+      ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(shareText)}`
+      : `https://wa.me/?text=${encodeURIComponent(shareText)}`;
+    waBtn.href = waUrl;
+    waBtn.style.display = 'flex';
+    waBtn.innerHTML = cleanPhone 
+      ? `<i class="fab fa-whatsapp" style="font-size: 1.25rem;"></i> إرسال للعميل بالواتساب (${customerPhone})`
+      : `<i class="fab fa-whatsapp" style="font-size: 1.25rem;"></i> إرسال الرابط للعميل بالواتساب`;
+  }
+
+  // زر مشاركة النظام
+  const nativeBtn = document.getElementById('qrNativeShareBtn');
+  if (nativeBtn) {
+    nativeBtn.style.display = 'flex';
+    nativeBtn.onclick = async () => {
+      const shareData = {
+        title: `Yellow Rose - طلب ${safeOrderId}`,
+        text: shareText,
+        url: pagerUrl
+      };
+      if (navigator.share) {
+        try {
+          await navigator.share(shareData);
+        } catch (_) {}
+      } else {
+        try {
+          await navigator.clipboard.writeText(pagerUrl);
+          showToast('✓ تم نسخ رابط المتابعة');
+        } catch {
+          showToast('تعذر النسخ');
+        }
+      }
+    };
+  }
+
+  // زر نسخ الرابط
+  const copyBtn = document.getElementById('qrCopyLinkBtn');
+  if (copyBtn) {
+    copyBtn.onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(pagerUrl);
+        showToast('✓ تم نسخ رابط المتابعة للحافظة');
+      } catch {
+        showToast('تعذر النسخ التلقائي');
+      }
+    };
+  }
+
+  // رابط فتح الصفحة
+  const linkEl = document.getElementById('qrLink');
+  if (linkEl) {
+    linkEl.href = pagerUrl;
+  }
   
   modal.classList.add('active');
 }
@@ -480,11 +575,15 @@ function showQrModal(token, orderId = null) {
 function showRatingQrModal(orderId) {
   const modal = document.getElementById('qrModal');
   const ratingUrl = window.location.origin + '/rating.html?order=' + encodeURIComponent(orderId);
-  document.getElementById('qrLink').href = ratingUrl;
   
   const displayEl = document.getElementById('qrOrderDisplay');
   if (displayEl) {
     displayEl.textContent = orderId ? `تقييم الطلب: ${orderId}` : '';
+  }
+
+  const custDisplay = document.getElementById('qrCustomerDisplay');
+  if (custDisplay) {
+    custDisplay.textContent = '🌟 نسعد برأيك وتقييمك لخدمتنا';
   }
   
   new QRious({
@@ -494,6 +593,45 @@ function showRatingQrModal(orderId) {
     background: 'white',
     foreground: 'black'
   });
+
+  const ratingText = `عميلنا العزيز في Yellow Rose، نسعد بتقييم تجربتك معنا للطلب رقم *${orderId}* عبر الرابط التالي:\n${ratingUrl}`;
+
+  const waBtn = document.getElementById('qrWaShareBtn');
+  if (waBtn) {
+    waBtn.href = `https://wa.me/?text=${encodeURIComponent(ratingText)}`;
+    waBtn.innerHTML = `<i class="fab fa-whatsapp" style="font-size: 1.25rem;"></i> إرسال رابط التقييم بالواتساب`;
+  }
+
+  const nativeBtn = document.getElementById('qrNativeShareBtn');
+  if (nativeBtn) {
+    nativeBtn.onclick = async () => {
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: `تقييم طلب Yellow Rose - ${orderId}`,
+            text: ratingText,
+            url: ratingUrl
+          });
+        } catch (_) {}
+      } else {
+        await navigator.clipboard.writeText(ratingUrl);
+        showToast('✓ تم نسخ رابط التقييم');
+      }
+    };
+  }
+
+  const copyBtn = document.getElementById('qrCopyLinkBtn');
+  if (copyBtn) {
+    copyBtn.onclick = async () => {
+      await navigator.clipboard.writeText(ratingUrl);
+      showToast('✓ تم نسخ رابط التقييم');
+    };
+  }
+
+  const linkEl = document.getElementById('qrLink');
+  if (linkEl) {
+    linkEl.href = ratingUrl;
+  }
   
   modal.classList.add('active');
 }
