@@ -342,7 +342,7 @@ function renderOrders(orders) {
                 ${order.status === 'completed' ? `<button class="action-btn btn-dark" onclick="showRatingQrModal('${safeOrderId}')">
                     <i class="fas fa-star"></i> تقييم
                 </button>` : ''}
-                ${waPhone && waPhone !== '0000000000' && waPhone !== '0500000000' ? `<a class="action-btn btn-green" href="https://wa.me/${formatWhatsAppPhone(order.customerPhone)}?text=${encodeURIComponent(buildOrderShareMessage(safeOrderId, window.location.origin + '/p/' + safeOrderId, safeCustomerName))}" target="_blank" rel="noopener" title="إرسال رابط المتابعة للعميل">
+                ${waPhone && waPhone !== '0000000000' && waPhone !== '0500000000' ? `<a class="action-btn btn-green" href="https://wa.me/${formatWhatsAppPhone(order.customerPhone)}?text=${encodeURIComponent(buildOrderShareMessage(safeOrderId, window.location.origin + '/pager.html?token=' + encodeURIComponent(safeOrderId), safeCustomerName))}" target="_blank" rel="noopener" title="إرسال رابط المتابعة للعميل">
                     <i class="fab fa-whatsapp"></i> واتساب
                 </a>` : ''}
             </div>
@@ -489,7 +489,7 @@ async function handleNewOrderSubmit(e) {
 function showQrModal(token, orderId = null, customerPhone = null, customerName = null) {
   const modal = document.getElementById('qrModal');
   const safeOrderId = orderId || 'طلبك';
-  const pagerUrl = window.location.origin + '/p/' + (orderId || token);
+  const pagerUrl = window.location.origin + '/pager.html?token=' + encodeURIComponent(orderId || token);
   
   const displayEl = document.getElementById('qrOrderDisplay');
   if (displayEl) {

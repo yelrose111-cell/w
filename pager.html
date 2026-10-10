@@ -1397,7 +1397,7 @@
                             ? orderNumber 
                             : (document.getElementById('displayOrderNumWait')?.innerText || 'طلبك');
                         
-                        const shareUrl = `${window.location.origin}/p/${pagerToken}`;
+                        const shareUrl = `${window.location.origin}/pager.html?token=${encodeURIComponent(pagerToken)}`;
                         const shareData = {
                             title: 'Yellow Rose - تتبع طلبك',
                             text: `تابع حالة طلبك رقم ${currentOrderNum} في Yellow Rose`,
