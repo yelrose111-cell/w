@@ -715,6 +715,23 @@ app.get('/api/pager/:token', pagerLimiter, async (req, res) => {
         // Validate token format
         if (!/^[a-f0-9]{16,32}$/.test(req.params.token)) {
             return res.status(400).json({ success: false, error: 'Invalid token format' });
+        }
+        
+        const order = await Order.findOne({ pagerToken: req.params.token }).lean();
+        if (!order) {
+            return res.status(404).json({ success: false, error: 'Not found' });
+        }
+        
+        res.json({ 
+            success: true, 
+            status: order.status, 
+            orderId: order.orderId, 
+            lastPingAt: order.lastPingAt 
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
 
 // ============================================
 // نداء من العميل للموظف (Reverse Paging)
@@ -732,7 +749,7 @@ app.post('/api/pager/:token/call', callLimiter, async (req, res) => {
             return res.status(400).json({ success: false, error: 'Token غير صالح' });
         }
         
-        const callType = req.body.type || 'arrived';
+        const callType = req.body?.type || 'arrived';
         const validTypes = ['arrived', 'help', 'ontheway'];
         if (!validTypes.includes(callType)) {
             return res.status(400).json({ success: false, error: 'نوع نداء غير صالح' });
@@ -755,31 +772,13 @@ app.post('/api/pager/:token/call', callLimiter, async (req, res) => {
         
         res.json({ 
             success: true, 
-            orderId: order.orderId,
+            orderId: order.orderId, 
             message: 'تم إرسال النداء للموظف' 
         });
         
     } catch (error) {
         console.error('[CALL] Error:', error);
         res.status(500).json({ success: false, error: 'خطأ في السيرفر' });
-    }
-});
-
-        }
-        
-        const order = await Order.findOne({ pagerToken: req.params.token }).lean();
-        if (!order) {
-            return res.status(404).json({ success: false, error: 'Not found' });
-        }
-        
-        res.json({ 
-            success: true, 
-            status: order.status, 
-            orderId: order.orderId, 
-            lastPingAt: order.lastPingAt 
-        });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
     }
 });
 
