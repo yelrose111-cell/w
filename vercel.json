@@ -1,8 +1,13 @@
 {
   "version": 2,
   "outputDirectory": ".",
+  "redirects": [
+    { "source": "/p/:token", "destination": "/pager.html?token=:token", "permanent": false }
+  ],
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api" }
+    { "source": "/api/(.*)", "destination": "/api" },
+    { "source": "/p/(.*)", "destination": "/api" },
+    { "source": "/share-target", "destination": "/api" }
   ],
   "headers": [
     {
