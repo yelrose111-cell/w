@@ -11,8 +11,7 @@
     "start": "node api/index.js",
     "build": "node scripts/build.js",
     "migrate": "node scripts/migrate-schemas.js",
-    "minify:orders": "npx terser assets/js/orders.js -o assets/dist/js/orders.min.js -c -m",
-    "minify:pager": "npx terser assets/js/pager.js -o assets/dist/js/pager.min.js -c -m"
+    "minify:orders": "npx terser assets/js/orders.js -o assets/dist/js/orders.min.js -c -m"
   },
   "keywords": [
     "flowers",

@@ -2,7 +2,10 @@
   "version": 2,
   "outputDirectory": ".",
   "redirects": [
-    { "source": "/p/:token", "destination": "/pager.html?token=:token", "permanent": false }
+    { "source": "/p/:token", "destination": "/pager.html?token=:token", "permanent": false },
+    { "source": "/admin.html", "destination": "/portal.html", "permanent": false },
+    { "source": "/orders.html", "destination": "/portal.html", "permanent": false },
+    { "source": "/print-station.html", "destination": "/portal.html", "permanent": false }
   ],
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api" },

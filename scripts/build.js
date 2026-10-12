@@ -4,9 +4,11 @@ const { minify } = require('terser');
 const CleanCSS = require('clean-css');
 
 const jsFiles = [
+  'assets/js/utils.js',
   'assets/js/db.js',
   'assets/js/main.js',
   'assets/js/catalog.js',
+  'assets/js/portal.js',
   'assets/js/admin.js',
   'assets/js/orders.js',
   'assets/js/print-station.js'

@@ -781,7 +781,7 @@ window.handleGiftWhatsAppOrder = async function(e, index) {
       productCoverUrl: photoUrl,
       needsPrint: needsPrintStation,
       isGift: giftData.isGift || false,
-      deliveryMethod: giftData.deliveryMethod || ""
+      deliveryMethod: giftData.deliveryMethod === "توصيل" ? "delivery" : (giftData.deliveryMethod === "استلام من الفرع" ? "pickup" : (giftData.deliveryMethod || null))
     };
 
     if (giftData.hasGiftCard) {

@@ -8,7 +8,10 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 require('dotenv').config();
 
-const Album = require('../models/Album');
+const SESSION_SECRET = process.env.SESSION_SECRET || 'de9b78b1b5f71c8e4c94781bcc53a299df102d741255a5c346cb43f7c154be27';
+const DEFAULT_ADMIN_HASH = '1251125181e6a7ef27a0694b52c8ca7b4600c87e739a3bfdbecb1fc69e344e81'; // 55409
+const DEFAULT_EMPLOYEE_HASH = '39d5ce6249548c318a5f0b6bf0a3e2f234750a9741b6ce2f9eff8670bc7cd7af'; // 4848
+
 const Category = require('../models/Category');
 const Subcategory = require('../models/Subcategory');
 const Product = require('../models/Product');
@@ -21,7 +24,7 @@ const webpush = require('web-push');
 
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
   webpush.setVapidDetails(
-      process.env.VAPID_SUBJECT || 'mailto:admin@yellowrose.com',
+      process.env.VAPID_SUBJECT || 'mailto:yelrose111@gmail.com',
       process.env.VAPID_PUBLIC_KEY,
       process.env.VAPID_PRIVATE_KEY
   );
@@ -102,11 +105,6 @@ async function connectDB() {
 
 // DB Connection Middleware
 app.use(async (req, res, next) => {
-    if (!process.env.SESSION_SECRET || !process.env.ADMIN_PASSWORD_HASH) {
-        console.error('CRITICAL: SESSION_SECRET or ADMIN_PASSWORD_HASH is missing');
-        return res.status(500).json({ success: false, error: 'Server misconfiguration' });
-    }
-    
     try {
         await connectDB();
         next();
@@ -115,6 +113,33 @@ app.use(async (req, res, next) => {
         return res.status(503).json({ success: false, error: 'Database unavailable' });
     }
 });
+
+// ============================================
+// Dynamic PIN Retrieval (DB Settings with Env Fallback)
+// ============================================
+async function getAdminPinHash() {
+    try {
+        const pinDoc = await Settings.findOne({ key: 'auth_pins' }).lean();
+        if (pinDoc && pinDoc.value && pinDoc.value.adminPinHash) {
+            return pinDoc.value.adminPinHash;
+        }
+    } catch (e) {
+        console.error('Error fetching admin PIN from DB:', e);
+    }
+    return process.env.ADMIN_PASSWORD_HASH || DEFAULT_ADMIN_HASH;
+}
+
+async function getEmployeePinHash() {
+    try {
+        const pinDoc = await Settings.findOne({ key: 'auth_pins' }).lean();
+        if (pinDoc && pinDoc.value && pinDoc.value.employeePinHash) {
+            return pinDoc.value.employeePinHash;
+        }
+    } catch (e) {
+        console.error('Error fetching employee PIN from DB:', e);
+    }
+    return process.env.EMPLOYEE_PIN_HASH || DEFAULT_EMPLOYEE_HASH;
+}
 
 // ============================================
 // Secure Token Verification
@@ -127,7 +152,7 @@ function verifyToken(token) {
         if (!payload || !signature) return { ok: false, error: 'Invalid format' };
         
         const expectedSignature = crypto
-            .createHmac('sha256', process.env.SESSION_SECRET)
+            .createHmac('sha256', SESSION_SECRET)
             .update(payload)
             .digest('hex');
         
@@ -154,7 +179,7 @@ function verifyToken(token) {
     }
 }
 
-// Auth Middleware (Unified)
+// Auth Middleware (Admin Only)
 const authMiddleware = (req, res, next) => {
     const token = req.cookies.auth_token;
     const result = verifyToken(token);
@@ -163,10 +188,15 @@ const authMiddleware = (req, res, next) => {
         return res.status(401).json({ success: false, error: `Unauthorized: ${result.error}` });
     }
     
+    if (result.payload.role !== 'admin') {
+        return res.status(403).json({ success: false, error: 'Forbidden: Admin access required' });
+    }
+    
     req.user = result.payload;
     next();
 };
 
+// Staff Auth Middleware (Admin or Employee)
 const employeeAuthMiddleware = (req, res, next) => {
     const token = req.cookies.auth_token;
     const result = verifyToken(token);
@@ -176,7 +206,7 @@ const employeeAuthMiddleware = (req, res, next) => {
     }
     
     if (result.payload.role !== 'admin' && result.payload.role !== 'employee') {
-        return res.status(403).json({ success: false, error: 'Forbidden' });
+        return res.status(403).json({ success: false, error: 'Forbidden: Staff access required' });
     }
     
     req.user = result.payload;
@@ -313,113 +343,115 @@ app.post('/api/cloudinary/sign', authMiddleware, (req, res) => {
 // ============================================
 // Auth Endpoints
 // ============================================
-app.post('/api/auth/login', loginLimiter, (req, res) => {
-    const { pin } = req.body;
-    const hashedPin = crypto.createHash('sha256').update(pin || '').digest('hex');
-    const defaultAdminHash = '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4'; // 1234
-    const storedHash = process.env.ADMIN_PASSWORD_HASH || defaultAdminHash;
-    
-    if (!secureCompare(hashedPin, storedHash) && !secureCompare(hashedPin, defaultAdminHash)) {
-        return res.status(401).json({ success: false, error: 'Invalid PIN' });
+app.post('/api/auth/login', loginLimiter, async (req, res) => {
+    try {
+        const pin = (req.body?.pin || '').toString().trim();
+        if (!pin) {
+            return res.status(400).json({ success: false, error: 'الرجاء إدخال الرمز' });
+        }
+        
+        const hashedPin = crypto.createHash('sha256').update(pin).digest('hex');
+        const adminHash = await getAdminPinHash();
+        const employeeHash = await getEmployeePinHash();
+        
+        let role = null;
+        if (secureCompare(hashedPin, adminHash) || secureCompare(hashedPin, DEFAULT_ADMIN_HASH)) {
+            role = 'admin';
+        } else if (secureCompare(hashedPin, employeeHash) || secureCompare(hashedPin, DEFAULT_EMPLOYEE_HASH)) {
+            role = 'employee';
+        }
+        
+        if (!role) {
+            return res.status(401).json({ success: false, error: 'رمز الدخول غير صحيح' });
+        }
+        
+        const sessionDuration = role === 'admin' ? 24 * 60 * 60 * 1000 : 12 * 60 * 60 * 1000;
+        const payloadBase64 = Buffer.from(JSON.stringify({
+            role: role,
+            exp: Date.now() + sessionDuration
+        })).toString('base64');
+        
+        const signature = crypto.createHmac('sha256', SESSION_SECRET)
+            .update(payloadBase64).digest('hex');
+        
+        res.cookie('auth_token', `${payloadBase64}.${signature}`, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: sessionDuration
+        });
+        
+        res.json({ success: true, role: role });
+    } catch (err) {
+        console.error('Login error:', err);
+        res.status(500).json({ success: false, error: 'خطأ في معالجة تسجيل الدخول' });
     }
-    
-    const payloadBase64 = Buffer.from(JSON.stringify({
-        role: 'admin',
-        exp: Date.now() + 24 * 60 * 60 * 1000
-    })).toString('base64');
-    
-    const signature = crypto.createHmac('sha256', process.env.SESSION_SECRET)
-        .update(payloadBase64).digest('hex');
-    
-    res.cookie('auth_token', `${payloadBase64}.${signature}`, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 24 * 60 * 60 * 1000
-    });
-    
-    res.json({ success: true });
 });
 
-app.post('/api/auth/employee-login', loginLimiter, (req, res) => {
-    const { pin } = req.body;
-    
-    const hashedPin = crypto.createHash('sha256').update(pin || '').digest('hex');
-    const defaultEmployeeHash = '03e5aea9be5d5d52481ceb7e4f4e19e63e3a2391cfcbf1806bbdc0531108cce6'; // 782391
-    const defaultAdminHash = '03ac674216f3e15c761ee1a5e255f067953623c8b388b4459e13f978d7c846f4';    // 1234
-    
-    const storedEmployeeHash = process.env.EMPLOYEE_PIN_HASH || defaultEmployeeHash;
-    const storedAdminHash = process.env.ADMIN_PASSWORD_HASH || defaultAdminHash;
-    
-    const matchesEmployee = secureCompare(hashedPin, storedEmployeeHash) || secureCompare(hashedPin, defaultEmployeeHash);
-    const matchesAdmin = secureCompare(hashedPin, storedAdminHash) || secureCompare(hashedPin, defaultAdminHash);
-    
-    if (!matchesEmployee && !matchesAdmin) {
-        return res.status(401).json({ success: false, error: 'Invalid PIN' });
+app.post('/api/auth/employee-login', loginLimiter, async (req, res) => {
+    try {
+        const pin = (req.body?.pin || '').toString().trim();
+        if (!pin) {
+            return res.status(400).json({ success: false, error: 'الرجاء إدخال الرمز' });
+        }
+        
+        const hashedPin = crypto.createHash('sha256').update(pin).digest('hex');
+        const adminHash = await getAdminPinHash();
+        const employeeHash = await getEmployeePinHash();
+        
+        let role = null;
+        if (secureCompare(hashedPin, employeeHash) || secureCompare(hashedPin, DEFAULT_EMPLOYEE_HASH)) {
+            role = 'employee';
+        } else if (secureCompare(hashedPin, adminHash) || secureCompare(hashedPin, DEFAULT_ADMIN_HASH)) {
+            role = 'admin';
+        }
+        
+        if (!role) {
+            return res.status(401).json({ success: false, error: 'رمز الدخول غير صحيح' });
+        }
+        
+        const sessionDuration = role === 'admin' ? 24 * 60 * 60 * 1000 : 12 * 60 * 60 * 1000;
+        const payloadBase64 = Buffer.from(JSON.stringify({
+            role: role,
+            exp: Date.now() + sessionDuration
+        })).toString('base64');
+        
+        const signature = crypto.createHmac('sha256', SESSION_SECRET)
+            .update(payloadBase64).digest('hex');
+        
+        res.cookie('auth_token', `${payloadBase64}.${signature}`, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: sessionDuration
+        });
+        
+        res.json({ success: true, role: role });
+    } catch (err) {
+        console.error('Employee login error:', err);
+        res.status(500).json({ success: false, error: 'خطأ في معالجة تسجيل الدخول' });
     }
-    
-    const payloadBase64 = Buffer.from(JSON.stringify({
-        role: 'employee',
-        exp: Date.now() + 12 * 60 * 60 * 1000
-    })).toString('base64');
-    
-    const signature = crypto.createHmac('sha256', process.env.SESSION_SECRET)
-        .update(payloadBase64).digest('hex');
-    
-    res.cookie('auth_token', `${payloadBase64}.${signature}`, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 12 * 60 * 60 * 1000
-    });
-    
-    res.json({ success: true });
 });
 
 app.post('/api/auth/logout', (req, res) => {
-    res.clearCookie('auth_token');
+    res.clearCookie('auth_token', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict'
+    });
     res.json({ success: true });
 });
 
 app.get('/api/auth/status', (req, res) => {
     const result = verifyToken(req.cookies.auth_token);
-    res.json({ authenticated: result.ok, role: result.payload?.role });
-});
-
-// ============================================
-// Albums
-// ============================================
-app.get('/api/albums', async (req, res) => {
-    try {
-        const albums = await Album.find().sort({ createdAt: -1 }).lean();
-        res.json(albums);
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+    if (result.ok) {
+        return res.json({ 
+            authenticated: true, 
+            role: result.payload?.role, 
+            exp: result.payload?.exp 
+        });
     }
-});
-
-app.post('/api/albums', authMiddleware, async (req, res) => {
-    try {
-        const albumData = req.body;
-        if (!albumData.id) albumData.id = `alb_yr_${Date.now()}`;
-        const savedAlbum = await Album.findOneAndUpdate(
-            { id: albumData.id },
-            albumData,
-            { returnDocument: 'after', upsert: true }
-        );
-        res.status(201).json({ success: true, album: savedAlbum });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-app.delete('/api/albums/:id', authMiddleware, async (req, res) => {
-    try {
-        await Album.findOneAndDelete({ id: req.params.id });
-        res.json({ success: true });
-    } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
-    }
+    res.json({ authenticated: false, role: null });
 });
 
 // ============================================
@@ -588,6 +620,53 @@ app.post('/api/settings', authMiddleware, async (req, res) => {
 });
 
 // ============================================
+// Dynamic PIN Management (Admin Only)
+// ============================================
+app.post('/api/settings/pins', authMiddleware, async (req, res) => {
+    try {
+        const { adminPin, employeePin } = req.body;
+        if (!adminPin && !employeePin) {
+            return res.status(400).json({ success: false, error: 'يجب إدخال رمز جديد لتحديثه' });
+        }
+        
+        const existing = await Settings.findOne({ key: 'auth_pins' });
+        const pinData = (existing && existing.value) ? { ...existing.value } : {
+            adminPinHash: DEFAULT_ADMIN_HASH,
+            employeePinHash: DEFAULT_EMPLOYEE_HASH
+        };
+        
+        if (adminPin) {
+            const cleanAdmin = adminPin.toString().trim();
+            if (cleanAdmin.length < 4 || cleanAdmin.length > 20) {
+                return res.status(400).json({ success: false, error: 'رمز المدير يجب أن يكون بين 4 إلى 20 خانة' });
+            }
+            pinData.adminPinHash = crypto.createHash('sha256').update(cleanAdmin).digest('hex');
+        }
+        
+        if (employeePin) {
+            const cleanEmp = employeePin.toString().trim();
+            if (cleanEmp.length < 4 || cleanEmp.length > 20) {
+                return res.status(400).json({ success: false, error: 'رمز الموظف يجب أن يكون بين 4 إلى 20 خانة' });
+            }
+            pinData.employeePinHash = crypto.createHash('sha256').update(cleanEmp).digest('hex');
+        }
+        
+        pinData.updatedAt = new Date();
+        
+        await Settings.findOneAndUpdate(
+            { key: 'auth_pins' },
+            { value: pinData },
+            { upsert: true }
+        );
+        
+        res.json({ success: true, message: 'تم تحديث الرموز بنجاح' });
+    } catch (err) {
+        console.error('Update PINs error:', err);
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// ============================================
 // Orders & Pager System
 // ============================================
 async function generateUniqueOrderId() {
@@ -611,6 +690,16 @@ app.post('/api/orders', async (req, res) => {
             if (exists) {
                 data.orderId = await generateUniqueOrderId();
             }
+        }
+        
+        // Normalize deliveryMethod
+        if (data.deliveryMethod) {
+            const dm = data.deliveryMethod.toString().trim();
+            if (dm === 'توصيل' || dm === 'delivery') data.deliveryMethod = 'delivery';
+            else if (dm === 'استلام من الفرع' || dm === 'pickup') data.deliveryMethod = 'pickup';
+            else data.deliveryMethod = null;
+        } else {
+            data.deliveryMethod = null;
         }
         
         const saved = await Order.create(data);

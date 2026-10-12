@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <title>منصة العمليات الموحدة | يلوروز YELLOW ROSE</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/assets/logo.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Cairo:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,600;0,800;1,600&family=Tajawal:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    :root {
+      --gold: #d4af37;
+      --gold-light: #f5e7a9;
+      --gold-dark: #aa820a;
+      --gold-gradient: linear-gradient(135deg, #f5e7a9 0%, #d4af37 50%, #aa820a 100%);
+      --bg-darkest: #0a0a0d;
+      --bg-dark: #121217;
+      --bg-card: #191922;
+      --bg-card-hover: #22222e;
+      --bg-input: #101015;
+      --border-subtle: rgba(212, 175, 55, 0.18);
+      --border-focus: rgba(212, 175, 55, 0.6);
+      --text-main: #fbfbfe;
+      --text-muted: #9fa0ad;
+      --text-gold: #e6c86e;
+      --green: #10b981;
+      --blue: #3b82f6;
+      --orange: #f59e0b;
+      --red: #ef4444;
+      --shadow-luxury: 0 10px 30px -10px rgba(0, 0, 0, 0.8), 0 0 15px rgba(212, 175, 55, 0.08);
+      --sidebar-width: 260px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Tajawal', sans-serif;
+      background-color: var(--bg-darkest);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* =========================================
+       LOGIN OVERLAY
+    ========================================= */
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, #1b1b24 0%, #0a0a0d 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 1.5rem;
+    }
+    .login-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(212, 175, 55, 0.15);
+      border-radius: 20px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+      position: relative;
+    }
+    .login-logo {
+      width: 80px;
+      height: 80px;
+      object-fit: contain;
+      margin-bottom: 1rem;
+      filter: drop-shadow(0 0 10px rgba(212, 175, 55, 0.4));
+    }
+    .login-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--gold-light);
+      margin-bottom: 0.35rem;
+    }
+    .login-subtitle {
+      color: var(--text-muted);
+      font-size: 0.88rem;
+      margin-bottom: 1.8rem;
+    }
+    .login-input {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1.5px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 1rem;
+      font-size: 1.3rem;
+      text-align: center;
+      letter-spacing: 6px;
+      color: var(--gold-light);
+      outline: none;
+      transition: all 0.3s;
+      margin-bottom: 1.2rem;
+    }
+    .login-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 15px rgba(212, 175, 55, 0.3);
+    }
+    .login-btn {
+      width: 100%;
+      background: var(--gold-gradient);
+      color: #0b0b0e;
+      border: none;
+      padding: 0.95rem;
+      font-size: 1.05rem;
+      font-weight: 800;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(212, 175, 55, 0.4);
+    }
+    .login-error {
+      color: var(--red);
+      font-size: 0.88rem;
+      margin-top: 1rem;
+      display: none;
+    }
+
+    /* =========================================
+       APP SHELL & LAYOUT
+    ========================================= */
+    .app-layout {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* SIDEBAR */
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--bg-dark);
+      border-left: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      z-index: 100;
+      transition: transform 0.3s;
+    }
+    .sidebar-header {
+      padding: 1.5rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .sidebar-logo {
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
+    }
+    .sidebar-brand h1 {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--gold-light);
+      line-height: 1.2;
+    }
+    .sidebar-brand span {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+    .sidebar-nav {
+      flex: 1;
+      padding: 1.25rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      overflow-y: auto;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      padding: 0.85rem 1rem;
+      border-radius: 12px;
+      color: var(--text-muted);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.25s;
+      border: 1px solid transparent;
+      user-select: none;
+    }
+    .nav-item i {
+      font-size: 1.15rem;
+      width: 22px;
+      text-align: center;
+    }
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-main);
+    }
+    .nav-item.active {
+      background: rgba(212, 175, 55, 0.12);
+      color: var(--gold-light);
+      border-color: var(--border-subtle);
+    }
+    .nav-item.active i {
+      color: var(--gold);
+    }
+    .nav-badge {
+      margin-right: auto;
+      background: var(--gold);
+      color: #111;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    .sidebar-footer {
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+    .user-profile-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.5rem 0.75rem;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 10px;
+      font-size: 0.82rem;
+    }
+    .role-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .role-indicator.admin { background: var(--gold); box-shadow: 0 0 8px var(--gold); }
+    .role-indicator.employee { background: var(--blue); box-shadow: 0 0 8px var(--blue); }
+
+    /* MAIN CONTENT */
+    .main-wrapper {
+      flex: 1;
+      margin-right: var(--sidebar-width);
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+
+    /* TOPBAR */
+    .topbar {
+      background: var(--bg-dark);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0.85rem 1.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 90;
+    }
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .mobile-menu-btn {
+      display: none;
+      background: none;
+      border: 1px solid var(--border-subtle);
+      color: var(--gold-light);
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+    .topbar-title {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .btn-topbar {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 0.5rem 0.9rem;
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-topbar:hover {
+      background: rgba(212, 175, 55, 0.15);
+      border-color: var(--gold);
+      color: var(--gold-light);
+    }
+    .btn-primary-top {
+      background: var(--gold-gradient);
+      color: #0b0b0e;
+      border: none;
+      font-weight: 800;
+    }
+    .btn-primary-top:hover {
+      box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+      color: #0b0b0e;
+    }
+
+    /* CONTENT BODY */
+    .content-body {
+      padding: 1.75rem;
+      flex: 1;
+    }
+
+    .tab-section {
+      display: none;
+      animation: fadeIn 0.25s ease;
+    }
+    .tab-section.active {
+      display: block;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* =========================================
+       TAB 1: ORDERS HUB
+    ========================================= */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 1.1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: var(--shadow-luxury);
+    }
+    .metric-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+    }
+    .metric-icon.total { background: rgba(212, 175, 55, 0.15); color: var(--gold); }
+    .metric-icon.pending { background: rgba(245, 158, 11, 0.15); color: var(--orange); }
+    .metric-icon.preparing { background: rgba(59, 130, 246, 0.15); color: var(--blue); }
+    .metric-icon.ready { background: rgba(16, 185, 129, 0.15); color: var(--green); }
+    .metric-val {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.1;
+    }
+    .metric-lbl {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* Filters Bar */
+    .orders-toolbar {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 0.85rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .search-box {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 0.55rem 0.9rem;
+      flex: 1;
+      min-width: 240px;
+    }
+    .search-box input {
+      background: none;
+      border: none;
+      color: var(--text-main);
+      outline: none;
+      width: 100%;
+      font-family: inherit;
+      font-size: 0.92rem;
+    }
+    .filter-pills {
+      display: flex;
+      gap: 0.4rem;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+    .filter-pill {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-muted);
+      padding: 0.45rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .filter-pill:hover, .filter-pill.active {
+      background: var(--gold-gradient);
+      color: #0b0b0e;
+      border-color: var(--gold);
+    }
+
+    /* Orders Grid */
+    .orders-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.25rem;
+    }
+    .order-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+      position: relative;
+      box-shadow: var(--shadow-luxury);
+    }
+    .order-card:hover {
+      border-color: rgba(212, 175, 55, 0.4);
+      transform: translateY(-2px);
+    }
+    .order-card.has-call {
+      border-color: #ef4444 !important;
+      animation: alertPulse 1.5s infinite;
+    }
+    @keyframes alertPulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .call-alert-banner {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #fca5a5;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .order-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding-bottom: 0.75rem;
+    }
+    .order-num {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--gold-light);
+      letter-spacing: 0.5px;
+    }
+    .order-time {
+      font-size: 0.76rem;
+      color: var(--text-muted);
+    }
+    .order-badge {
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 20px;
+    }
+    .badge-pending { background: rgba(245, 158, 11, 0.15); color: var(--orange); }
+    .badge-preparing { background: rgba(59, 130, 246, 0.15); color: var(--blue); }
+    .badge-printed { background: rgba(168, 85, 247, 0.15); color: #c084fc; }
+    .badge-ready { background: rgba(16, 185, 129, 0.15); color: var(--green); }
+    .badge-completed { background: rgba(107, 114, 128, 0.15); color: #9ca3af; }
+
+    .order-info-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      font-size: 0.88rem;
+    }
+    .order-info-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .order-info-row i {
+      width: 16px;
+      color: var(--gold);
+      font-size: 0.85rem;
+    }
+    .info-lbl {
+      color: var(--text-muted);
+      font-size: 0.82rem;
+    }
+    .info-val {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    .order-card-box {
+      background: rgba(212, 175, 55, 0.06);
+      border: 1px solid rgba(212, 175, 55, 0.2);
+      border-radius: 10px;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.82rem;
+    }
+    .order-card-box .title {
+      color: var(--gold);
+      font-weight: 700;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .order-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-top: auto;
+      padding-top: 0.75rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .btn-card-act {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 0.55rem;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .btn-card-act:hover {
+      background: rgba(212, 175, 55, 0.15);
+      border-color: var(--gold);
+      color: var(--gold-light);
+    }
+    .btn-card-act.print {
+      background: rgba(212, 175, 55, 0.15);
+      color: var(--gold-light);
+      border-color: var(--gold);
+    }
+    .btn-card-act.ping {
+      background: rgba(59, 130, 246, 0.15);
+      color: #93c5fd;
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+    .btn-card-act.wa {
+      background: rgba(16, 185, 129, 0.15);
+      color: #6ee7b7;
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+
+    .status-dropdown {
+      grid-column: span 2;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 0.55rem;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      outline: none;
+      cursor: pointer;
+    }
+
+    /* =========================================
+       TAB 2: A7 PRINT STUDIO
+    ========================================= */
+    .print-studio-layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .print-studio-layout { grid-template-columns: 1fr; }
+    }
+    .canvas-preview-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: var(--shadow-luxury);
+    }
+    .canvas-controls-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      box-shadow: var(--shadow-luxury);
+    }
+
+    /* A7 Canvas EXACT 105mm x 74mm landscape scale */
+    .a7-canvas-wrapper {
+      width: 100%;
+      max-width: 525px;
+      aspect-ratio: 105 / 74;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+      position: relative;
+      overflow: hidden;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      color: #111111;
+      border: 6px solid #d4af37;
+    }
+    .a7-canvas-wrapper.style-modern {
+      border: 1px solid #d4af37;
+      background: #faf8f5;
+    }
+    .a7-canvas-wrapper.style-floral {
+      border: 8px double #d4af37;
+      background: radial-gradient(circle, #ffffff 60%, #fdfbf7 100%);
+    }
+
+    .card-watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 45%;
+      opacity: 0.05;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .card-recipient-text {
+      font-size: 14pt;
+      font-weight: 700;
+      color: #1a1a1a;
+      z-index: 1;
+      text-align: right;
+    }
+    .card-message-text {
+      font-size: 16pt;
+      line-height: 1.7;
+      text-align: center;
+      color: #1a1a1a;
+      z-index: 1;
+      white-space: pre-wrap;
+      margin: auto 0;
+      padding: 8px 0;
+    }
+    .card-sender-text {
+      font-size: 14pt;
+      font-weight: 700;
+      color: #1a1a1a;
+      z-index: 1;
+      text-align: left;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .form-group label {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .form-input, .form-select, .form-textarea {
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 0.75rem 0.9rem;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.92rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      border-color: var(--gold);
+    }
+    .form-textarea { resize: vertical; min-height: 80px; }
+
+    /* =========================================
+       TAB 3: PRODUCTS & CATEGORIES
+    ========================================= */
+    .catalog-management-grid {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 900px) {
+      .catalog-management-grid { grid-template-columns: 1fr; }
+    }
+    .categories-tree-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.25rem;
+      box-shadow: var(--shadow-luxury);
+    }
+    .category-tree-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    .category-tree-item {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 0.65rem 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.88rem;
+    }
+
+    /* Products Stream */
+    .products-stream-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.25rem;
+      box-shadow: var(--shadow-luxury);
+    }
+    .products-table-wrapper {
+      overflow-x: auto;
+      margin-top: 1rem;
+    }
+    .products-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+    }
+    .products-table th {
+      text-align: right;
+      padding: 0.75rem;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--gold-light);
+      font-weight: 700;
+    }
+    .products-table td {
+      padding: 0.75rem;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: var(--text-main);
+      vertical-align: middle;
+    }
+    .table-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid var(--border-subtle);
+    }
+
+    /* =========================================
+       TAB 4: REVIEWS & RATINGS
+    ========================================= */
+    .reviews-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .reviews-stream {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .review-bubble {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      box-shadow: var(--shadow-luxury);
+    }
+    .review-bubble-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .stars-row {
+      color: #f59e0b;
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+    }
+    .review-comment {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #f3f4f6;
+    }
+
+    /* =========================================
+       TAB 5: MARKETING PUSH
+    ========================================= */
+    .marketing-layout {
+      max-width: 680px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: var(--shadow-luxury);
+    }
+
+    /* =========================================
+       TAB 6: SECURITY & SETTINGS
+    ========================================= */
+    .settings-layout {
+      max-width: 600px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 2rem;
+      box-shadow: var(--shadow-luxury);
+    }
+    .security-badge-banner {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #6ee7b7;
+      padding: 1rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+
+    /* =========================================
+       MODALS
+    ========================================= */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(5px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1.5rem;
+    }
+    .modal-backdrop.active {
+      display: flex;
+    }
+    .modal-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 520px;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(212, 175, 55, 0.15);
+      padding: 1.75rem;
+      position: relative;
+      animation: modalSlide 0.25s ease;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    @keyframes modalSlide {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding-bottom: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .modal-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--gold-light);
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 25px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: #191922;
+      color: var(--gold-light);
+      border: 1px solid var(--gold);
+      padding: 0.85rem 1.75rem;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 15px rgba(212, 175, 55, 0.3);
+      z-index: 10001;
+      transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+      pointer-events: none;
+    }
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ROLE RESTRICTIONS */
+    body.is-employee .admin-only {
+      display: none !important;
+    }
+
+    /* PRINT MEDIA QUERY (A7 CALIBRATION) */
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      .a7-canvas-wrapper, .a7-canvas-wrapper * {
+        visibility: visible !important;
+      }
+      .a7-canvas-wrapper {
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 105mm !important;
+        height: 74mm !important;
+        margin: 0 !important;
+        border: 4px solid #d4af37 !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        padding: 8mm !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      @page {
+        size: 105mm 74mm landscape;
+        margin: 0;
+      }
+    }
+
+    /* Responsive Mobile */
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(100%);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .main-wrapper {
+        margin-right: 0;
+      }
+      .mobile-menu-btn {
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body class="is-employee">
+
+  <!-- =========================================
+       LOGIN OVERLAY
+  ========================================= -->
+  <div class="login-overlay" id="loginOverlay">
+    <div class="login-card">
+      <img src="/assets/logo.png" alt="Yellow Rose" class="login-logo">
+      <h2 class="login-title">منصة العمليات الموحدة</h2>
+      <p class="login-subtitle">يلوروز للورد والمناسبات الفاخرة</p>
+      
+      <form id="loginForm" onsubmit="event.preventDefault(); window.PortalApp.handleLogin();">
+        <input type="password" id="loginPinInput" class="login-input" placeholder="••••" autocomplete="current-password" autofocus required>
+        <button type="submit" id="loginBtn" class="login-btn">
+          <i class="fas fa-key"></i> دخول للمنصة
+        </button>
+        <div id="loginErrorMsg" class="login-error">رمز الدخول غير صحيح، يرجى المحاولة مرة أخرى.</div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================
+       APP SHELL
+  ========================================= -->
+  <div class="app-layout" id="appLayout" style="display: none;">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <img src="/assets/logo.png" alt="يلوروز" class="sidebar-logo">
+        <div class="sidebar-brand">
+          <h1>YELLOW ROSE</h1>
+          <span>OPERATIONS PORTAL</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-item active" data-tab="orders">
+          <i class="fas fa-concierge-bell"></i>
+          <span>مركز الطلبات</span>
+          <span class="nav-badge" id="navOrdersBadge">0</span>
+        </div>
+
+        <div class="nav-item" data-tab="print">
+          <i class="fas fa-print"></i>
+          <span>محطة الطباعة A7</span>
+        </div>
+
+        <div class="nav-item admin-only" data-tab="products">
+          <i class="fas fa-spa"></i>
+          <span>المنتجات والأقسام</span>
+        </div>
+
+        <div class="nav-item admin-only" data-tab="reviews">
+          <i class="fas fa-star"></i>
+          <span>تقييمات وآراء العملاء</span>
+        </div>
+
+        <div class="nav-item admin-only" data-tab="marketing">
+          <i class="fas fa-bullhorn"></i>
+          <span>حملات الإشعارات</span>
+        </div>
+
+        <div class="nav-item admin-only" data-tab="settings">
+          <i class="fas fa-shield-alt"></i>
+          <span>الأمان والرموز</span>
+        </div>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="user-profile-badge">
+          <span class="role-indicator admin" id="roleIndicatorDot"></span>
+          <span id="roleLabelText">مشرف عام</span>
+        </div>
+        <button class="btn-topbar" id="sidebarLogoutBtn" style="justify-content: center; width: 100%;">
+          <i class="fas fa-sign-out-alt"></i> تسجيل الخروج
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT WRAPPER -->
+    <div class="main-wrapper">
+      
+      <!-- TOPBAR -->
+      <header class="topbar">
+        <div class="topbar-right">
+          <button class="mobile-menu-btn" id="mobileMenuBtn">
+            <i class="fas fa-bars"></i>
+          </button>
+          <div class="topbar-title" id="topbarTitle">مركز الطلبات والبيجر</div>
+        </div>
+
+        <div class="topbar-left">
+          <button class="btn-topbar" id="audioToggleBtn" title="تفعيل أو كتم صوت التنبيهات">
+            <i class="fas fa-volume-up text-gold"></i> <span id="audioStatusText">الصوت مفعّل</span>
+          </button>
+
+          <a href="index.html" target="_blank" class="btn-topbar" title="معاينة المتجر كزائر">
+            <i class="fas fa-external-link-alt"></i> المتجر
+          </a>
+
+          <button class="btn-topbar btn-primary-top" id="btnQuickNewOrder">
+            <i class="fas fa-plus"></i> طلب جديد
+          </button>
+        </div>
+      </header>
+
+      <!-- CONTENT BODY -->
+      <main class="content-body">
+
+        <!-- =========================================
+             TAB 1: ORDERS HUB
+        ========================================= -->
+        <section class="tab-section active" id="tabSection-orders">
+          
+          <!-- Metrics -->
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-icon total"><i class="fas fa-receipt"></i></div>
+              <div>
+                <div class="metric-val" id="metricTotal">0</div>
+                <div class="metric-lbl">إجمالي الطلبات</div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon pending"><i class="fas fa-clock"></i></div>
+              <div>
+                <div class="metric-val" id="metricPending">0</div>
+                <div class="metric-lbl">قيد الانتظار</div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon preparing"><i class="fas fa-tools"></i></div>
+              <div>
+                <div class="metric-val" id="metricPreparing">0</div>
+                <div class="metric-lbl">جاري التجهيز</div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon ready"><i class="fas fa-check-circle"></i></div>
+              <div>
+                <div class="metric-val" id="metricReady">0</div>
+                <div class="metric-lbl">جاهز للاستلام</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Toolbar -->
+          <div class="orders-toolbar">
+            <div class="search-box">
+              <i class="fas fa-search text-gold"></i>
+              <input type="text" id="orderSearchInput" placeholder="بحث برقم الطلب، العميل، أو المنتج...">
+            </div>
+
+            <div class="filter-pills" id="orderFilterPills">
+              <button class="filter-pill active" data-filter="all">الكل</button>
+              <button class="filter-pill" data-filter="pending">⏳ الانتظار</button>
+              <button class="filter-pill" data-filter="preparing">⚙️ التجهيز</button>
+              <button class="filter-pill" data-filter="printed">🖨️ مطبوع</button>
+              <button class="filter-pill" data-filter="ready">✅ جاهز</button>
+              <button class="filter-pill" data-filter="completed">🏁 مكتمل</button>
+            </div>
+          </div>
+
+          <!-- Orders Grid -->
+          <div class="orders-grid" id="ordersGrid">
+            <!-- Rendered Dynamically -->
+          </div>
+        </section>
+
+
+        <!-- =========================================
+             TAB 2: PRINT STUDIO
+        ========================================= -->
+        <section class="tab-section" id="tabSection-print">
+          <div class="print-studio-layout">
+            
+            <!-- Live Preview -->
+            <div class="canvas-preview-panel">
+              <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                <h3 style="color: var(--gold-light); font-weight: 800;"><i class="fas fa-eye"></i> معاينة كرت الإهداء (A7)</h3>
+                <span style="font-size: 0.8rem; color: var(--text-muted); border: 1px solid var(--border-subtle); padding: 2px 8px; border-radius: 6px;">مقاس الطباعة: 105 × 74 ملم</span>
+              </div>
+
+              <!-- A7 Canvas (Screen & Print Target) -->
+              <div class="a7-canvas-wrapper" id="a7CanvasTarget">
+                <img src="/assets/logo.png" class="card-watermark" alt="Watermark">
+                <div class="card-recipient-text" id="canvasRecipientText">إلى: أميرة القلوب</div>
+                <div class="card-message-text" id="canvasMessageText">كل عام وأنتِ لقلبي فرحة، كل عام والورد ينحني لجمال ابتسامتك. نسأل الله لكِ أياماً تشبه نقاء روحك ✨</div>
+                <div class="card-sender-text" id="canvasSenderText">من: محبوك دائماً</div>
+              </div>
+
+              <!-- Action Bar under canvas -->
+              <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem; width: 100%; max-width: 525px;">
+                <button class="btn-topbar btn-primary-top" id="btnExecutePrint" style="flex: 2; padding: 0.85rem; justify-content: center; font-size: 1rem;">
+                  <i class="fas fa-print"></i> طباعة الكرت الآن
+                </button>
+                <button class="btn-topbar" id="btnMarkOrderPrinted" style="flex: 1; justify-content: center;">
+                  <i class="fas fa-check"></i> تم الطبع
+                </button>
+                <button class="btn-topbar" id="btnMarkOrderReadyFromPrint" style="flex: 1; justify-content: center; color: var(--green); border-color: rgba(16,185,129,0.3);">
+                  <i class="fas fa-bell"></i> نداء العميل
+                </button>
+              </div>
+            </div>
+
+            <!-- Parameters Panel -->
+            <div class="canvas-controls-panel">
+              <h3 style="color: var(--gold-light); font-weight: 800; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">
+                <i class="fas fa-sliders-h"></i> تخصيص كرت الإهداء
+              </h3>
+
+              <div class="form-group">
+                <label>اسم المهدى إليه (إلى:)</label>
+                <input type="text" id="inputCardRecipient" class="form-input" placeholder="اسم المستلم...">
+              </div>
+
+              <div class="form-group">
+                <label>نص الإهداء / الرسالة:</label>
+                <textarea id="inputCardMessage" class="form-textarea" placeholder="اكتب عبارة الإهداء هنا..."></textarea>
+              </div>
+
+              <div class="form-group">
+                <label>اسم الراسل (من:)</label>
+                <input type="text" id="inputCardSender" class="form-input" placeholder="اسم الراسل...">
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                <div class="form-group">
+                  <label>نوع الخط:</label>
+                  <select id="selectCardFont" class="form-select">
+                    <option value="Tajawal">تجوال (عصري فاخر)</option>
+                    <option value="Amiri">الأميري (كلاسيكي)</option>
+                    <option value="Cairo">كايرو (هندسي)</option>
+                    <option value="Playfair Display">Playfair (إنجليزي)</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label>حجم الخط:</label>
+                  <select id="selectCardFontSize" class="form-select">
+                    <option value="12pt">صغير (12pt)</option>
+                    <option value="14pt">متوسط (14pt)</option>
+                    <option value="16pt" selected>كبير (16pt)</option>
+                    <option value="18pt">كبير جداً (18pt)</option>
+                    <option value="20pt">ضخم (20pt)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                <div class="form-group">
+                  <label>المحاذاة:</label>
+                  <select id="selectCardAlign" class="form-select">
+                    <option value="center" selected>وسط</option>
+                    <option value="right">يمين</option>
+                    <option value="left">يسار</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label>إطار الكرت:</label>
+                  <select id="selectCardFrameStyle" class="form-select">
+                    <option value="gold-frame" selected>إطار ذهبي فخم</option>
+                    <option value="style-modern">عصري ناعم</option>
+                    <option value="style-floral">كلاسيكي مزدوج</option>
+                  </select>
+                </div>
+              </div>
+
+              <button class="btn-topbar" id="btnQuickCreateCardModal" style="justify-content: center; margin-top: 0.5rem;">
+                <i class="fas fa-magic text-gold"></i> إنشاء كرت فوري سريع
+              </button>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- =========================================
+             TAB 3: PRODUCTS & CATEGORIES (ADMIN)
+        ========================================= -->
+        <section class="tab-section admin-only" id="tabSection-products">
+          <div class="catalog-management-grid">
+            
+            <!-- Categories Column -->
+            <div class="categories-tree-card">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                <h3 style="color: var(--gold-light); font-weight: 800;"><i class="fas fa-th-large"></i> الأقسام</h3>
+                <button class="btn-topbar" id="btnOpenNewCategoryModal" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">
+                  <i class="fas fa-plus"></i> قسم جديد
+                </button>
+              </div>
+
+              <div class="category-tree-list" id="categoryTreeList">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+
+            <!-- Products Stream -->
+            <div class="products-stream-panel">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                <h3 style="color: var(--gold-light); font-weight: 800;"><i class="fas fa-boxes"></i> المنتجات والأعمال</h3>
+                <button class="btn-topbar btn-primary-top" id="btnOpenNewProductModal">
+                  <i class="fas fa-plus"></i> إضافة منتج جديد
+                </button>
+              </div>
+
+              <div class="products-table-wrapper">
+                <table class="products-table">
+                  <thead>
+                    <tr>
+                      <th>الصورة</th>
+                      <th>الكود</th>
+                      <th>اسم المنتج</th>
+                      <th>القسم</th>
+                      <th>الحالة</th>
+                      <th>إجراءات</th>
+                    </tr>
+                  </thead>
+                  <tbody id="productsTableBody">
+                    <!-- Rendered dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+        <!-- =========================================
+             TAB 4: REVIEWS & RATINGS (ADMIN)
+        ========================================= -->
+        <section class="tab-section admin-only" id="tabSection-reviews">
+          <div class="reviews-overview-grid">
+            <div class="metric-card">
+              <div class="metric-icon ready"><i class="fas fa-star"></i></div>
+              <div>
+                <div class="metric-val" id="metricAvgRating">5.0</div>
+                <div class="metric-lbl">متوسط التقييم العام</div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon total"><i class="fas fa-comment-dots"></i></div>
+              <div>
+                <div class="metric-val" id="metricTotalReviews">0</div>
+                <div class="metric-lbl">إجمالي التقييمات</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="reviews-stream" id="reviewsStreamList">
+            <!-- Rendered dynamically -->
+          </div>
+        </section>
+
+
+        <!-- =========================================
+             TAB 5: MARKETING PUSH (ADMIN)
+        ========================================= -->
+        <section class="tab-section admin-only" id="tabSection-marketing">
+          <div class="marketing-layout">
+            <h2 style="color: var(--gold-light); font-weight: 800; margin-bottom: 0.5rem; text-align: center;">
+              <i class="fas fa-bullhorn text-gold"></i> إرسال حملة إشعارات ترويجية
+            </h2>
+            <p style="text-align: center; color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem;">
+              إرسال إشعار فوري لجميع عملاء يلوروز المشتركين في الموقع
+            </p>
+
+            <div class="security-badge-banner" style="justify-content: center; margin-bottom: 1.5rem;">
+              <i class="fas fa-users text-gold"></i> عدد المشتركين النشطين بالإشعارات: <strong id="marketingActiveSubscribersCount">0</strong> عميل
+            </div>
+
+            <form id="marketingCampaignForm" onsubmit="event.preventDefault(); window.PortalApp.sendMarketingCampaign();">
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label>عنوان الإشعار:</label>
+                <input type="text" id="campaignTitleInput" class="form-input" placeholder="مثال: خصم 20% على باقات الورد الفاخرة 🌹" required>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label>نص الإشعار:</label>
+                <textarea id="campaignBodyInput" class="form-textarea" placeholder="اكتب تفاصيل العرض أو الرسالة التي ستصل للعملاء..." required></textarea>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 1.5rem;">
+                <label>رابط الوجهة عند الضغط على الإشعار:</label>
+                <input type="text" id="campaignUrlInput" class="form-input" value="https://yelrose2026.vercel.app/catalog.html" required>
+              </div>
+
+              <button type="submit" id="btnSendCampaign" class="login-btn">
+                <i class="fas fa-paper-plane"></i> إرسال الحملة لجميع العملاء
+              </button>
+            </form>
+          </div>
+        </section>
+
+
+        <!-- =========================================
+             TAB 6: SECURITY & SETTINGS (ADMIN)
+        ========================================= -->
+        <section class="tab-section admin-only" id="tabSection-settings">
+          <div class="settings-layout">
+            <h2 style="color: var(--gold-light); font-weight: 800; margin-bottom: 0.5rem; text-align: center;">
+              <i class="fas fa-user-shield text-gold"></i> إدارة رموز الدخول والأمان
+            </h2>
+            <p style="text-align: center; color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem;">
+              يمكنك تحديث رموز الدخول للمدير أو الموظف مباشرة وسيتم حفظها وتفعيلها فوراً
+            </p>
+
+            <div class="security-badge-banner">
+              <i class="fas fa-check-circle"></i>
+              <span>نظام الرموز مؤمن عبر تشفير SHA-256 ومخزن بأمان في MongoDB، لا تحتاج لفتح Vercel إطلاقاً.</span>
+            </div>
+
+            <form id="pinsUpdateForm" onsubmit="event.preventDefault(); window.PortalApp.updateSecurityPins();">
+              <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label>رمز المشرف العام الجديد (Admin PIN):</label>
+                <input type="text" id="newAdminPinInput" class="form-input" placeholder="اتركه فارغاً إذا كنت لا ترغب بتغييره">
+                <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">الرمز الحالي الافتراضي: 55409</span>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 1.75rem;">
+                <label>رمز موظفي الفرع الجديد (Employee PIN):</label>
+                <input type="text" id="newEmployeePinInput" class="form-input" placeholder="اتركه فارغاً إذا كنت لا ترغب بتغييره">
+                <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">الرمز الحالي الافتراضي: 4848</span>
+              </div>
+
+              <button type="submit" id="btnSavePins" class="login-btn">
+                <i class="fas fa-save"></i> حفظ وتفعيل الرموز الجديدة
+              </button>
+            </form>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+
+  <!-- =========================================
+       MODALS: QR & SHARING
+  ========================================= -->
+  <div class="modal-backdrop" id="modalQrShare">
+    <div class="modal-box" style="text-align: center;">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fas fa-qrcode text-gold"></i> باركود ومشاركة الطلب</h3>
+        <button class="modal-close" onclick="window.PortalApp.closeModals()">&times;</button>
+      </div>
+
+      <div id="qrModalOrderNum" style="font-size: 1.4rem; font-weight: 800; color: var(--gold-light); margin-bottom: 0.25rem;">YR-000000</div>
+      <div id="qrModalCustomerName" style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1rem;">العميل: محمد الشريف</div>
+
+      <canvas id="qrCanvas" style="background: #ffffff; padding: 12px; border-radius: 14px; margin: 0 auto 1.25rem; display: block; border: 1px solid var(--border-subtle);"></canvas>
+
+      <div style="display: flex; flex-direction: column; gap: 0.65rem;">
+        <a id="qrBtnWhatsApp" href="#" target="_blank" class="btn-card-act wa" style="padding: 0.75rem; font-size: 0.95rem;">
+          <i class="fab fa-whatsapp" style="font-size: 1.2rem;"></i> إرسال الرابط للعميل بالواتساب
+        </a>
+        <button id="qrBtnCopyLink" class="btn-card-act" style="padding: 0.75rem; font-size: 0.95rem;">
+          <i class="fas fa-copy"></i> نسخ رابط متابعة البيجر
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================
+       MODALS: NEW ORDER ON-THE-SPOT
+  ========================================= -->
+  <div class="modal-backdrop" id="modalNewOrder">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fas fa-plus-circle text-gold"></i> إنشاء طلب جديد في الفرع</h3>
+        <button class="modal-close" onclick="window.PortalApp.closeModals()">&times;</button>
+      </div>
+
+      <form id="newOrderForm" onsubmit="event.preventDefault(); window.PortalApp.submitNewOrder();">
+        <div class="form-group" style="margin-bottom: 0.85rem;">
+          <label>اسم العميل:</label>
+          <input type="text" id="noCustName" class="form-input" placeholder="اسم العميل..." required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0.85rem;">
+          <label>رقم جوال العميل (اختياري للواتساب):</label>
+          <input type="tel" id="noCustPhone" class="form-input" placeholder="05xxxxxxxx">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0.85rem;">
+          <label>نوع الطلب / المنتج:</label>
+          <input type="text" id="noProdTitle" class="form-input" placeholder="مثال: باقة ورد طبيعي، فازة زجاجية..." required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0.85rem;">
+          <label>ملاحظات إضافية:</label>
+          <textarea id="noNotes" class="form-textarea" placeholder="أي تفاصيل خاصة بتنسيق الورد..."></textarea>
+        </div>
+
+        <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.25rem;">
+          <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.88rem; cursor: pointer;">
+            <input type="checkbox" id="noNeedsPrint"> يحتاج طباعة كرت إهداء
+          </label>
+        </div>
+
+        <button type="submit" id="btnSubmitNewOrder" class="login-btn">
+          <i class="fas fa-save"></i> حفظ وإنشاء الطلب والبيجر
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================
+       MODALS: QUICK PRINT CARD
+  ========================================= -->
+  <div class="modal-backdrop" id="modalQuickPrint">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fas fa-magic text-gold"></i> إنشاء كرت إهداء فوري</h3>
+        <button class="modal-close" onclick="window.PortalApp.closeModals()">&times;</button>
+      </div>
+
+      <form onsubmit="event.preventDefault(); window.PortalApp.applyQuickCard();">
+        <div class="form-group" style="margin-bottom: 0.85rem;">
+          <label>إلى:</label>
+          <input type="text" id="qpRecipient" class="form-input" placeholder="اسم المهدى إليه...">
+        </div>
+        <div class="form-group" style="margin-bottom: 0.85rem;">
+          <label>الرسالة:</label>
+          <textarea id="qpMessage" class="form-textarea" placeholder="نص الإهداء..." required></textarea>
+        </div>
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+          <label>من:</label>
+          <input type="text" id="qpSender" class="form-input" placeholder="اسم الراسل...">
+        </div>
+        <button type="submit" class="login-btn">
+          <i class="fas fa-check"></i> تطبيق في محطة الطباعة
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast" id="portalToast">تم تحديث البيانات بنجاح</div>
+
+  <!-- Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+  <script src="/assets/dist/js/utils.min.js?v=2"></script>
+  <script src="/assets/dist/js/portal.min.js?v=2"></script>
+</body>
+</html>

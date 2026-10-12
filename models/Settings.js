@@ -5,4 +5,4 @@ const settingsSchema = new mongoose.Schema({
   value: { type: mongoose.Schema.Types.Mixed, required: true }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Settings', settingsSchema);
+module.exports = mongoose.models.Settings || mongoose.model('Settings', settingsSchema);

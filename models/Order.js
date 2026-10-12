@@ -16,7 +16,7 @@ const orderSchema = new mongoose.Schema({
     customerPhone: { 
         type: String, 
         required: true,
-        match: /^[0-9+\-\\s()]{8,20}$/,
+        match: /^[0-9+\-\s()]{8,20}$/,
         maxlength: 20
     },
     productId: { type: String, required: false },
@@ -40,7 +40,7 @@ const orderSchema = new mongoose.Schema({
     isGift: { type: Boolean, default: false },
     deliveryMethod: { 
         type: String,
-        enum: ['pickup', 'delivery', null],
+        enum: ['pickup', 'delivery', 'توصيل', 'استلام من الفرع', '', null],
         default: null
     },
     status: { 
@@ -60,12 +60,34 @@ const orderSchema = new mongoose.Schema({
     printedAt: { type: Date },
     readyAt: { type: Date },
     lastPingAt: { type: Date },
+    lastCallAt: { type: Date },
+    callType: { 
+        type: String, 
+        enum: ['arrived', 'help', 'ontheway', null],
+        default: null
+    },
     pushSubscription: { 
         type: mongoose.Schema.Types.ObjectId, 
         ref: 'PushSubscription', 
         default: null,
         index: true
     }
+});
+
+orderSchema.pre('validate', function(next) {
+    if (this.deliveryMethod) {
+        const val = this.deliveryMethod.toString().trim();
+        if (val === 'توصيل' || val === 'delivery') {
+            this.deliveryMethod = 'delivery';
+        } else if (val === 'استلام من الفرع' || val === 'pickup') {
+            this.deliveryMethod = 'pickup';
+        } else if (val === '') {
+            this.deliveryMethod = null;
+        }
+    } else {
+        this.deliveryMethod = null;
+    }
+    next();
 });
 
 orderSchema.index({ status: 1, createdAt: -1 });
