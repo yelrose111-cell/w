@@ -31,8 +31,25 @@
     // INITIALIZATION & AUTH
     // =========================================
     async init() {
+      this.initBrandLogoAndPreferences();
       this.bindEvents();
+      this.loadSettings();
       await this.checkAuth();
+    },
+
+    initBrandLogoAndPreferences() {
+      try {
+        const cachedLogo = localStorage.getItem('yr_brand_logo_url');
+        if (cachedLogo) {
+          this.updateLogoPreview(cachedLogo);
+        }
+        const cachedPrintSize = localStorage.getItem('yr_preferred_print_size');
+        const selectSize = document.getElementById('selectPrintPageSize');
+        if (cachedPrintSize && selectSize) {
+          selectSize.value = cachedPrintSize;
+        }
+        this.updatePrintCanvasScale(cachedPrintSize || 'thermal-80');
+      } catch (e) {}
     },
 
     bindEvents() {
@@ -104,9 +121,22 @@
         if (el) el.addEventListener('change', () => this.syncCanvasFromInputs());
       });
 
+      // Print Studio Paper Size & Content Type listeners
+      const selectPageSize = document.getElementById('selectPrintPageSize');
+      if (selectPageSize) {
+        selectPageSize.addEventListener('change', (e) => {
+          const val = e.target.value;
+          try { localStorage.setItem('yr_preferred_print_size', val); } catch (err) {}
+          this.updatePrintCanvasScale(val);
+        });
+      }
+
       // Print Studio Execution Buttons
       const printExecBtn = document.getElementById('btnExecutePrint');
       if (printExecBtn) printExecBtn.addEventListener('click', () => this.executePrint());
+
+      const printReceiptBtn = document.getElementById('btnPrintReceiptDirect');
+      if (printReceiptBtn) printReceiptBtn.addEventListener('click', () => this.printReceiptFromStudio());
 
       const markPrintedBtn = document.getElementById('btnMarkOrderPrinted');
       if (markPrintedBtn) markPrintedBtn.addEventListener('click', () => this.markCurrentOrderPrinted());
@@ -388,7 +418,7 @@
       // Update Topbar Title
       const titles = {
         orders: 'مركز الطلبات والبيجر',
-        print: 'محطة الطباعة لكروت الإهداء A7',
+        print: 'محطة الطباعة الذكية ومعايرة الأجهزة',
         products: 'إدارة المنتجات والأقسام',
         reviews: 'تقييمات وآراء العملاء',
         marketing: 'حملات الإشعارات الترويجية',
@@ -620,8 +650,16 @@
               <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>🏁 مكتمل ومسلّم</option>
             </select>
 
-            <button class="btn-card-act print" onclick="window.PortalApp.loadOrderIntoPrintStudio('${safeId}')" title="فتح الكرت في محطة الطباعة">
-              <i class="fas fa-print"></i> كرت A7
+            <button class="btn-card-act print" onclick="window.PortalApp.quickPrintCard('${safeId}')" title="طباعة كرت الإهداء بالمقاس المحدد مباشرة">
+              <i class="fas fa-print"></i> كرت ${order.cardData && order.cardData.message ? 'إهداء' : ''}
+            </button>
+
+            <button class="btn-card-act receipt-act" onclick="window.PortalApp.quickPrintReceipt('${safeId}')" title="طباعة فاتورة وتذكرة التجهيز 80mm">
+              <i class="fas fa-receipt"></i> فاتورة 80mm
+            </button>
+
+            <button class="btn-card-act" onclick="window.PortalApp.loadOrderIntoPrintStudio('${safeId}')" title="فتح الكرت في محطة الطباعة للتعديل والتخصيص">
+              <i class="fas fa-sliders-h"></i> تخصيص
             </button>
 
             ${order.pagerToken ? `
@@ -727,8 +765,377 @@
     },
 
     // =========================================
-    // TAB 2: A7 PRINT STUDIO LOGIC
+    // TAB 2: SMART PRINT STUDIO & DIRECT HARDWARE ENGINE
     // =========================================
+    getPrintPaperConfig(sizeKey) {
+      const map = {
+        'thermal-80': {
+          cssPage: '80mm auto',
+          width: '74mm',
+          height: 'auto',
+          margin: '0mm',
+          name: 'رول حراري 80 ملم',
+          aspectRatio: '80 / 115',
+          maxWidth: '380px'
+        },
+        'a7-landscape': {
+          cssPage: '105mm 74mm landscape',
+          width: '105mm',
+          height: '74mm',
+          margin: '0mm',
+          name: 'كرت A7 أفقي (105×74 ملم)',
+          aspectRatio: '105 / 74',
+          maxWidth: '525px'
+        },
+        'a7-portrait': {
+          cssPage: '74mm 105mm portrait',
+          width: '74mm',
+          height: '105mm',
+          margin: '0mm',
+          name: 'كرت A7 طولي (74×105 ملم)',
+          aspectRatio: '74 / 105',
+          maxWidth: '370px'
+        },
+        'mini-card': {
+          cssPage: '85mm 55mm landscape',
+          width: '85mm',
+          height: '55mm',
+          margin: '0mm',
+          name: 'كرت ميني (85×55 ملم)',
+          aspectRatio: '85 / 55',
+          maxWidth: '480px'
+        },
+        'a6': {
+          cssPage: '105mm 148mm portrait',
+          width: '105mm',
+          height: '148mm',
+          margin: '0mm',
+          name: 'كرت كبير A6 (105×148 ملم)',
+          aspectRatio: '105 / 148',
+          maxWidth: '370px'
+        },
+        'a4': {
+          cssPage: 'A4 portrait',
+          width: '190mm',
+          height: 'auto',
+          margin: '8mm',
+          name: 'ورقة كاملة A4',
+          aspectRatio: '210 / 297',
+          maxWidth: '460px'
+        }
+      };
+      return map[sizeKey] || map['thermal-80'];
+    },
+
+    updatePrintCanvasScale(sizeKey) {
+      const cfg = this.getPrintPaperConfig(sizeKey);
+      const canvas = document.getElementById('a7CanvasTarget');
+      const badge = document.getElementById('printSizeBadge');
+      if (badge) badge.textContent = `مقاس الطباعة: ${cfg.name}`;
+      if (canvas) {
+        canvas.style.aspectRatio = cfg.aspectRatio;
+        canvas.style.maxWidth = cfg.maxWidth;
+      }
+    },
+
+    applyDynamicPrintStyles(sizeKey) {
+      const cfg = this.getPrintPaperConfig(sizeKey);
+      let el = document.getElementById('yrDynamicPrintEngineStyle');
+      if (!el) {
+        el = document.createElement('style');
+        el.id = 'yrDynamicPrintEngineStyle';
+        document.head.appendChild(el);
+      }
+      el.textContent = `
+        @media print {
+          @page {
+            size: ${cfg.cssPage} !important;
+            margin: ${cfg.margin} !important;
+          }
+        }
+      `;
+    },
+
+    generateQrDataUrl(text) {
+      if (!text || typeof QRious === 'undefined') return '';
+      try {
+        const qr = new QRious({
+          value: text,
+          size: 240,
+          level: 'M'
+        });
+        return qr.toDataURL('image/png');
+      } catch (e) {
+        return '';
+      }
+    },
+
+    escapeHtml(str) {
+      if (window.YRUtils && window.YRUtils.escapeHtml) return window.YRUtils.escapeHtml(str);
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[m]);
+    },
+
+    buildThermalReceiptHtml(order) {
+      const o = order || {};
+      const orderId = o.orderId || 'طلب جديد';
+      const custName = o.customerName || 'عميل المحل';
+      const custPhone = o.customerPhone || '-';
+      const productTitle = o.productTitle || 'تنسيق ورد ومناسبات';
+      const notes = o.notes || '';
+      const deliveryMethod = o.deliveryMethod === 'delivery' ? 'توصيل للعنوان' : (o.deliveryMethod === 'pickup' ? 'استلام من الفرع' : 'طلب مباشر');
+      const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ar-SA', {
+        year: 'numeric', month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit'
+      }) : new Date().toLocaleString('ar-SA');
+
+      const s = this.state.settings || {};
+      const logoUrl = s.logoUrl || '/assets/logo.png';
+      const storePhone = s.storeWhatsApp || s.whatsappNumber || s.branchPhone || '0582739397';
+      const branchAddress = s.branchAddress || 'المملكة العربية السعودية';
+
+      // Pager Tracking QR Code URL
+      const pagerUrl = o.pagerToken ? `${window.location.origin}/p/${o.pagerToken}` : `${window.location.origin}/orders.html`;
+      const qrDataUrl = this.generateQrDataUrl(pagerUrl);
+
+      // Card snippet
+      const cd = o.cardData || {};
+      const hasCard = cd.message || o.needsPrint;
+
+      return `
+        <div class="print-thermal-receipt" dir="rtl">
+          <div class="print-receipt-header">
+            <img src="${logoUrl}" class="print-receipt-logo" alt="Yellow Rose" onerror="this.src='/assets/logo.png'">
+            <h2 class="print-receipt-brand">يلوروز للورد والمناسبات</h2>
+            <div class="print-receipt-sub">YELLOW ROSE • LUXURY FLORAL</div>
+            <div class="print-receipt-contacts">
+              <div>هاتف / واتساب: ${storePhone}</div>
+              ${branchAddress ? `<div>${branchAddress}</div>` : ''}
+            </div>
+          </div>
+
+          <div class="print-receipt-divider"></div>
+
+          <div class="print-receipt-badge">
+            <div class="print-receipt-order-id">رقم الطلب: ${orderId}</div>
+            <div style="font-size: 11px; color: #333;">${dateStr}</div>
+            <div style="font-size: 11px; margin-top: 2px;">نوع الاستلام: ${deliveryMethod}</div>
+          </div>
+
+          <div class="print-receipt-divider"></div>
+
+          <div style="font-size: 12px; margin-bottom: 4px;">
+            <div class="print-receipt-row">
+              <strong>العميل:</strong>
+              <span>${this.escapeHtml(custName)}</span>
+            </div>
+            <div class="print-receipt-row">
+              <strong>الجوال:</strong>
+              <span dir="ltr">${this.escapeHtml(custPhone)}</span>
+            </div>
+          </div>
+
+          <div class="print-receipt-divider"></div>
+
+          <div style="font-size: 12px;">
+            <div style="font-weight: 800; margin-bottom: 3px;">تفاصيل الطلب:</div>
+            <div class="print-receipt-row">
+              <span>• ${this.escapeHtml(productTitle)}</span>
+              <span>1x</span>
+            </div>
+            ${notes ? `
+              <div class="print-receipt-notes">
+                <strong>ملاحظات التحضير:</strong>
+                <div>${this.escapeHtml(notes)}</div>
+              </div>
+            ` : ''}
+          </div>
+
+          ${hasCard ? `
+            <div class="print-receipt-divider"></div>
+            <div class="print-receipt-card-box">
+              <div class="print-receipt-card-title">💌 كرت الإهداء المرفق:</div>
+              ${cd.recipient ? `<div style="font-size: 11px; font-weight: 700; margin-bottom: 2px;">إلى: ${this.escapeHtml(cd.recipient)}</div>` : ''}
+              <div style="font-size: 12px; font-weight: 600; line-height: 1.4; margin: 4px 0; font-family: 'Amiri', 'Tajawal', serif;">
+                "${this.escapeHtml(cd.message || '')}"
+              </div>
+              ${cd.sender ? `<div style="font-size: 11px; font-weight: 700; text-align: left; margin-top: 2px;">من: ${this.escapeHtml(cd.sender)}</div>` : ''}
+            </div>
+          ` : ''}
+
+          ${qrDataUrl ? `
+            <div class="print-receipt-divider"></div>
+            <div class="print-receipt-qr-wrap">
+              <div style="font-size: 10px; font-weight: 700; margin-bottom: 3px;">امسح الكود لتتبع حالة طلبك والبيجر 📲</div>
+              <img src="${qrDataUrl}" class="print-receipt-qr-img" alt="QR Code">
+              <div style="font-size: 9px; color: #555; margin-top: 2px;">${orderId}</div>
+            </div>
+          ` : ''}
+
+          <div class="print-receipt-divider"></div>
+
+          <div class="print-receipt-footer">
+            <div>نسعد بخدمتكم دائماً في يلوروز ✨</div>
+            <div>شكراً لثقتكم واختياركم لنا</div>
+          </div>
+        </div>
+      `;
+    },
+
+    buildGiftCardPrintHtml(cardData, sizeKey, frameStyle) {
+      const cd = cardData || {};
+      const rec = (cd.recipient || '').trim();
+      const msg = (cd.message || 'أجمل التهاني وأصدق التبريكات ✨').trim();
+      const snd = (cd.sender || '').trim();
+      const font = cd.fontFamily || 'Tajawal';
+      const size = cd.fontSize || '16pt';
+      const align = cd.textAlign || 'center';
+      const frame = frameStyle || cd.templateStyle || 'gold-frame';
+
+      const s = this.state.settings || {};
+      const logoUrl = s.logoUrl || '/assets/logo.png';
+
+      return `
+        <div class="print-card-canvas size-${sizeKey} ${frame}" dir="rtl">
+          <img src="${logoUrl}" class="print-card-watermark" alt="Watermark" onerror="this.src='/assets/logo.png'">
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; z-index: 1;">
+            <div style="font-size: 13pt; font-weight: 700; color: #111;">
+              ${rec ? `إلى: ${this.escapeHtml(rec)}` : ''}
+            </div>
+            <img src="${logoUrl}" class="print-card-header-logo" alt="Logo" onerror="this.src='/assets/logo.png'">
+          </div>
+
+          <div style="font-family: '${font}', serif; font-size: ${size}; text-align: ${align}; color: #111; line-height: 1.6; white-space: pre-wrap; margin: auto 0; padding: 10px 0; z-index: 1;">
+            ${this.escapeHtml(msg)}
+          </div>
+
+          <div style="font-size: 12pt; font-weight: 700; color: #111; text-align: left; width: 100%; z-index: 1;">
+            ${snd ? `من: ${this.escapeHtml(snd)}` : ''}
+          </div>
+        </div>
+      `;
+    },
+
+    async executeDirectPrint({ type = 'card', size = 'thermal-80', order = null, cardData = null, frameStyle = 'gold-frame' }) {
+      const container = document.getElementById('printMasterContainer');
+      if (!container) return;
+
+      // 1. Calibrate dynamic @page dimensions for device
+      this.applyDynamicPrintStyles(size);
+
+      // 2. Prepare HTML based on print type
+      let contentHtml = '';
+      if (type === 'receipt') {
+        contentHtml = this.buildThermalReceiptHtml(order);
+      } else if (type === 'card') {
+        const cd = cardData || (order ? order.cardData : null) || {
+          recipient: document.getElementById('inputCardRecipient')?.value,
+          message: document.getElementById('inputCardMessage')?.value,
+          sender: document.getElementById('inputCardSender')?.value,
+          fontFamily: document.getElementById('selectCardFont')?.value,
+          fontSize: document.getElementById('selectCardFontSize')?.value,
+          textAlign: document.getElementById('selectCardAlign')?.value
+        };
+        const frame = frameStyle || document.getElementById('selectCardFrameStyle')?.value || 'gold-frame';
+        contentHtml = this.buildGiftCardPrintHtml(cd, size, frame);
+      } else if (type === 'both') {
+        const cd = cardData || (order ? order.cardData : null) || {
+          recipient: document.getElementById('inputCardRecipient')?.value,
+          message: document.getElementById('inputCardMessage')?.value,
+          sender: document.getElementById('inputCardSender')?.value,
+          fontFamily: document.getElementById('selectCardFont')?.value,
+          fontSize: document.getElementById('selectCardFontSize')?.value,
+          textAlign: document.getElementById('selectCardAlign')?.value
+        };
+        const frame = frameStyle || document.getElementById('selectCardFrameStyle')?.value || 'gold-frame';
+        contentHtml = `
+          <div style="page-break-after: always; break-after: page;">
+            ${this.buildGiftCardPrintHtml(cd, size, frame)}
+          </div>
+          <div style="margin-top: 10mm;">
+            ${this.buildThermalReceiptHtml(order)}
+          </div>
+        `;
+      }
+
+      container.innerHTML = contentHtml;
+
+      // 3. Route directly to printer
+      window.print();
+
+      // 4. Mark order as printed in DB if applicable
+      const targetOrder = order || this.state.currentPrintOrder;
+      if (targetOrder && targetOrder.status === 'pending' && targetOrder.orderId) {
+        try {
+          await fetch(`/api/orders/${encodeURIComponent(targetOrder.orderId)}/print`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          this.fetchOrders(true);
+        } catch (e) {}
+      }
+
+      // 5. Cleanup & Toast
+      const cfg = this.getPrintPaperConfig(size);
+      this.showToast(`تم توجيه أمر الطباعة للجهاز بمقاس (${cfg.name}) بنجاح 🖨️`);
+
+      // Clear container after print window closes
+      setTimeout(() => {
+        if (container) container.innerHTML = '';
+      }, 1500);
+    },
+
+    quickPrintCard(orderId) {
+      const order = this.state.orders.find(o => o.orderId === orderId);
+      if (!order) return;
+      const preferredSize = localStorage.getItem('yr_preferred_print_size') || 'thermal-80';
+      const cd = order.cardData || {
+        recipient: '',
+        message: order.notes || 'أجمل التهاني وأصدق التبريكات ✨',
+        sender: ''
+      };
+      this.executeDirectPrint({
+        type: 'card',
+        size: preferredSize,
+        order: order,
+        cardData: cd
+      });
+    },
+
+    quickPrintReceipt(orderId) {
+      const order = this.state.orders.find(o => o.orderId === orderId) || this.state.currentPrintOrder;
+      if (!order) {
+        this.showToast('الرجاء تحديد طلب لطباعة فاتورته');
+        return;
+      }
+      this.executeDirectPrint({
+        type: 'receipt',
+        size: 'thermal-80',
+        order: order
+      });
+    },
+
+    printReceiptFromStudio() {
+      if (!this.state.currentPrintOrder) {
+        const mockOrder = {
+          orderId: 'فوري-' + Math.floor(1000 + Math.random() * 9000),
+          customerName: document.getElementById('inputCardRecipient')?.value || 'عميل المحل',
+          customerPhone: '',
+          productTitle: 'طلب كرت إهداء فوري',
+          createdAt: new Date().toISOString(),
+          cardData: {
+            recipient: document.getElementById('inputCardRecipient')?.value,
+            message: document.getElementById('inputCardMessage')?.value,
+            sender: document.getElementById('inputCardSender')?.value
+          }
+        };
+        this.executeDirectPrint({ type: 'receipt', size: 'thermal-80', order: mockOrder });
+      } else {
+        this.executeDirectPrint({ type: 'receipt', size: 'thermal-80', order: this.state.currentPrintOrder });
+      }
+    },
+
     loadOrderIntoPrintStudio(orderId) {
       const order = this.state.orders.find(o => o.orderId === orderId);
       if (!order) return;
@@ -748,20 +1155,25 @@
       if (cd.fontSize) document.getElementById('selectCardFontSize').value = cd.fontSize;
       if (cd.textAlign) document.getElementById('selectCardAlign').value = cd.textAlign;
 
+      const preferredSize = localStorage.getItem('yr_preferred_print_size') || 'thermal-80';
+      const selectSize = document.getElementById('selectPrintPageSize');
+      if (selectSize) selectSize.value = preferredSize;
+      this.updatePrintCanvasScale(preferredSize);
+
       this.syncCanvasFromInputs();
       this.switchTab('print');
       this.showToast(`تم تحميل كرت الطلب ${orderId}`);
     },
 
     syncCanvasFromInputs() {
-      const rec = document.getElementById('inputCardRecipient').value.trim();
-      const msg = document.getElementById('inputCardMessage').value.trim();
-      const snd = document.getElementById('inputCardSender').value.trim();
+      const rec = document.getElementById('inputCardRecipient')?.value.trim() || '';
+      const msg = document.getElementById('inputCardMessage')?.value.trim() || '';
+      const snd = document.getElementById('inputCardSender')?.value.trim() || '';
 
-      const font = document.getElementById('selectCardFont').value;
-      const size = document.getElementById('selectCardFontSize').value;
-      const align = document.getElementById('selectCardAlign').value;
-      const frame = document.getElementById('selectCardFrameStyle').value;
+      const font = document.getElementById('selectCardFont')?.value || 'Tajawal';
+      const size = document.getElementById('selectCardFontSize')?.value || '16pt';
+      const align = document.getElementById('selectCardAlign')?.value || 'center';
+      const frame = document.getElementById('selectCardFrameStyle')?.value || 'gold-frame';
 
       const canvas = document.getElementById('a7CanvasTarget');
       const recEl = document.getElementById('canvasRecipientText');
@@ -783,10 +1195,16 @@
     },
 
     async executePrint() {
-      window.print();
-      if (this.state.currentPrintOrder && this.state.currentPrintOrder.status === 'pending') {
-        await this.markCurrentOrderPrinted();
-      }
+      const selectSize = document.getElementById('selectPrintPageSize');
+      const size = selectSize ? selectSize.value : (localStorage.getItem('yr_preferred_print_size') || 'thermal-80');
+      const selectType = document.getElementById('selectPrintContentType');
+      const type = selectType ? selectType.value : 'card';
+
+      await this.executeDirectPrint({
+        type: type,
+        size: size,
+        order: this.state.currentPrintOrder
+      });
     },
 
     async markCurrentOrderPrinted() {
@@ -1956,10 +2374,16 @@
     },
 
     updateLogoPreview(url) {
-      const img = document.getElementById('previewLogoImg') || document.getElementById('previewBrandLogoImg');
-      if (img && url) {
-        img.src = url;
-      }
+      const safeUrl = (url || '/assets/logo.png').trim();
+      try {
+        localStorage.setItem('yr_brand_logo_url', safeUrl);
+      } catch (e) {}
+
+      document.querySelectorAll('.brand-logo, .topbar-logo, .sidebar-logo, .login-logo, .card-watermark, #previewLogoImg, #previewBrandLogoImg').forEach(img => {
+        if (img && img.tagName === 'IMG') {
+          img.src = safeUrl;
+        }
+      });
     },
 
     insertTag(textareaId, tag) {

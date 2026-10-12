@@ -290,8 +290,40 @@
       cursor: pointer;
       font-size: 1.1rem;
     }
+    .topbar-brand-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .topbar-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      object-fit: contain;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      padding: 3px;
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.25);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .topbar-logo:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 18px rgba(212, 175, 55, 0.45);
+    }
+    .topbar-brand-texts {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      line-height: 1.2;
+    }
+    .topbar-brand-store {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--gold-light);
+      letter-spacing: 0.5px;
+    }
     .topbar-title {
-      font-size: 1.25rem;
+      font-size: 1.15rem;
       font-weight: 800;
       color: var(--text-main);
     }
@@ -596,6 +628,16 @@
       background: rgba(212, 175, 55, 0.15);
       color: var(--gold-light);
       border-color: var(--gold);
+    }
+    .btn-card-act.receipt-act {
+      background: rgba(168, 85, 247, 0.15);
+      color: #d8b4fe;
+      border-color: rgba(168, 85, 247, 0.35);
+    }
+    .btn-card-act.receipt-act:hover {
+      background: rgba(168, 85, 247, 0.28);
+      color: #f5d0fe;
+      border-color: #c084fc;
     }
     .btn-card-act.ping {
       background: rgba(59, 130, 246, 0.15);
@@ -1164,33 +1206,218 @@
       display: none !important;
     }
 
-    /* PRINT MEDIA QUERY (A7 CALIBRATION) */
+    /* =========================================
+       DIRECT PRINTER CALIBRATION & MEDIA PRINT
+    ========================================= */
+    #printMasterContainer {
+      display: none !important;
+    }
+
     @media print {
-      body * {
-        visibility: hidden !important;
-      }
-      .a7-canvas-wrapper, .a7-canvas-wrapper * {
-        visibility: visible !important;
-      }
-      .a7-canvas-wrapper {
-        position: fixed !important;
-        left: 0 !important;
-        top: 0 !important;
-        width: 105mm !important;
-        height: 74mm !important;
+      html, body {
         margin: 0 !important;
-        border: 4px solid #d4af37 !important;
-        box-shadow: none !important;
-        border-radius: 0 !important;
-        padding: 8mm !important;
+        padding: 0 !important;
         background: #ffffff !important;
         color: #000000 !important;
+        width: 100% !important;
+        height: auto !important;
+        font-family: 'Tajawal', sans-serif !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
-      @page {
-        size: 105mm 74mm landscape;
-        margin: 0;
+
+      /* Suppress everything on screen except the isolated master print container */
+      body > *:not(#printMasterContainer) {
+        display: none !important;
+      }
+
+      #printMasterContainer {
+        display: block !important;
+        position: static !important;
+        margin: 0 auto !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        width: 100% !important;
+      }
+
+      /* Page-break avoidance for crisp receipt and card elements */
+      .print-receipt-item, .print-card-canvas, .print-receipt-box {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+
+      /* Thermal 80mm Receipt Styles */
+      .print-thermal-receipt {
+        width: 74mm !important;
+        max-width: 74mm !important;
+        margin: 0 auto !important;
+        padding: 3mm 1mm !important;
+        box-sizing: border-box !important;
+        font-family: 'Tajawal', sans-serif !important;
+        color: #000000 !important;
+        background: #ffffff !important;
+        font-size: 13px !important;
+        line-height: 1.35 !important;
+        direction: rtl !important;
+        text-align: right !important;
+      }
+      .print-receipt-header {
+        text-align: center !important;
+        margin-bottom: 6px !important;
+      }
+      .print-receipt-logo {
+        width: 48px !important;
+        height: 48px !important;
+        object-fit: contain !important;
+        margin: 0 auto 4px !important;
+        display: block !important;
+      }
+      .print-receipt-brand {
+        font-size: 15px !important;
+        font-weight: 800 !important;
+        color: #000000 !important;
+        margin: 0 !important;
+        line-height: 1.2 !important;
+      }
+      .print-receipt-sub {
+        font-size: 10px !important;
+        color: #444444 !important;
+        margin-bottom: 4px !important;
+        letter-spacing: 0.5px !important;
+      }
+      .print-receipt-contacts {
+        font-size: 11px !important;
+        color: #222222 !important;
+        line-height: 1.3 !important;
+      }
+      .print-receipt-divider {
+        border-top: 1px dashed #000000 !important;
+        margin: 6px 0 !important;
+        width: 100% !important;
+      }
+      .print-receipt-order-id {
+        font-size: 16px !important;
+        font-weight: 900 !important;
+        text-align: center !important;
+        margin: 3px 0 !important;
+        letter-spacing: 0.5px !important;
+      }
+      .print-receipt-badge {
+        text-align: center !important;
+        font-size: 11px !important;
+        font-weight: 700 !important;
+        margin-bottom: 4px !important;
+      }
+      .print-receipt-row {
+        display: flex !important;
+        justify-content: space-between !important;
+        font-size: 12px !important;
+        margin: 2px 0 !important;
+      }
+      .print-receipt-notes {
+        background: #f7f7f7 !important;
+        border: 1px solid #ddd !important;
+        padding: 5px 7px !important;
+        border-radius: 4px !important;
+        font-size: 11px !important;
+        margin: 5px 0 !important;
+      }
+      .print-receipt-card-box {
+        border: 1.5px solid #000000 !important;
+        border-radius: 6px !important;
+        padding: 6px 8px !important;
+        margin: 6px 0 !important;
+        background: #ffffff !important;
+      }
+      .print-receipt-card-title {
+        font-weight: 800 !important;
+        font-size: 12px !important;
+        margin-bottom: 4px !important;
+        border-bottom: 1px dashed #888 !important;
+        padding-bottom: 2px !important;
+      }
+      .print-receipt-qr-wrap {
+        text-align: center !important;
+        margin: 8px 0 4px !important;
+      }
+      .print-receipt-qr-img {
+        width: 125px !important;
+        height: 125px !important;
+        image-rendering: pixelated !important;
+        margin: 0 auto !important;
+        display: block !important;
+      }
+      .print-receipt-footer {
+        text-align: center !important;
+        font-size: 11px !important;
+        margin-top: 6px !important;
+        color: #333333 !important;
+      }
+
+      /* Multi-Size Gift Card Printing */
+      .print-card-canvas {
+        box-sizing: border-box !important;
+        background: #ffffff !important;
+        color: #000000 !important;
+        position: relative !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        margin: 0 auto !important;
+      }
+      .print-card-canvas.size-thermal-80 {
+        width: 74mm !important;
+        min-height: 95mm !important;
+        padding: 5mm 3.5mm !important;
+        border: 2px solid #000000 !important;
+      }
+      .print-card-canvas.size-a7-landscape {
+        width: 105mm !important;
+        height: 74mm !important;
+        padding: 6mm !important;
+        border: 3.5px solid #000000 !important;
+      }
+      .print-card-canvas.size-a7-portrait {
+        width: 74mm !important;
+        height: 105mm !important;
+        padding: 6mm !important;
+        border: 3.5px solid #000000 !important;
+      }
+      .print-card-canvas.size-mini-card {
+        width: 85mm !important;
+        height: 55mm !important;
+        padding: 4mm !important;
+        border: 2px solid #000000 !important;
+      }
+      .print-card-canvas.size-a6 {
+        width: 105mm !important;
+        height: 148mm !important;
+        padding: 8mm !important;
+        border: 4px solid #000000 !important;
+      }
+      .print-card-canvas.size-a4 {
+        width: 190mm !important;
+        min-height: 270mm !important;
+        padding: 15mm !important;
+        border: 4px double #000000 !important;
+      }
+      .print-card-watermark {
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: 45% !important;
+        opacity: 0.08 !important;
+        pointer-events: none !important;
+      }
+      .print-card-header-logo {
+        width: 32px !important;
+        height: 32px !important;
+        object-fit: contain !important;
+        margin: 0 auto 3px !important;
+        display: block !important;
       }
     }
 
@@ -1218,7 +1445,7 @@
   ========================================= -->
   <div class="login-overlay" id="loginOverlay">
     <div class="login-card">
-      <img src="/assets/logo.png" alt="Yellow Rose" class="login-logo">
+      <img src="/assets/logo.png" alt="Yellow Rose" class="login-logo brand-logo" onerror="this.src='/assets/logo.png'">
       <h2 class="login-title">منصة العمليات الموحدة</h2>
       <p class="login-subtitle">يلوروز للورد والمناسبات الفاخرة</p>
       
@@ -1240,7 +1467,7 @@
     <!-- SIDEBAR -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <img src="/assets/logo.png" alt="يلوروز" class="sidebar-logo">
+        <img src="/assets/logo.png" alt="يلوروز" class="sidebar-logo brand-logo" onerror="this.src='/assets/logo.png'">
         <div class="sidebar-brand">
           <h1>YELLOW ROSE</h1>
           <span>OPERATIONS PORTAL</span>
@@ -1256,7 +1483,7 @@
 
         <div class="nav-item" data-tab="print">
           <i class="fas fa-print"></i>
-          <span>محطة الطباعة A7</span>
+          <span>محطة الطباعة الذكية</span>
         </div>
 
         <div class="nav-item admin-only" data-tab="products">
@@ -1302,10 +1529,16 @@
       <!-- TOPBAR -->
       <header class="topbar">
         <div class="topbar-right">
-          <button class="mobile-menu-btn" id="mobileMenuBtn">
+          <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="فتح القائمة">
             <i class="fas fa-bars"></i>
           </button>
-          <div class="topbar-title" id="topbarTitle">مركز الطلبات والبيجر</div>
+          <div class="topbar-brand-badge">
+            <img src="/assets/logo.png" alt="Yellow Rose" class="topbar-logo brand-logo" onerror="this.src='/assets/logo.png'">
+            <div class="topbar-brand-texts">
+              <span class="topbar-brand-store">يلوروز للورد والمناسبات</span>
+              <div class="topbar-title" id="topbarTitle">مركز الطلبات والبيجر</div>
+            </div>
+          </div>
         </div>
 
         <div class="topbar-left">
@@ -1398,23 +1631,26 @@
             
             <!-- Live Preview -->
             <div class="canvas-preview-panel">
-              <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h3 style="color: var(--gold-light); font-weight: 800;"><i class="fas fa-eye"></i> معاينة كرت الإهداء (A7)</h3>
-                <span style="font-size: 0.8rem; color: var(--text-muted); border: 1px solid var(--border-subtle); padding: 2px 8px; border-radius: 6px;">مقاس الطباعة: 105 × 74 ملم</span>
+              <div style="width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                <h3 style="color: var(--gold-light); font-weight: 800;"><i class="fas fa-eye"></i> معاينة وتوجيه الطباعة للجهاز</h3>
+                <span id="printSizeBadge" style="font-size: 0.8rem; color: var(--text-muted); border: 1px solid var(--border-subtle); padding: 3px 10px; border-radius: 6px; background: rgba(255,255,255,0.02);">مقاس الطباعة: رول حراري 80 ملم</span>
               </div>
 
-              <!-- A7 Canvas (Screen & Print Target) -->
+              <!-- Canvas (Screen & Print Target Preview) -->
               <div class="a7-canvas-wrapper" id="a7CanvasTarget">
-                <img src="/assets/logo.png" class="card-watermark" alt="Watermark">
+                <img src="/assets/logo.png" class="card-watermark brand-logo" alt="Watermark" onerror="this.src='/assets/logo.png'">
                 <div class="card-recipient-text" id="canvasRecipientText">إلى: أميرة القلوب</div>
                 <div class="card-message-text" id="canvasMessageText">كل عام وأنتِ لقلبي فرحة، كل عام والورد ينحني لجمال ابتسامتك. نسأل الله لكِ أياماً تشبه نقاء روحك ✨</div>
                 <div class="card-sender-text" id="canvasSenderText">من: محبوك دائماً</div>
               </div>
 
               <!-- Action Bar under canvas -->
-              <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem; width: 100%; max-width: 525px;">
-                <button class="btn-topbar btn-primary-top" id="btnExecutePrint" style="flex: 2; padding: 0.85rem; justify-content: center; font-size: 1rem;">
-                  <i class="fas fa-print"></i> طباعة الكرت الآن
+              <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem; width: 100%; max-width: 525px; flex-wrap: wrap;">
+                <button class="btn-topbar btn-primary-top" id="btnExecutePrint" style="flex: 2; min-width: 175px; padding: 0.85rem; justify-content: center; font-size: 0.95rem;">
+                  <i class="fas fa-print"></i> إرسال أمر الطباعة للجهاز
+                </button>
+                <button class="btn-topbar" id="btnPrintReceiptDirect" style="flex: 1.5; min-width: 140px; justify-content: center; color: var(--gold-light); border-color: rgba(212,175,55,0.4);">
+                  <i class="fas fa-receipt text-gold"></i> طباعة فاتورة 80mm
                 </button>
                 <button class="btn-topbar" id="btnMarkOrderPrinted" style="flex: 1; justify-content: center;">
                   <i class="fas fa-check"></i> تم الطبع
@@ -1428,8 +1664,35 @@
             <!-- Parameters Panel -->
             <div class="canvas-controls-panel">
               <h3 style="color: var(--gold-light); font-weight: 800; border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem;">
-                <i class="fas fa-sliders-h"></i> تخصيص كرت الإهداء
+                <i class="fas fa-sliders-h"></i> إعدادات الطباعة ومعايرة الجهاز
               </h3>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                <div class="form-group">
+                  <label><i class="fas fa-ruler-combined text-gold"></i> مقاس ورق الطباعة:</label>
+                  <select id="selectPrintPageSize" class="form-select">
+                    <option value="thermal-80" selected>🖨️ رول حراري 80 ملم (طابعات الفواتير والكروت)</option>
+                    <option value="a7-landscape">📄 كرت إهداء A7 أفقي (105 × 74 ملم)</option>
+                    <option value="a7-portrait">📄 كرت إهداء A7 طولي (74 × 105 ملم)</option>
+                    <option value="mini-card">💳 كرت ميني / بطاقة (85 × 55 ملم)</option>
+                    <option value="a6">📜 كرت إهداء كبير A6 (105 × 148 ملم)</option>
+                    <option value="a4">📑 فاتورة قياسية A4</option>
+                  </select>
+                </div>
+
+                <div class="form-group">
+                  <label><i class="fas fa-print text-gold"></i> محتوى الطباعة:</label>
+                  <select id="selectPrintContentType" class="form-select">
+                    <option value="card" selected>💌 كرت الإهداء فقط</option>
+                    <option value="receipt">🧾 فاتورة وتذكرة الطلب كاملة 80mm</option>
+                    <option value="both">✨ كرت الإهداء + فاتورة الطلب معاً</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style="background: rgba(212,175,55,0.06); border: 1px dashed rgba(212,175,55,0.25); border-radius: 10px; padding: 0.65rem 0.85rem; font-size: 0.78rem; color: var(--text-muted); line-height: 1.45;">
+                <i class="fas fa-magic text-gold"></i> <strong>معايرة الجهاز المباشرة:</strong> يتم توجيه الأبعاد المحددة وإلغاء الهوامش وضبط التباين الحراري مباشرة إلى الطابعة لطباعة فورية دقيقة.
+              </div>
 
               <div class="form-group">
                 <label>اسم المهدى إليه (إلى:)</label>
@@ -2328,9 +2591,12 @@
   <!-- TOAST -->
   <div class="toast" id="portalToast">تم تحديث البيانات بنجاح</div>
 
+  <!-- MASTER PRINT CONTAINER (Calibrated Direct Printer Target) -->
+  <div id="printMasterContainer" aria-hidden="true"></div>
+
   <!-- Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <script src="/assets/dist/js/utils.min.js?v=2"></script>
-  <script src="/assets/dist/js/portal.min.js?v=2"></script>
+  <script src="/assets/dist/js/portal.min.js?v=3"></script>
 </body>
 </html>
