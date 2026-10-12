@@ -1,17 +1,23 @@
 {
-  "name": "Yellow Rose - نظام الطلبات",
-  "short_name": "Yellow Rose",
-  "description": "نظام تنبيه الطلبات الذكي - يلو روز",
+  "name": "يلوروز | YELLOW ROSE للورد والمناسبات الفاخرة",
+  "short_name": "يلوروز",
+  "description": "متجر وتطبيق يلوروز لتنسيقات الورد والمناسبات الفاخرة ونظام البيجر الذكي",
   "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#111111",
-  "theme_color": "#E2B93B",
+  "background_color": "#0a0a0d",
+  "theme_color": "#d4af37",
   "lang": "ar",
   "dir": "rtl",
-  "categories": ["food", "lifestyle", "utilities"],
+  "categories": ["shopping", "lifestyle", "business"],
   "icons": [
+    {
+      "src": "/assets/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "/assets/images/yr-icon-192.png",
       "sizes": "192x192",
@@ -27,19 +33,25 @@
   ],
   "shortcuts": [
     {
-      "name": "تتبع طلب",
-      "short_name": "تتبع",
-      "description": "فتح صفحة تتبع الطلب مباشرة",
+      "name": "منصة العمليات الموحدة",
+      "short_name": "العمليات",
+      "description": "إدارة الطلبات والطباعة والكتالوج",
+      "url": "/portal.html",
+      "icons": [{ "src": "/assets/images/yr-icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "تتبع الطلب (البيجر)",
+      "short_name": "بيجر الطلب",
+      "description": "فتح صفحة تتبع الطلب والنداء الآلي",
       "url": "/pager.html",
       "icons": [{ "src": "/assets/images/yr-icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "معرض الأعمال",
+      "short_name": "المعرض",
+      "description": "استعراض تنسيقات وباقات الورد",
+      "url": "/#gallery",
+      "icons": [{ "src": "/assets/images/yr-icon-192.png", "sizes": "192x192" }]
     }
-  ],
-  "share_target": {
-    "action": "/share-target",
-    "method": "GET",
-    "enctype": "application/x-www-form-urlencoded",
-    "params": {
-      "url": "url"
-    }
-  }
+  ]
 }

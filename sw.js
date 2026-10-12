@@ -12,6 +12,42 @@
 const WEBSITE_URL = 'https://yelrose2026.vercel.app';
 const DB_NAME = 'YellowRoseDB';
 const STORE_NAME = 'pager';
+const CACHE_NAME = 'yr-shell-cache-v2';
+const STATIC_ASSETS = [
+    '/assets/logo.png',
+    '/assets/images/yr-icon-192.png',
+    '/assets/images/yr-icon-512.png',
+    '/manifest.json',
+    '/manifest-portal.json'
+];
+
+// تثبيت وتخزين الأيقونات والشعار لضمان ظهورها عند الإضافة للشاشة الرئيسية
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME).then((cache) => {
+            return cache.addAll(STATIC_ASSETS).catch(() => {});
+        }).then(() => self.skipWaiting())
+    );
+});
+
+// استرجاع الشعار والملفات من الكاش للتطبيق المصغر
+self.addEventListener('fetch', (event) => {
+    if (event.request.method !== 'GET') return;
+    const url = new URL(event.request.url);
+    if (url.pathname.startsWith('/assets/') || url.pathname.endsWith('.json')) {
+        event.respondWith(
+            caches.match(event.request).then((cached) => {
+                return cached || fetch(event.request).then((response) => {
+                    if (response && response.status === 200) {
+                        const copy = response.clone();
+                        caches.open(CACHE_NAME).then(c => c.put(event.request, copy));
+                    }
+                    return response;
+                }).catch(() => cached);
+            })
+        );
+    }
+});
 
 // ============================================
 // 1. IndexedDB Helpers (لتخزين الـ token)

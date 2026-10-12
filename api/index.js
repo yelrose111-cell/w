@@ -290,23 +290,41 @@ validate: { xForwardedForHeader: false, forwardedHeader: false, ip: false }
 app.get('/api/manifest.json', (req, res) => {
     res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
     
+    const isPortal = req.query.app === 'portal';
     let token = req.query.token;
-    // Validate token format (hex only)
     if (token && !/^[a-f0-9]{16,32}$/.test(token)) {
         token = null;
     }
+
+    let manifestName = "يلوروز | YELLOW ROSE للورد والمناسبات";
+    let shortName = "يلوروز";
+    let startUrl = "/?source=pwa";
+    let description = "متجر وتطبيق يلوروز لتنسيقات الورد والمناسبات الفاخرة";
+
+    if (isPortal) {
+        manifestName = "منصة عمليات يلوروز | Operations Portal";
+        shortName = "عمليات يلوروز";
+        startUrl = "/portal.html?source=pwa";
+        description = "منصة العمليات الموحدة وإدارة الطلبات والطباعة - يلوروز";
+    } else if (token) {
+        manifestName = "تتبع طلبك | Yellow Rose Pager";
+        shortName = "بيجر يلوروز";
+        startUrl = `/pager.html?token=${token}`;
+        description = "نظام النداء والبيجر الآلي لمتجر يلوروز للورد";
+    }
     
     res.json({
-        name: "Yellow Rose Pager",
-        short_name: "YR Pager",
-        start_url: token ? `/pager.html?token=${token}` : "/pager.html",
+        name: manifestName,
+        short_name: shortName,
+        start_url: startUrl,
         display: "standalone",
-        background_color: "#1c1c1e",
+        background_color: "#0a0a0d",
         theme_color: "#d4af37",
-        description: "نظام النداء الآلي لمتجر Yellow Rose",
+        description: description,
         icons: [
-            { src: "/assets/images/yr-icon-192.png", sizes: "192x192", type: "image/png" },
-            { src: "/assets/images/yr-icon-512.png", sizes: "512x512", type: "image/png" }
+            { src: "/assets/logo.png", sizes: "512x512", type: "image/png", purpose: "any" },
+            { src: "/assets/images/yr-icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+            { src: "/assets/images/yr-icon-512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" }
         ]
     });
 });

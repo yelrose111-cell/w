@@ -3,11 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <title>منصة العمليات الموحدة | يلوروز YELLOW ROSE</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
   <meta name="robots" content="noindex, nofollow">
 
-  <!-- Favicon -->
+  <!-- Favicon & Touch Icons (لإظهار الشعار عند إضافة المنصة للشاشة الرئيسية) -->
   <link rel="icon" type="image/png" href="/assets/logo.png">
+  <link rel="shortcut icon" type="image/png" href="/assets/logo.png">
+  <link rel="apple-touch-icon" href="/assets/logo.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="/assets/images/yr-icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/images/yr-icon-192.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="/assets/images/yr-icon-192.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="/assets/images/yr-icon-512.png">
+
+  <!-- PWA & Mobile Web App Meta Tags (نافذة التطبيق المصغر Standalone) -->
+  <link rel="manifest" href="/manifest-portal.json">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="عمليات يلوروز">
+  <meta name="application-name" content="عمليات يلوروز">
+  <meta name="theme-color" content="#0a0a0d">
+  <meta name="msapplication-TileColor" content="#0a0a0d">
+  <meta name="msapplication-TileImage" content="/assets/logo.png">
+
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="يلوروز | YELLOW ROSE">
+  <meta property="og:title" content="منصة العمليات الموحدة | يلوروز">
+  <meta property="og:description" content="إدارة الطلبات والبيجر وطباعة الكروت والكتالوج.">
+  <meta property="og:image" content="https://yelrose2026.vercel.app/assets/logo.png">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -2598,5 +2622,14 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <script src="/assets/dist/js/utils.min.js?v=2"></script>
   <script src="/assets/dist/js/portal.min.js?v=3"></script>
+
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>
