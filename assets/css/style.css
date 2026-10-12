@@ -3305,6 +3305,41 @@ button {
   flex-grow: 1;
 }
 
+/* Card Price Badge (Optional Display) */
+.card-price-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: 8px;
+  padding: 4px 10px;
+  margin-bottom: 10px;
+  color: var(--gold-dark, #b8860b);
+  font-weight: 700;
+  font-size: 13px;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.price-badge-icon {
+  color: var(--gold-primary, #d4af37);
+  font-size: 11px;
+}
+
+.price-badge-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.price-original-badge {
+  text-decoration: line-through;
+  opacity: 0.6;
+  font-size: 11px;
+  margin-right: 4px;
+}
+
 /* Card Actions / Buttons */
 .card-dual-actions {
   display: flex;

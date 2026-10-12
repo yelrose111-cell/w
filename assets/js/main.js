@@ -207,11 +207,24 @@ function renderHomeProductsGrid(products) {
   });
 }
 
-// دالة مساعدة لتوليد قالب البطاقة الخالي من الأسعار
+// دالة مساعدة لتوليد قالب البطاقة
 function createProductCard(product) {
   const catName = window.CATEGORIES[product.categoryId]?.name || "تنسيق فاخر";
   const cover = product.coverUrl || (product.images && product.images[0]?.url) || 'assets/logo.png';
   const waUrl = window.YellowRoseDB.buildWhatsAppUrl(product);
+
+  let priceBadgeHtml = '';
+  if (product.showPrice !== false && (product.price || product.priceText)) {
+    const displayLabel = product.priceText ? escapeHtml(product.priceText) : `${escapeHtml(product.price)} ر.س`;
+    const origHtml = product.originalPrice ? `<del class="price-original-badge">${escapeHtml(product.originalPrice)} ر.س</del>` : '';
+    priceBadgeHtml = `
+      <div class="card-price-badge">
+        <span class="price-badge-icon"><i class="fas fa-tag"></i></span>
+        <span class="price-badge-text">${displayLabel}</span>
+        ${origHtml}
+      </div>
+    `;
+  }
 
   const card = document.createElement("div");
   card.className = "modern-showcase-card";
@@ -227,9 +240,9 @@ function createProductCard(product) {
       <h4 class="card-product-title">
         <a href="catalog.html?id=${product.id}">${escapeHtml(product.title)}</a>
       </h4>
+      ${priceBadgeHtml}
       <p class="card-product-desc">${escapeHtml(product.description) || "تنسيق متقن يعكس فخامة وأناقة مناسباتكم الراقية."}</p>
       
-      <!-- أزرار الإجراءات دون أسعار ودون سلة -->
       <div class="card-dual-actions">
         <a href="catalog.html?id=${product.id}" class="btn-card-view">
           <i class="fas fa-eye"></i> تفاصيل العمل

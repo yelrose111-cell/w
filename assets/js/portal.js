@@ -191,6 +191,45 @@
         });
       }
 
+      // Pricing Modal Controls & Live Preview
+      const prodShowPrice = document.getElementById('prodModalShowPrice');
+      if (prodShowPrice) {
+        prodShowPrice.addEventListener('change', () => this.updatePriceModalPreview());
+      }
+      ['prodModalPrice', 'prodModalOriginalPrice', 'prodModalPriceText'].forEach(id => {
+        const inp = document.getElementById(id);
+        if (inp) inp.addEventListener('input', () => this.updatePriceModalPreview());
+      });
+
+      // Announcement Bar Live Preview
+      const annEnabled = document.getElementById('cfgAnnouncementEnabled');
+      if (annEnabled) {
+        annEnabled.addEventListener('change', () => this.updateAnnouncementBarPreview());
+      }
+      ['cfgAnnouncementText', 'cfgAnnouncementLink'].forEach(id => {
+        const inp = document.getElementById(id);
+        if (inp) inp.addEventListener('input', () => this.updateAnnouncementBarPreview());
+      });
+
+      // Reset Default Logo Button
+      const btnResetLogo = document.getElementById('btnResetDefaultLogo');
+      if (btnResetLogo) {
+        btnResetLogo.addEventListener('click', () => {
+          const defaultLogo = 'assets/logo.png?v=2';
+          const logoInp = document.getElementById('cfgBrandLogoUrl');
+          if (logoInp) logoInp.value = defaultLogo;
+          this.updateLogoPreview(defaultLogo);
+          this.showToast('تمت استعادة الشعار الأصلي الافتراضي في المعاينة ✓');
+        });
+      }
+
+      // System Tools: Migrate Codes & Export Backup
+      const btnMigrate = document.getElementById('btnMigrateCodes');
+      if (btnMigrate) btnMigrate.addEventListener('click', () => this.migrateProductCodes());
+
+      const btnBackup = document.getElementById('btnExportBackup');
+      if (btnBackup) btnBackup.addEventListener('click', () => this.exportBackupData());
+
       // Brand & WhatsApp Save Button
       const saveBrandWaBtn = document.getElementById('btnSaveBrandAndWhatsapp');
       if (saveBrandWaBtn) saveBrandWaBtn.addEventListener('click', () => this.saveBrandAndWhatsappSettings());
@@ -1264,7 +1303,13 @@
             <td><strong style="color:var(--gold-light); letter-spacing:0.5px;">${p.productCode || 'YR-00'}</strong></td>
             <td>
               <div style="font-weight:600; color:var(--text-main);">${window.YRUtils.escapeHtml(p.title)}</div>
-              <div style="font-size:0.78rem; color:var(--gold); font-weight:700;">${p.price || 0} ر.س</div>
+              ${p.showPrice === false || (!p.price && !p.priceText)
+                ? '<div style="font-size:0.74rem; color:var(--text-muted);"><i class="fas fa-eye text-gold"></i> عرض فني (بدون سعر)</div>'
+                : (p.priceText 
+                    ? `<div style="font-size:0.78rem; color:var(--gold); font-weight:700;"><i class="fas fa-tag"></i> ${window.YRUtils.escapeHtml(p.priceText)} ${p.price ? `<span style="opacity:0.85">(${p.price} ر.س)</span>` : ''}</div>`
+                    : `<div style="font-size:0.78rem; color:var(--gold); font-weight:700;"><i class="fas fa-tag"></i> ${p.price} ر.س</div>`
+                  )
+              }
             </td>
             <td>${categoryDisplay}</td>
             <td>${inStockBadge}</td>
@@ -1284,12 +1329,22 @@
     },
 
     openNewProductModal() {
-      const form = document.getElementById('productModalForm');
+      const form = document.getElementById('productForm') || document.getElementById('productModalForm');
       if (form) form.reset();
       document.getElementById('prodModalId').value = '';
       document.getElementById('prodModalCode').value = '';
       document.getElementById('prodModalFeatured').checked = false;
       document.getElementById('prodModalInStock').checked = true;
+
+      const showPriceEl = document.getElementById('prodModalShowPrice');
+      if (showPriceEl) showPriceEl.checked = true;
+      const priceEl = document.getElementById('prodModalPrice');
+      if (priceEl) priceEl.value = '';
+      const origPriceEl = document.getElementById('prodModalOriginalPrice');
+      if (origPriceEl) origPriceEl.value = '';
+      const priceTextEl = document.getElementById('prodModalPriceText');
+      if (priceTextEl) priceTextEl.value = '';
+      this.updatePriceModalPreview();
 
       this.populateProductCategoriesDropdown();
       const firstCatId = (this.state.categories && this.state.categories[0]) ? this.state.categories[0].id : '';
@@ -1299,7 +1354,7 @@
       this.state.selectedCoverUrl = '';
       this.renderProductImagesPreview();
 
-      document.getElementById('modalProductTitle').textContent = 'إضافة منتج أو عمل جديد';
+      document.getElementById('productModalTitle').textContent = 'إضافة منتج أو عمل جديد';
       document.getElementById('modalProduct').classList.add('active');
       const titleInput = document.getElementById('prodModalTitle');
       if (titleInput) titleInput.focus();
@@ -1332,10 +1387,19 @@
       document.getElementById('prodModalId').value = p.id || '';
       document.getElementById('prodModalCode').value = p.productCode || '';
       document.getElementById('prodModalTitle').value = p.title || '';
-      document.getElementById('prodModalPrice').value = p.price !== undefined ? p.price : '';
-      document.getElementById('prodModalOriginalPrice').value = p.originalPrice || '';
+
+      const showPriceEl = document.getElementById('prodModalShowPrice');
+      if (showPriceEl) showPriceEl.checked = (p.showPrice !== false);
+      const priceEl = document.getElementById('prodModalPrice');
+      if (priceEl) priceEl.value = (p.price !== undefined && p.price !== null) ? p.price : '';
+      const origPriceEl = document.getElementById('prodModalOriginalPrice');
+      if (origPriceEl) origPriceEl.value = p.originalPrice || '';
+      const priceTextEl = document.getElementById('prodModalPriceText');
+      if (priceTextEl) priceTextEl.value = p.priceText || '';
+      this.updatePriceModalPreview();
+
       document.getElementById('prodModalDesc').value = p.description || '';
-      document.getElementById('prodModalFeatured').checked = !!p.isFeatured;
+      document.getElementById('prodModalFeatured').checked = !!(p.isFeatured || p.featured);
       document.getElementById('prodModalInStock').checked = p.inStock !== false;
 
       this.populateProductCategoriesDropdown(p.categoryId);
@@ -1355,7 +1419,7 @@
       this.state.selectedCoverUrl = p.coverUrl || (this.state.currentProductImages[0] ? this.state.currentProductImages[0].url : '');
       this.renderProductImagesPreview();
 
-      document.getElementById('modalProductTitle').textContent = `تعديل منتج: ${p.title}`;
+      document.getElementById('productModalTitle').textContent = `تعديل منتج: ${p.title}`;
       document.getElementById('modalProduct').classList.add('active');
     },
 
@@ -1383,9 +1447,10 @@
       const id = document.getElementById('prodModalId').value.trim();
       const productCode = document.getElementById('prodModalCode').value.trim();
       const title = document.getElementById('prodModalTitle').value.trim();
-      const price = parseFloat(document.getElementById('prodModalPrice').value);
-      const originalPriceVal = document.getElementById('prodModalOriginalPrice').value.trim();
-      const originalPrice = originalPriceVal ? parseFloat(originalPriceVal) : undefined;
+      const showPrice = !!document.getElementById('prodModalShowPrice')?.checked;
+      const priceVal = (document.getElementById('prodModalPrice')?.value || '').trim();
+      const originalPriceVal = (document.getElementById('prodModalOriginalPrice')?.value || '').trim();
+      const priceText = (document.getElementById('prodModalPriceText')?.value || '').trim();
       const categoryId = document.getElementById('prodModalCategory').value.trim();
       const subcategoryId = document.getElementById('prodModalSubcategory').value.trim();
       const description = document.getElementById('prodModalDesc').value.trim();
@@ -1393,8 +1458,8 @@
       const inStock = document.getElementById('prodModalInStock').checked;
       const btn = document.getElementById('btnSubmitProduct');
 
-      if (!title || isNaN(price) || !categoryId) {
-        this.showToast('يرجى كتابة اسم المنتج، تحديد السعر، واختيار القسم الرئيسي');
+      if (!title || !categoryId) {
+        this.showToast('يرجى كتابة اسم المنتج واختيار القسم الرئيسي');
         return;
       }
 
@@ -1408,13 +1473,16 @@
 
         const payload = {
           title,
-          price,
-          originalPrice,
+          price: priceVal !== '' ? priceVal : '',
+          originalPrice: originalPriceVal !== '' ? originalPriceVal : '',
+          showPrice,
+          priceText,
           categoryId,
           subcategoryId: subcategoryId || undefined,
           categoryName: cat ? cat.name : '',
           description,
           isFeatured,
+          featured: isFeatured,
           inStock,
           images,
           coverUrl
@@ -1442,6 +1510,52 @@
         btn.disabled = false;
         btn.innerHTML = '<i class="fas fa-save"></i> حفظ المنتج';
       }
+    },
+
+    updatePriceModalPreview() {
+      const showPrice = !!document.getElementById('prodModalShowPrice')?.checked;
+      const priceFields = document.getElementById('priceFieldsContainer');
+      const previewBox = document.getElementById('priceBadgePreviewBox');
+      const priceVal = (document.getElementById('prodModalPrice')?.value || '').trim();
+      const origPriceVal = (document.getElementById('prodModalOriginalPrice')?.value || '').trim();
+      const priceTextVal = (document.getElementById('prodModalPriceText')?.value || '').trim();
+      const statusNote = document.getElementById('priceStatusNote');
+
+      if (priceFields) {
+        priceFields.style.opacity = showPrice ? '1' : '0.4';
+        priceFields.style.pointerEvents = showPrice ? 'auto' : 'none';
+      }
+
+      if (statusNote) {
+        statusNote.textContent = showPrice 
+          ? '✓ السعر سيظهر في المتجر' 
+          : '✕ معروض كعمل فني بدون إظهار السعر';
+        statusNote.style.color = showPrice ? 'var(--gold-light)' : 'var(--text-muted)';
+      }
+
+      if (!previewBox) return;
+
+      if (!showPrice) {
+        previewBox.innerHTML = '<span style="color:var(--text-muted); font-size:0.78rem;"><i class="fas fa-eye"></i> عرض فني بدون سعر</span>';
+        return;
+      }
+
+      let displayText = '';
+      if (priceTextVal) {
+        displayText = window.YRUtils.escapeHtml(priceTextVal);
+        if (priceVal) displayText += ` (${priceVal} ر.س)`;
+      } else if (priceVal) {
+        displayText = `${priceVal} ر.س`;
+      } else {
+        displayText = 'حسب التنسيق والطلب';
+      }
+
+      let origHtml = '';
+      if (origPriceVal) {
+        origHtml = ` <del style="opacity:0.6; font-size:0.75rem; margin-right:4px;">${origPriceVal} ر.س</del>`;
+      }
+
+      previewBox.innerHTML = `<i class="fas fa-tag text-gold"></i> <span>${displayText}</span>${origHtml}`;
     },
 
     // --- CLOUDINARY & IMAGE UPLOAD LOGIC ---
@@ -1719,31 +1833,65 @@
         const s = await res.json();
         this.state.settings = s || {};
 
-        // Identity
+        // 1. Announcement Bar
+        const annEnabled = document.getElementById('cfgAnnouncementEnabled');
+        const annText = document.getElementById('cfgAnnouncementText');
+        const annLink = document.getElementById('cfgAnnouncementLink');
+
+        if (annEnabled) {
+          annEnabled.checked = (s.announcementBarEnabled !== undefined) 
+            ? !!s.announcementBarEnabled 
+            : (s.announcementActive !== undefined ? !!s.announcementActive : true);
+        }
+        if (annText) annText.value = s.announcementText || s.announcement || '';
+        if (annLink) annLink.value = s.announcementLink || '';
+        this.updateAnnouncementBarPreview();
+
+        // 2. Identity
         const nameAr = document.getElementById('cfgBrandNameAr');
         const nameEn = document.getElementById('cfgBrandNameEn');
         const sloganAr = document.getElementById('cfgBrandSloganAr');
+        const sloganEn = document.getElementById('cfgBrandSloganEn');
         const logoUrl = document.getElementById('cfgBrandLogoUrl');
-        const annText = document.getElementById('cfgBrandAnnouncement');
-        const annActive = document.getElementById('cfgBrandAnnouncementActive');
 
-        if (nameAr) nameAr.value = s.storeNameAr || s.siteName || 'يلوروز';
-        if (nameEn) nameEn.value = s.storeNameEn || 'YELLOW ROSE';
-        if (sloganAr) sloganAr.value = s.sloganAr || s.siteTagline || 'للورد والمناسبات';
-        if (logoUrl) logoUrl.value = s.logoUrl || '/assets/logo.png';
-        if (annText) annText.value = s.announcement || '';
-        if (annActive) annActive.checked = !!s.announcementActive;
+        if (nameAr) nameAr.value = s.brandNameAr || s.storeNameAr || s.siteName || 'يلوروز';
+        if (nameEn) nameEn.value = s.brandNameEn || s.storeNameEn || 'YELLOW ROSE';
+        if (sloganAr) sloganAr.value = s.brandSloganAr || s.sloganAr || s.siteTagline || 'للورد والمناسبات';
+        if (sloganEn) sloganEn.value = s.brandSloganEn || 'YELLOW ROSE • LUXURY FLORAL';
+        if (logoUrl) logoUrl.value = s.logoUrl || '/assets/logo.png?v=2';
 
-        this.updateLogoPreview(s.logoUrl || '/assets/logo.png');
+        this.updateLogoPreview(s.logoUrl || '/assets/logo.png?v=2');
 
-        // WhatsApp Templates
-        const waConfirm = document.getElementById('cfgWaOrderConfirm');
-        const waReady = document.getElementById('cfgWaOrderReady');
-        const waReview = document.getElementById('cfgWaReviewRating');
-        const waInquiry = document.getElementById('cfgWaCatalogInquiry');
+        // 3. Branch & Contact info
+        const storeWa = document.getElementById('cfgStoreWhatsApp');
+        const branchPhone = document.getElementById('cfgBranchPhone');
+        const hours = document.getElementById('cfgWorkingHours');
+        const address = document.getElementById('cfgBranchAddress');
+        const mapsUrl = document.getElementById('cfgMapsUrl');
+
+        if (storeWa) storeWa.value = s.storeWhatsApp || s.whatsappNumber || '966582739397';
+        if (branchPhone) branchPhone.value = s.branchPhone || '';
+        if (hours) hours.value = s.workingHours || '';
+        if (address) address.value = s.branchAddress || '';
+        if (mapsUrl) mapsUrl.value = s.mapsUrl || '';
+
+        // 4. WhatsApp Templates
+        const waOrder = document.getElementById('cfgWhatsappOrderMessage');
+        const waConfirm = document.getElementById('cfgWhatsappConfirmMessage');
+        const waReady = document.getElementById('cfgWhatsappReadyMessage');
+        const waReview = document.getElementById('cfgWhatsappRatingMessage');
+
+        if (waOrder) {
+          waOrder.value = s.whatsappOrderMessage || s.whatsappMessage || s.waCatalogInquiry || s.catalogInquiryMessage ||
+`مرحباً يلوروز 💛
+أود الاستفسار والتنسيق بخصوص المنتج:
+{product_name}
+القسم: {category_name}
+الرابط: {product_url}`;
+        }
 
         if (waConfirm) {
-          waConfirm.value = s.waOrderConfirm || s.whatsappConfirmMessage || 
+          waConfirm.value = s.whatsappConfirmMessage || s.waOrderConfirm ||
 `مرحباً بك عميلنا العزيز {customer_name} في يلوروز 💛
 تم استلام طلبك وبدأنا في تجهيزه بكل عناية برقم:
 🔢 *{order_id}*
@@ -1755,7 +1903,7 @@
         }
 
         if (waReady) {
-          waReady.value = s.waOrderReady || s.whatsappReadyMessage ||
+          waReady.value = s.whatsappReadyMessage || s.waOrderReady ||
 `يسعدنا إبلاغك عميلنا العزيز {customer_name} 🌸
 بأن طلبك رقم *{order_id}* أصبح جاهزاً تماماً للاستلام الآن في الفرع! 💐
 
@@ -1764,7 +1912,7 @@
         }
 
         if (waReview) {
-          waReview.value = s.waReviewRating || s.whatsappRatingMessage ||
+          waReview.value = s.whatsappRatingMessage || s.waReviewRating ||
 `عميلنا العزيز {customer_name} 🌹
 سعدنا جداً بخدمتك اليوم في يلوروز!
 رأيك يهمنا ويسعدنا مشاركتك لتجربتك وتقييم الخدمة عبر الرابط التالي:
@@ -1773,20 +1921,42 @@
 نتطلع لرؤيتك مجدداً بكل حب 💛`;
         }
 
-        if (waInquiry) {
-          waInquiry.value = s.waCatalogInquiry || s.catalogInquiryMessage ||
-`مرحباً يلوروز 💛
-أود الاستفسار والتنسيق بخصوص المنتج:
-{product_name}
-الرابط: {product_url}`;
-        }
       } catch (err) {
         console.error('Error loading settings:', err);
       }
     },
 
+    updateAnnouncementBarPreview() {
+      const enabled = !!document.getElementById('cfgAnnouncementEnabled')?.checked;
+      const textVal = (document.getElementById('cfgAnnouncementText')?.value || '').trim() || '✨ يلوروز | نصنع من كل مناسبة تحفة بصرية استثنائية تعكس ذوقكم الرفيع ✨';
+      const box = document.getElementById('previewAnnouncementBarBox');
+      const badge = document.getElementById('announcementStatusBadge');
+      const textEl = document.getElementById('previewAnnouncementText');
+
+      if (textEl) textEl.textContent = textVal;
+
+      if (badge) {
+        if (enabled) {
+          badge.style.color = 'var(--green)';
+          badge.style.background = 'rgba(34,197,94,0.1)';
+          badge.style.borderColor = 'rgba(34,197,94,0.3)';
+          badge.innerHTML = '<i class="fas fa-check-circle"></i> الشريط نشط حالياً في المتجر';
+        } else {
+          badge.style.color = 'var(--text-muted)';
+          badge.style.background = 'rgba(255,255,255,0.05)';
+          badge.style.borderColor = 'var(--border-subtle)';
+          badge.innerHTML = '<i class="fas fa-eye-slash"></i> الشريط معطل ولن يظهر للزوار';
+        }
+      }
+
+      if (box) {
+        box.style.opacity = enabled ? '1' : '0.35';
+        box.style.filter = enabled ? 'none' : 'grayscale(1)';
+      }
+    },
+
     updateLogoPreview(url) {
-      const img = document.getElementById('previewBrandLogoImg');
+      const img = document.getElementById('previewLogoImg') || document.getElementById('previewBrandLogoImg');
       if (img && url) {
         img.src = url;
       }
@@ -1806,38 +1976,69 @@
     async saveBrandAndWhatsappSettings() {
       const btn = document.getElementById('btnSaveBrandAndWhatsapp');
       btn.disabled = true;
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري حفظ الإعدادات...';
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري حفظ جميع الإعدادات...';
 
       try {
-        const storeNameAr = (document.getElementById('cfgBrandNameAr')?.value || '').trim();
-        const storeNameEn = (document.getElementById('cfgBrandNameEn')?.value || '').trim();
-        const sloganAr = (document.getElementById('cfgBrandSloganAr')?.value || '').trim();
-        const logoUrl = (document.getElementById('cfgBrandLogoUrl')?.value || '').trim();
-        const announcement = (document.getElementById('cfgBrandAnnouncement')?.value || '').trim();
-        const announcementActive = !!document.getElementById('cfgBrandAnnouncementActive')?.checked;
+        const announcementBarEnabled = !!document.getElementById('cfgAnnouncementEnabled')?.checked;
+        const announcementText = (document.getElementById('cfgAnnouncementText')?.value || '').trim();
+        const announcementLink = (document.getElementById('cfgAnnouncementLink')?.value || '').trim();
 
-        const waOrderConfirm = (document.getElementById('cfgWaOrderConfirm')?.value || '').trim();
-        const waOrderReady = (document.getElementById('cfgWaOrderReady')?.value || '').trim();
-        const waReviewRating = (document.getElementById('cfgWaReviewRating')?.value || '').trim();
-        const waCatalogInquiry = (document.getElementById('cfgWaCatalogInquiry')?.value || '').trim();
+        const brandNameAr = (document.getElementById('cfgBrandNameAr')?.value || '').trim();
+        const brandNameEn = (document.getElementById('cfgBrandNameEn')?.value || '').trim();
+        const brandSloganAr = (document.getElementById('cfgBrandSloganAr')?.value || '').trim();
+        const brandSloganEn = (document.getElementById('cfgBrandSloganEn')?.value || '').trim();
+        const logoUrl = (document.getElementById('cfgBrandLogoUrl')?.value || '').trim();
+
+        const storeWhatsApp = (document.getElementById('cfgStoreWhatsApp')?.value || '').trim();
+        const branchPhone = (document.getElementById('cfgBranchPhone')?.value || '').trim();
+        const workingHours = (document.getElementById('cfgWorkingHours')?.value || '').trim();
+        const branchAddress = (document.getElementById('cfgBranchAddress')?.value || '').trim();
+        const mapsUrl = (document.getElementById('cfgMapsUrl')?.value || '').trim();
+
+        const whatsappOrderMessage = (document.getElementById('cfgWhatsappOrderMessage')?.value || '').trim();
+        const whatsappConfirmMessage = (document.getElementById('cfgWhatsappConfirmMessage')?.value || '').trim();
+        const whatsappReadyMessage = (document.getElementById('cfgWhatsappReadyMessage')?.value || '').trim();
+        const whatsappRatingMessage = (document.getElementById('cfgWhatsappRatingMessage')?.value || '').trim();
 
         const payload = Object.assign({}, this.state.settings, {
-          storeNameAr,
-          siteName: storeNameAr,
-          storeNameEn,
-          sloganAr,
-          siteTagline: sloganAr,
+          // Announcement Bar
+          announcementBarEnabled,
+          announcementActive: announcementBarEnabled,
+          announcementText,
+          announcement: announcementText,
+          announcementLink,
+
+          // Brand Identity
+          brandNameAr,
+          storeNameAr: brandNameAr,
+          siteName: brandNameAr,
+          brandNameEn,
+          storeNameEn: brandNameEn,
+          brandSloganAr,
+          sloganAr: brandSloganAr,
+          siteTagline: brandSloganAr,
+          brandSloganEn,
           logoUrl,
-          announcement,
-          announcementActive,
-          waOrderConfirm,
-          whatsappConfirmMessage: waOrderConfirm,
-          waOrderReady,
-          whatsappReadyMessage: waOrderReady,
-          waReviewRating,
-          whatsappRatingMessage: waReviewRating,
-          waCatalogInquiry,
-          catalogInquiryMessage: waCatalogInquiry
+
+          // Branch & Contacts
+          storeWhatsApp,
+          whatsappNumber: storeWhatsApp,
+          branchPhone,
+          workingHours,
+          branchAddress,
+          mapsUrl,
+
+          // WhatsApp Templates
+          whatsappOrderMessage,
+          whatsappMessage: whatsappOrderMessage,
+          waCatalogInquiry: whatsappOrderMessage,
+          catalogInquiryMessage: whatsappOrderMessage,
+          whatsappConfirmMessage,
+          waOrderConfirm: whatsappConfirmMessage,
+          whatsappReadyMessage,
+          waOrderReady: whatsappReadyMessage,
+          whatsappRatingMessage,
+          waReviewRating: whatsappRatingMessage
         });
 
         const res = await fetch('/api/settings', {
@@ -1848,15 +2049,72 @@
         const data = await res.json();
         if (data.success || res.ok) {
           this.state.settings = payload;
-          this.showToast('تم حفظ وتحديث إعدادات الهوية ورسائل الواتساب بنجاح ✓');
+          window.SITE_SETTINGS = payload;
+          this.showToast('تم حفظ وتطبيق جميع إعدادات المتجر والهوية والشريط الإعلاني بنجاح ✓');
         } else {
           this.showToast(data.error || 'فشل حفظ الإعدادات');
         }
       } catch (err) {
-        this.showToast('تعذر الاتصال بالخادم');
+        this.showToast('تعذر الاتصال بالخادم لحفظ الإعدادات');
       } finally {
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-save"></i> حفظ جميع إعدادات الهوية والرسائل';
+        btn.innerHTML = '<i class="fas fa-save"></i> حفظ وتحديث جميع إعدادات الهوية والفرع والواتساب فوراً';
+      }
+    },
+
+    async migrateProductCodes() {
+      const btn = document.getElementById('btnMigrateCodes');
+      const statusBox = document.getElementById('migrateStatusMessage');
+      if (!confirm('هل تود تشغيل تهيئة وتوليد أكواد الأقسام والمنتجات الآن؟')) return;
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التهيئة والترحيل...';
+      if (statusBox) {
+        statusBox.style.display = 'block';
+        statusBox.textContent = 'جاري الاتصال بقاعدة البيانات ومعالجة الأكواد...';
+      }
+
+      try {
+        const res = await fetch('/api/migrate-codes');
+        const data = await res.json();
+        if (data.success) {
+          this.showToast(data.message || 'تمت تهيئة الأكواد بنجاح ✓');
+          if (statusBox) statusBox.textContent = data.message || 'اكتملت التهيئة بنجاح!';
+          await this.loadCategoriesAndProducts();
+        } else {
+          this.showToast(data.error || 'تعذر إتمام عملية التهيئة');
+          if (statusBox) statusBox.textContent = 'فشلت التهيئة: ' + (data.error || 'خطأ غير معروف');
+        }
+      } catch (e) {
+        this.showToast('تعذر الاتصال بالخادم');
+        if (statusBox) statusBox.textContent = 'خطأ في الاتصال بالخادم';
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sync-alt"></i> تشغيل التهيئة والترحيل الآن';
+      }
+    },
+
+    exportBackupData() {
+      try {
+        const backupData = {
+          exportedAt: new Date().toISOString(),
+          settings: this.state.settings || {},
+          categories: this.state.categories || [],
+          subcategories: this.state.subcategories || [],
+          products: this.state.products || []
+        };
+        const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `yellowrose_backup_${new Date().toISOString().slice(0, 10)}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        this.showToast('تم تصدير وتنزيل ملف النسخة الاحتياطية بنجاح ✓');
+      } catch (e) {
+        this.showToast('فشل تصدير النسخة الاحتياطية');
       }
     },
 

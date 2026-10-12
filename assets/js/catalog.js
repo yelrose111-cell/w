@@ -185,6 +185,19 @@ async function renderAllProductsView() {
         const cover = p.coverUrl || (p.images && p.images.length > 0 && (p.images[0].thumbnailUrl || p.images[0].url)) || "assets/logo.png";
         const waUrl = window.YellowRoseDB.buildWhatsAppUrl(p);
 
+        let priceBadgeHtml = '';
+        if (p.showPrice !== false && (p.price || p.priceText)) {
+          const displayLabel = p.priceText ? escapeHtml(p.priceText) : `${escapeHtml(p.price)} ر.س`;
+          const origHtml = p.originalPrice ? `<del class="price-original-badge">${escapeHtml(p.originalPrice)} ر.س</del>` : '';
+          priceBadgeHtml = `
+            <div class="card-price-badge">
+              <span class="price-badge-icon"><i class="fas fa-tag"></i></span>
+              <span class="price-badge-text">${displayLabel}</span>
+              ${origHtml}
+            </div>
+          `;
+        }
+
         const card = document.createElement("div");
         card.className = "modern-showcase-card";
         card.style.flex = "none";
@@ -202,6 +215,7 @@ async function renderAllProductsView() {
             <h4 class="card-product-title">
               <a href="catalog.html?id=${p.id}">${escapeHtml(p.title)}</a>
             </h4>
+            ${priceBadgeHtml}
             <p class="card-product-desc">${escapeHtml(p.description) || "تنسيق متقن يعكس فخامة وأناقة مناسباتكم الراقية."}</p>
             <div class="card-dual-actions">
               <a href="catalog.html?id=${p.id}" class="btn-card-view">
@@ -397,6 +411,19 @@ function renderProductsGrid(products, catInfo, hasDirectAlbums = false) {
     const cover = p.coverUrl || (p.images && p.images.length > 0 && (p.images[0].thumbnailUrl || p.images[0].url)) || "assets/logo.png";
     const waUrl = window.YellowRoseDB.buildWhatsAppUrl(p);
 
+    let priceBadgeHtml = '';
+    if (p.showPrice !== false && (p.price || p.priceText)) {
+      const displayLabel = p.priceText ? escapeHtml(p.priceText) : `${escapeHtml(p.price)} ر.س`;
+      const origHtml = p.originalPrice ? `<del class="price-original-badge">${escapeHtml(p.originalPrice)} ر.س</del>` : '';
+      priceBadgeHtml = `
+        <div class="card-price-badge">
+          <span class="price-badge-icon"><i class="fas fa-tag"></i></span>
+          <span class="price-badge-text">${displayLabel}</span>
+          ${origHtml}
+        </div>
+      `;
+    }
+
     const card = document.createElement("div");
     card.className = "modern-showcase-card";
     
@@ -416,6 +443,7 @@ function renderProductsGrid(products, catInfo, hasDirectAlbums = false) {
         <h4 class="card-product-title">
           <a href="catalog.html?id=${p.id}">${escapeHtml(p.title)}</a>
         </h4>
+        ${priceBadgeHtml}
         <p class="card-product-desc">${escapeHtml(p.description) || "تنسيق متقن يعكس فخامة وأناقة مناسباتكم الراقية."}</p>
         <div class="card-dual-actions">
           <a href="catalog.html?id=${p.id}" class="btn-card-view">
@@ -569,6 +597,20 @@ async function renderProductView(productId) {
   const countPill = document.getElementById("pageCountPill");
   countPill.style.display = "inline-flex";
   document.getElementById("pageItemCount").textContent = `${images.length} ${images.length > 10 ? 'صورة' : 'صور'}`;
+
+  // Price Pill in Product View
+  const pricePill = document.getElementById("productPricePill");
+  const priceText = document.getElementById("productPriceText");
+  if (pricePill && priceText) {
+    if (currentAlbum.showPrice !== false && (currentAlbum.price || currentAlbum.priceText)) {
+      pricePill.style.display = "inline-flex";
+      const displayLabel = currentAlbum.priceText ? escapeHtml(currentAlbum.priceText) : `${escapeHtml(currentAlbum.price)} ر.س`;
+      const origHtml = currentAlbum.originalPrice ? `<del style="opacity:0.6; font-size:0.85em; margin-right:4px;">${escapeHtml(currentAlbum.originalPrice)} ر.س</del>` : '';
+      priceText.innerHTML = `${displayLabel}${origHtml}`;
+    } else {
+      pricePill.style.display = "none";
+    }
+  }
 
   // Hide unnecessary sections
   document.getElementById("productsSection").style.display = "none";

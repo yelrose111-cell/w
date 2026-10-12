@@ -12,12 +12,16 @@ const productSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: { type: String },
   price: { type: String },
+  originalPrice: { type: String },
+  showPrice: { type: Boolean, default: true },
+  priceText: { type: String },
   categoryId: { type: String, required: true },
   subcategoryId: { type: String },
   images: [imageSchema],
   coverUrl: { type: String },
   isDirectMode: { type: Boolean, default: false },
-  featured: { type: Boolean, default: false }
+  featured: { type: Boolean, default: false },
+  inStock: { type: Boolean, default: true }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Product', productSchema);

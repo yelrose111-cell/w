@@ -68,11 +68,29 @@ class YellowRoseDBManager {
     const topBar = document.getElementById("siteAnnouncementBar");
     const topBarText = document.getElementById("siteAnnouncementText");
 
+    const isBarActive = (settings.announcementBarEnabled !== undefined)
+      ? !!settings.announcementBarEnabled
+      : (settings.announcementActive !== undefined ? !!settings.announcementActive : true);
+
     if (topBar) {
-      topBar.style.display = settings.announcementBarEnabled ? "block" : "none";
+      topBar.style.display = isBarActive ? "block" : "none";
+      if (settings.announcementLink) {
+        topBar.style.cursor = "pointer";
+        topBar.onclick = () => { window.location.href = settings.announcementLink; };
+      } else {
+        topBar.style.cursor = "default";
+        topBar.onclick = null;
+      }
     }
-    if (topBarText && settings.announcementText) {
-      topBarText.textContent = settings.announcementText;
+    const annMsg = settings.announcementText || settings.announcement;
+    if (topBarText && annMsg) {
+      topBarText.textContent = annMsg;
+    }
+
+    // Update WhatsApp global phone if set
+    const waNum = settings.storeWhatsApp || settings.whatsappNumber;
+    if (waNum) {
+      window.WHATSAPP_PHONE = waNum;
     }
 
     // Update all logo images across all views and admin previews
@@ -89,27 +107,31 @@ class YellowRoseDBManager {
 
     // Update Arabic brand names
     const brandArEls = document.querySelectorAll(".brand-arabic, .footer-brand-ar, .hero-title-gold, .preview-brand-ar, #statBrandName");
-    brandArEls.forEach(el => {
-      if (settings.brandNameAr) el.textContent = settings.brandNameAr;
-    });
+    const brandAr = settings.brandNameAr || settings.storeNameAr || settings.siteName;
+    if (brandAr) {
+      brandArEls.forEach(el => { el.textContent = brandAr; });
+    }
 
     // Update English brand names
     const brandEnEls = document.querySelectorAll(".brand-english, .footer-brand-en, .preview-brand-en");
-    brandEnEls.forEach(el => {
-      if (settings.brandNameEn) el.textContent = settings.brandNameEn;
-    });
+    const brandEn = settings.brandNameEn || settings.storeNameEn;
+    if (brandEn) {
+      brandEnEls.forEach(el => { el.textContent = brandEn; });
+    }
 
     // Update Arabic slogan
     const sloganArEls = document.querySelectorAll(".hero-slogan-ar, .preview-slogan-ar");
-    sloganArEls.forEach(el => {
-      if (settings.brandSloganAr) el.textContent = settings.brandSloganAr;
-    });
+    const sloganAr = settings.brandSloganAr || settings.sloganAr || settings.siteTagline;
+    if (sloganAr) {
+      sloganArEls.forEach(el => { el.textContent = sloganAr; });
+    }
 
     // Update English slogan
     const sloganEnEls = document.querySelectorAll(".hero-subtitle-en, .preview-slogan-en");
-    sloganEnEls.forEach(el => {
-      if (settings.brandSloganEn) el.textContent = settings.brandSloganEn;
-    });
+    const sloganEn = settings.brandSloganEn;
+    if (sloganEn) {
+      sloganEnEls.forEach(el => { el.textContent = sloganEn; });
+    }
   }
 
   // --- E-Commerce Management ---

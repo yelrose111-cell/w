@@ -543,6 +543,13 @@ app.post('/api/products', authMiddleware, async (req, res) => {
         const data = req.body;
         if (!data.id) data.id = `prod_${Date.now()}`;
         
+        if (data.isFeatured !== undefined && data.featured === undefined) {
+            data.featured = !!data.isFeatured;
+        }
+        if (data.showPrice === undefined) {
+            data.showPrice = true;
+        }
+        
         if (!data.productCode && data.categoryId) {
             const cat = await Category.findOne({ id: data.categoryId });
             const prefix = cat ? (cat.prefix || 'YR') : 'YR';
@@ -1023,22 +1030,23 @@ app.post('/api/push/refresh-subscription', refreshLimiter, async (req, res) => {
 // Migration (SECURED - Requires Auth)
 // ============================================
 app.get('/api/migrate-codes', authMiddleware, async (req, res) => {
-    // ... existing migration code (now protected)
     try {
         const categories = await Category.find().lean();
         const categoryPrefixMap = {};
         const catOps = [];
         
         for (const cat of categories) {
-            let prefix = 'YR';
+            let prefix = cat.prefix || 'YR';
             const catName = cat.name || '';
-            if (catName.includes('باقات')) prefix = 'YF';
-            else if (catName.includes('فازات')) prefix = 'YV';
-            else if (catName.includes('شوكولاتة') || catName.includes('شوكلاته')) prefix = 'YC';
-            else if (catName.includes('هدايا') || catName.includes('تغليف')) prefix = 'YG';
-            else if (catName.includes('مسكات') || catName.includes('عرايس')) prefix = 'YW';
-            else if (catName.includes('مواليد')) prefix = 'YN';
-            else if (catName.includes('نباتات')) prefix = 'YP';
+            if (!cat.prefix || cat.prefix === 'YR') {
+                if (catName.includes('باقات')) prefix = 'YF';
+                else if (catName.includes('فازات')) prefix = 'YV';
+                else if (catName.includes('شوكولاتة') || catName.includes('شوكلاته')) prefix = 'YC';
+                else if (catName.includes('هدايا') || catName.includes('تغليف')) prefix = 'YG';
+                else if (catName.includes('مسكات') || catName.includes('عرايس')) prefix = 'YW';
+                else if (catName.includes('مواليد')) prefix = 'YN';
+                else if (catName.includes('نباتات')) prefix = 'YP';
+            }
             
             categoryPrefixMap[cat.id] = prefix;
             catOps.push({
@@ -1050,8 +1058,64 @@ app.get('/api/migrate-codes', authMiddleware, async (req, res) => {
         }
         
         if (catOps.length > 0) await Category.bulkWrite(catOps);
+
+        // Migrate and assign codes to products if missing
+        const products = await Product.find().lean();
+        const prodOps = [];
+        const counters = {};
+
+        // Find existing max counters per prefix
+        for (const p of products) {
+            if (p.productCode && p.productCode.includes('-')) {
+                const parts = p.productCode.split('-');
+                const pPrefix = parts[0];
+                const pNum = parseInt(parts[1], 10);
+                if (!isNaN(pNum)) {
+                    counters[pPrefix] = Math.max(counters[pPrefix] || 0, pNum);
+                }
+            }
+        }
+
+        let updatedProductsCount = 0;
+        for (const p of products) {
+            const updates = {};
+            if (p.showPrice === undefined) {
+                updates.showPrice = true;
+            }
+            if (!p.productCode || p.productCode === 'YR-00' || p.productCode === '') {
+                const prefix = categoryPrefixMap[p.categoryId] || 'YR';
+                counters[prefix] = (counters[prefix] || 0) + 1;
+                const newCode = `${prefix}-${String(counters[prefix]).padStart(2, '0')}`;
+                updates.productCode = newCode;
+
+                if (Array.isArray(p.images) && p.images.length > 0) {
+                    updates.images = p.images.map((img, idx) => {
+                        const imgObj = typeof img === 'string' ? { url: img } : { ...img };
+                        if (!imgObj.code) {
+                            imgObj.code = p.images.length === 1 ? newCode : `${newCode}-${idx + 1}`;
+                        }
+                        return imgObj;
+                    });
+                }
+            }
+
+            if (Object.keys(updates).length > 0) {
+                updatedProductsCount++;
+                prodOps.push({
+                    updateOne: {
+                        filter: { id: p.id },
+                        update: { $set: updates }
+                    }
+                });
+            }
+        }
+
+        if (prodOps.length > 0) await Product.bulkWrite(prodOps);
         
-        res.json({ success: true, message: `Migrated ${categories.length} categories` });
+        res.json({ 
+            success: true, 
+            message: `تم تحديث ${categories.length} أقسام وتوليد/تهيئة أكواد ${updatedProductsCount} منتجات بنجاح!` 
+        });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }

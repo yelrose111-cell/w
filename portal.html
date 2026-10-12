@@ -1759,26 +1759,73 @@
 
             </div>
 
-            <!-- Brand Identity & Logo Card -->
-            <div class="whatsapp-card">
+            <!-- 1. شريط الإعلانات الترويجي العلوي -->
+            <div class="whatsapp-card" style="margin-bottom: 1.5rem; border-color: rgba(212,175,55,0.3);">
               <div class="whatsapp-card-title">
-                <i class="fas fa-gem text-gold"></i>
-                <span>شعار وهوية المتجر والشريط الترويجي</span>
+                <i class="fas fa-bullhorn text-gold"></i>
+                <span>التحكم في شريط الإعلانات الترويجي (أعلى الموقع)</span>
               </div>
               <p style="font-size: 0.85rem; color: var(--text-muted);">
-                تعديل وتحديث الشعار، الأسماء العربية والإنجليزية، السلوجان، والشريط الإعلاني الذهبي في أعلى المتجر:
+                تحكم فوري في الشريط الإعلاني الذهبي الظاهر في أعلى صفحات المتجر للزوار، وتعديل نصه ورابطه ومعاينته حياً:
               </p>
 
-              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; align-items: start;">
+              <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1rem; margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+                  <label style="display: flex; align-items: center; gap: 0.6rem; font-size: 0.95rem; font-weight: 700; color: var(--gold-light); cursor: pointer;">
+                    <input type="checkbox" id="cfgAnnouncementEnabled" checked style="width: 18px; height: 18px; accent-color: var(--gold); cursor: pointer;">
+                    <span>تفعيل وإظهار شريط الإعلانات الذهبي في أعلى الموقع</span>
+                  </label>
+                  <span id="announcementStatusBadge" style="font-size: 0.75rem; color: var(--green); background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); padding: 3px 8px; border-radius: 6px;">
+                    <i class="fas fa-check-circle"></i> الشريط نشط حالياً في المتجر
+                  </span>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
+                  <div class="form-group">
+                    <label>نص الإعلان أو العرض الترويجي:</label>
+                    <input type="text" id="cfgAnnouncementText" class="form-input" placeholder="✨ يلوروز | نصنع من كل مناسبة تحفة بصرية استثنائية تعكس ذوقكم الرفيع ✨">
+                  </div>
+                  <div class="form-group">
+                    <label>رابط التوجيه عند النقر (اختياري):</label>
+                    <input type="text" id="cfgAnnouncementLink" class="form-input" placeholder="مثال: /catalog.html أو رابط عروض">
+                  </div>
+                </div>
+
+                <!-- Live Announcement Bar Preview Box -->
+                <div style="margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px dashed rgba(212,175,55,0.2);">
+                  <div style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.4rem;">
+                    <i class="fas fa-eye text-gold"></i> المعاينة الحية للشريط الذهبي في أعلى المتجر الآن:
+                  </div>
+                  <div id="previewAnnouncementBarBox" style="background: #111111; color: var(--gold-light); border: 1px solid rgba(212, 175, 55, 0.35); border-radius: 8px; padding: 10px 15px; text-align: center; font-size: 0.88rem; font-weight: 600; letter-spacing: 0.5px; box-shadow: 0 4px 15px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.3s ease;">
+                    <span id="previewAnnouncementText">✨ يلوروز | نصنع من كل مناسبة تحفة بصرية استثنائية تعكس ذوقكم الرفيع ✨</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. هوية وشعار المتجر -->
+            <div class="whatsapp-card" style="margin-bottom: 1.5rem;">
+              <div class="whatsapp-card-title">
+                <i class="fas fa-gem text-gold"></i>
+                <span>شعار وهوية يلوروز الرسمية</span>
+              </div>
+              <p style="font-size: 0.85rem; color: var(--text-muted);">
+                تحديث شعار المتجر السحابي والأسماء والسلوجان الرسمي المعتمد:
+              </p>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.25rem; align-items: start;">
                 <div>
                   <div class="form-group" style="margin-bottom: 0.85rem;">
-                    <label>شعار المتجر (رفع سحابي أو رابط):</label>
-                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.35rem;">
+                    <label>شعار المتجر (رفع سحابي مباشر أو رابط أو استعادة الافتراضي):</label>
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.35rem; flex-wrap: wrap;">
                       <input type="file" id="brandLogoFileInput" accept="image/*" style="display: none;">
                       <button type="button" class="btn-topbar" onclick="document.getElementById('brandLogoFileInput').click();" style="white-space: nowrap;">
-                        <i class="fas fa-upload"></i> اختر شعار
+                        <i class="fas fa-cloud-upload-alt"></i> رفع شعار جديد
                       </button>
-                      <input type="text" id="cfgBrandLogoUrl" class="form-input" placeholder="assets/logo.png" style="flex: 1;">
+                      <button type="button" id="btnResetDefaultLogo" class="btn-topbar" style="white-space: nowrap;" title="استعادة الشعار الأصلي">
+                        <i class="fas fa-undo"></i> استعادة الافتراضي
+                      </button>
+                      <input type="text" id="cfgBrandLogoUrl" class="form-input" placeholder="assets/logo.png?v=2" style="flex: 1; min-width: 200px;">
                     </div>
                     <span id="brandLogoUploadStatus" style="font-size: 0.78rem; color: var(--gold);"></span>
                   </div>
@@ -1804,71 +1851,150 @@
                       <input type="text" id="cfgBrandSloganEn" class="form-input" placeholder="YELLOW ROSE • LUXURY FLORAL">
                     </div>
                   </div>
-
-                  <!-- Announcement Bar -->
-                  <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 0.85rem; margin-top: 0.5rem;">
-                    <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; cursor: pointer; margin-bottom: 0.5rem;">
-                      <input type="checkbox" id="cfgAnnouncementEnabled"> تفعيل شريط الإعلانات الذهبي في أعلى الموقع
-                    </label>
-                    <input type="text" id="cfgAnnouncementText" class="form-input" placeholder="✨ يلوروز | نصنع من كل مناسبة تحفة بصرية استثنائية ✨">
-                  </div>
                 </div>
 
                 <!-- Logo Live Preview Box -->
-                <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1.25rem; text-align: center;">
-                  <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 0.75rem;">المعاينة الحية للشعار في المتجر</span>
-                  <div style="width: 75px; height: 75px; margin: 0 auto 0.75rem; border-radius: 16px; overflow: hidden; border: 2px solid var(--gold); background: #1a1a24; display: flex; align-items: center; justify-content: center;">
-                    <img id="previewLogoImg" src="/assets/logo.png" alt="Logo Preview" style="width: 100%; height: 100%; object-fit: contain;">
+                <div style="background: rgba(0,0,0,0.35); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 1.5rem; text-align: center;">
+                  <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 0.75rem;">المعاينة الحية لهوية المتجر والشعار</span>
+                  <div style="width: 80px; height: 80px; margin: 0 auto 0.75rem; border-radius: 18px; overflow: hidden; border: 2px solid var(--gold); background: #1a1a24; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(212,175,55,0.2);">
+                    <img id="previewLogoImg" src="/assets/logo.png?v=2" alt="Logo Preview" style="width: 100%; height: 100%; object-fit: contain;">
                   </div>
-                  <div id="previewBrandArText" style="font-weight: 800; color: var(--gold-light); font-size: 1.15rem;">يلوروز</div>
-                  <div id="previewBrandEnText" style="font-size: 0.75rem; color: var(--text-muted); letter-spacing: 2px;">YELLOW ROSE</div>
-                  <div id="previewBrandSloganText" style="font-size: 0.8rem; color: var(--text-main); margin-top: 0.35rem;">للورد والمناسبات</div>
+                  <div id="previewBrandArText" style="font-weight: 800; color: var(--gold-light); font-size: 1.25rem;">يلوروز</div>
+                  <div id="previewBrandEnText" style="font-size: 0.78rem; color: var(--text-muted); letter-spacing: 2px;">YELLOW ROSE</div>
+                  <div id="previewBrandSloganText" style="font-size: 0.82rem; color: var(--text-main); margin-top: 0.4rem;">للورد والمناسبات</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. بيانات التواصل ومعلومات الفرع -->
+            <div class="whatsapp-card" style="margin-bottom: 1.5rem;">
+              <div class="whatsapp-card-title">
+                <i class="fas fa-map-marked-alt text-gold"></i>
+                <span>بيانات التواصل ومعلومات الفرع وساعات العمل</span>
+              </div>
+              <p style="font-size: 0.85rem; color: var(--text-muted);">
+                الإعدادات والبيانات المعتمدة للمتجر والفرع للتواصل وروابط الخرائط وساعات العمل:
+              </p>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.85rem; margin-bottom: 0.85rem;">
+                <div class="form-group">
+                  <label>رقم واتساب المتجر المعتمد (مع الرمز الدولي):</label>
+                  <input type="text" id="cfgStoreWhatsApp" class="form-input" placeholder="966582739397">
+                  <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">مثال: 966582739397 (بدون علامة + أو مسافات)</span>
+                </div>
+                <div class="form-group">
+                  <label>هاتف الاتصال المباشر للفرع:</label>
+                  <input type="text" id="cfgBranchPhone" class="form-input" placeholder="0582739397">
+                </div>
+                <div class="form-group">
+                  <label>أوقات وساعات العمل والدوام:</label>
+                  <input type="text" id="cfgWorkingHours" class="form-input" placeholder="يومياً من 9:00 صباحاً حتى 11:30 مساءً">
+                </div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem;">
+                <div class="form-group">
+                  <label>عنوان ومقر الفرع بالتفصيل:</label>
+                  <input type="text" id="cfgBranchAddress" class="form-input" placeholder="شارع الأمير سلطان، حي الروضة، جدة">
+                </div>
+                <div class="form-group">
+                  <label>رابط موقع الفرع على خرائط جوجل (Google Maps):</label>
+                  <input type="text" id="cfgMapsUrl" class="form-input" placeholder="https://maps.google.com/...">
                 </div>
               </div>
             </div>
 
             <!-- Global Save Button -->
-            <button type="button" id="btnSaveBrandAndWhatsapp" class="login-btn" style="max-width: 440px; margin: 0 auto; display: block; padding: 1rem 2rem;">
-              <i class="fas fa-save"></i> حفظ وتحديث قوالب الواتساب والهوية فوراً
+            <button type="button" id="btnSaveBrandAndWhatsapp" class="login-btn" style="max-width: 440px; margin: 1.5rem auto; display: block; padding: 1rem 2rem;">
+              <i class="fas fa-save"></i> حفظ وتحديث جميع إعدادات الهوية والفرع والواتساب فوراً
             </button>
           </div>
         </section>
 
 
         <!-- =========================================
-             TAB 7: SECURITY & SETTINGS (ADMIN)
+             TAB 7: SECURITY & SYSTEM TOOLS (ADMIN)
         ========================================= -->
         <section class="tab-section admin-only" id="tabSection-settings">
           <div class="settings-layout">
-            <h2 style="color: var(--gold-light); font-weight: 800; margin-bottom: 0.5rem; text-align: center;">
-              <i class="fas fa-user-shield text-gold"></i> إدارة رموز الدخول والأمان
-            </h2>
-            <p style="text-align: center; color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem;">
-              يمكنك تحديث رموز الدخول للمدير أو الموظف مباشرة وسيتم حفظها وتفعيلها فوراً
-            </p>
+            
+            <!-- Security PINs Card -->
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 1.5rem; margin-bottom: 1.5rem;">
+              <h2 style="color: var(--gold-light); font-weight: 800; margin-bottom: 0.5rem; text-align: center;">
+                <i class="fas fa-user-shield text-gold"></i> إدارة رموز الدخول والأمان
+              </h2>
+              <p style="text-align: center; color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.25rem;">
+                يمكنك تحديث رموز الدخول للمدير أو الموظف مباشرة وسيتم حفظها وتفعيلها فوراً
+              </p>
 
-            <div class="security-badge-banner">
-              <i class="fas fa-check-circle"></i>
-              <span>نظام الرموز مؤمن عبر تشفير SHA-256 ومخزن بأمان في MongoDB، لا تحتاج لفتح Vercel إطلاقاً.</span>
+              <div class="security-badge-banner" style="margin-bottom: 1.25rem;">
+                <i class="fas fa-check-circle"></i>
+                <span>نظام الرموز مؤمن عبر تشفير SHA-256 ومخزن بأمان في MongoDB، لا تحتاج لفتح Vercel إطلاقاً.</span>
+              </div>
+
+              <form id="pinsUpdateForm" onsubmit="event.preventDefault(); window.PortalApp.updateSecurityPins();">
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                  <label>رمز المشرف العام الجديد (Admin PIN):</label>
+                  <input type="text" id="newAdminPinInput" class="form-input" placeholder="اتركه فارغاً إذا كنت لا ترغب بتغييره">
+                  <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">الرمز الحالي الافتراضي: 55409</span>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                  <label>رمز موظفي الفرع الجديد (Employee PIN):</label>
+                  <input type="text" id="newEmployeePinInput" class="form-input" placeholder="اتركه فارغاً إذا كنت لا ترغب بتغييره">
+                  <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">الرمز الحالي الافتراضي: 4848</span>
+                </div>
+
+                <button type="submit" id="btnSavePins" class="login-btn">
+                  <i class="fas fa-save"></i> حفظ وتفعيل الرموز الجديدة
+                </button>
+              </form>
             </div>
 
-            <form id="pinsUpdateForm" onsubmit="event.preventDefault(); window.PortalApp.updateSecurityPins();">
-              <div class="form-group" style="margin-bottom: 1.25rem;">
-                <label>رمز المشرف العام الجديد (Admin PIN):</label>
-                <input type="text" id="newAdminPinInput" class="form-input" placeholder="اتركه فارغاً إذا كنت لا ترغب بتغييره">
-                <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">الرمز الحالي الافتراضي: 55409</span>
+            <!-- System Tools & Legacy Data Migration Card -->
+            <div style="background: rgba(255,255,255,0.02); border: 1px solid rgba(212,175,55,0.3); border-radius: 14px; padding: 1.5rem;">
+              <h2 style="color: var(--gold-light); font-weight: 800; margin-bottom: 0.5rem; text-align: center;">
+                <i class="fas fa-tools text-gold"></i> أدوات النظام وترحيل البيانات وصيانة الأكواد
+              </h2>
+              <p style="text-align: center; color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.25rem;">
+                أدوات متقدمة لصيانة النظام، توليد وترحيل أكواد المنتجات التلقائية، وتصدير النسخ الاحتياطية
+              </p>
+
+              <!-- Migrate Codes Tool -->
+              <div style="background: rgba(212,175,55,0.05); border: 1px solid rgba(212,175,55,0.25); border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                  <div>
+                    <h4 style="margin: 0 0 4px 0; color: var(--gold-light); font-size: 1.05rem;">
+                      <i class="fas fa-barcode text-gold"></i> تهيئة وتوليد أكواد المنتجات والأقسام (Migrate Codes)
+                    </h4>
+                    <p style="margin: 0; color: var(--text-muted); font-size: 0.82rem; line-height: 1.5;">
+                      يقوم بتحديث بادئات الأقسام (YF, YV, YG, YW...) وتوليد أكواد تسلسلية ذكية لجميع المنتجات القديمة والمستوردة وتحديث صورها.
+                    </p>
+                  </div>
+                  <button type="button" id="btnMigrateCodes" class="btn-topbar btn-primary-top" style="padding: 0.75rem 1.25rem; font-size: 0.92rem; white-space: nowrap;">
+                    <i class="fas fa-sync-alt"></i> تشغيل التهيئة والترحيل الآن
+                  </button>
+                </div>
+                <div id="migrateStatusMessage" style="margin-top: 0.65rem; font-size: 0.82rem; color: var(--gold); display: none;"></div>
               </div>
 
-              <div class="form-group" style="margin-bottom: 1.75rem;">
-                <label>رمز موظفي الفرع الجديد (Employee PIN):</label>
-                <input type="text" id="newEmployeePinInput" class="form-input" placeholder="اتركه فارغاً إذا كنت لا ترغب بتغييره">
-                <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">الرمز الحالي الافتراضي: 4848</span>
+              <!-- Backup Export Tool -->
+              <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1.25rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                <div>
+                  <h4 style="margin: 0 0 4px 0; color: var(--text-main); font-size: 1rem;">
+                    <i class="fas fa-file-download text-gold"></i> تصدير نسخة احتياطية من البيانات (JSON Backup)
+                  </h4>
+                  <p style="margin: 0; color: var(--text-muted); font-size: 0.82rem;">
+                    تنزيل ملف بيانات آمن يحتوي جميع المنتجات والأقسام والإعدادات الحالية للاحتفاظ بنسخة خارجية.
+                  </p>
+                </div>
+                <button type="button" id="btnExportBackup" class="btn-topbar" style="padding: 0.75rem 1.25rem; font-size: 0.92rem; white-space: nowrap;">
+                  <i class="fas fa-download"></i> تصدير البيانات الآن
+                </button>
               </div>
 
-              <button type="submit" id="btnSavePins" class="login-btn">
-                <i class="fas fa-save"></i> حفظ وتفعيل الرموز الجديدة
-              </button>
-            </form>
+            </div>
+
           </div>
         </section>
 
@@ -2089,18 +2215,46 @@
           <input type="text" id="prodModalTitle" class="form-input" placeholder="مثال: فازة زجاجية توليب ملكي" required>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
+        <div style="display: grid; grid-template-columns: 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
           <div class="form-group">
-            <label>كود المنتج (اختياري):</label>
-            <input type="text" id="prodModalCode" class="form-input" placeholder="تلقائي: YF-01" style="text-transform: uppercase;">
+            <label>كود المنتج المرجعي (اختياري - يولد تلقائياً بناءً على كود القسم):</label>
+            <input type="text" id="prodModalCode" class="form-input" placeholder="مثال: YF-01" style="text-transform: uppercase;">
           </div>
-          <div class="form-group">
-            <label>السعر (ر.س): *</label>
-            <input type="number" id="prodModalPrice" class="form-input" placeholder="مثال: 150" step="any" required>
+        </div>
+
+        <!-- قسم التحكم في السعر وإظهار/إخفاء الأيقونة والنص -->
+        <div class="product-price-control-box" style="background: rgba(212, 175, 55, 0.05); border: 1px solid rgba(212, 175, 55, 0.25); border-radius: 12px; padding: 1rem; margin-bottom: 1rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.5rem;">
+            <label style="display: flex; align-items: center; gap: 0.6rem; font-weight: 700; color: var(--gold-light); cursor: pointer; font-size: 0.92rem;">
+              <input type="checkbox" id="prodModalShowPrice" checked style="width: 18px; height: 18px; accent-color: var(--gold); cursor: pointer;">
+              <span><i class="fas fa-tag text-gold"></i> تفعيل وإظهار أيقونة وقيمة السعر في المتجر</span>
+            </label>
+            <span id="priceStatusNote" style="font-size: 0.75rem; color: var(--text-muted); background: rgba(0,0,0,0.3); padding: 3px 8px; border-radius: 6px;">
+              (عند الإلغاء، يُعرض العمل كمعرض فني بدون إظهار أيقونة أو نص السعر)
+            </span>
           </div>
-          <div class="form-group">
-            <label>قبل الخصم (اختياري):</label>
-            <input type="number" id="prodModalOriginalPrice" class="form-input" placeholder="مثال: 180" step="any">
+
+          <div id="priceFieldsContainer" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; transition: all 0.25s ease;">
+            <div class="form-group">
+              <label>السعر الأساسي (ر.س) (اختياري):</label>
+              <input type="number" id="prodModalPrice" class="form-input" placeholder="مثال: 150" step="any">
+            </div>
+            <div class="form-group">
+              <label>السعر قبل الخصم (اختياري):</label>
+              <input type="number" id="prodModalOriginalPrice" class="form-input" placeholder="مثال: 180" step="any">
+            </div>
+            <div class="form-group" style="grid-column: span 1;">
+              <label>نص أو وصف السعر المخصص (اختياري):</label>
+              <input type="text" id="prodModalPriceText" class="form-input" placeholder="مثال: ابتداءً من 180 ر.س / حسب المقاس / شامل الفازة">
+            </div>
+          </div>
+
+          <!-- معاينة حية لشكل ظهور السعر للعميل -->
+          <div id="pricePreviewRow" style="margin-top: 0.85rem; padding-top: 0.65rem; border-top: 1px dashed rgba(212,175,55,0.2); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+            <span style="font-size: 0.78rem; color: var(--text-muted);"><i class="fas fa-eye text-gold"></i> المعاينة الحية لظهور السعر في المتجر:</span>
+            <div id="priceBadgePreviewBox" style="font-size: 0.85rem; font-weight: 700; color: var(--gold-light); display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; background: rgba(0,0,0,0.5); border-radius: 8px; border: 1px solid rgba(212,175,55,0.35);">
+              <i class="fas fa-tag text-gold"></i> <span id="priceBadgePreviewText">150 ر.س</span>
+            </div>
           </div>
         </div>
 
