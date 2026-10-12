@@ -894,6 +894,194 @@
     }
 
     /* =========================================
+       TAB 7: WHATSAPP TEMPLATES & BRAND IDENTITY
+    ========================================= */
+    .whatsapp-layout {
+      max-width: 1050px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    .whatsapp-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
+      gap: 1.25rem;
+    }
+    @media (max-width: 768px) {
+      .whatsapp-grid { grid-template-columns: 1fr; }
+    }
+    .whatsapp-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.35rem;
+      box-shadow: var(--shadow-luxury);
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+    }
+    .whatsapp-card-title {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--gold-light);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .template-tags-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.35rem;
+    }
+    .template-tag-chip {
+      background: rgba(212, 175, 55, 0.12);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+      color: var(--gold-light);
+      font-size: 0.75rem;
+      padding: 3px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s;
+    }
+    .template-tag-chip:hover {
+      background: var(--gold);
+      color: #0b0b0e;
+    }
+
+    /* Subcategories Tree Styling */
+    .subcat-tree-item {
+      margin-right: 1.25rem;
+      background: rgba(255,255,255,0.02);
+      border: 1px dashed rgba(212, 175, 55, 0.2);
+      border-radius: 8px;
+      padding: 0.4rem 0.65rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      margin-top: 0.3rem;
+    }
+
+    /* Action Mini Buttons */
+    .btn-mini-act {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .btn-mini-act:hover {
+      border-color: var(--gold);
+      color: var(--gold-light);
+      background: rgba(212,175,55,0.15);
+    }
+    .btn-mini-act.delete:hover {
+      border-color: var(--red);
+      color: var(--red);
+      background: rgba(239,68,68,0.15);
+    }
+
+    /* Cloudinary Dropzone & Previews */
+    .upload-dropzone {
+      background: rgba(212, 175, 55, 0.04);
+      border: 2px dashed rgba(212, 175, 55, 0.35);
+      border-radius: 12px;
+      padding: 1.25rem;
+      text-align: center;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s;
+    }
+    .upload-dropzone:hover {
+      border-color: var(--gold);
+      background: rgba(212, 175, 55, 0.08);
+    }
+    .preview-images-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 0.65rem;
+      max-height: 230px;
+      overflow-y: auto;
+      padding: 4px;
+    }
+    .preview-img-card {
+      background: #111116;
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 6px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .preview-img-card.is-cover {
+      border-color: var(--gold);
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+    }
+    .preview-img-card img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      border-radius: 6px;
+    }
+    .btn-crown-cover {
+      position: absolute;
+      top: 9px;
+      right: 9px;
+      background: rgba(0,0,0,0.65);
+      border: none;
+      color: #fff;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      transition: all 0.2s;
+    }
+    .preview-img-card.is-cover .btn-crown-cover {
+      background: var(--gold);
+      color: #0b0b0e;
+    }
+    .btn-del-img {
+      position: absolute;
+      top: 9px;
+      left: 9px;
+      background: rgba(239, 68, 68, 0.85);
+      border: none;
+      color: #fff;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+    }
+
+    /* Modal Large */
+    .modal-box.modal-box-large {
+      max-width: 780px;
+    }
+
+    /* =========================================
        MODALS
     ========================================= */
     .modal-backdrop {
@@ -1084,6 +1272,11 @@
         <div class="nav-item admin-only" data-tab="marketing">
           <i class="fas fa-bullhorn"></i>
           <span>حملات الإشعارات</span>
+        </div>
+
+        <div class="nav-item admin-only" data-tab="whatsapp">
+          <i class="fab fa-whatsapp"></i>
+          <span>رسائل الواتساب والهوية</span>
         </div>
 
         <div class="nav-item admin-only" data-tab="settings">
@@ -1296,8 +1489,8 @@
                 </div>
               </div>
 
-              <button class="btn-topbar" id="btnQuickCreateCardModal" style="justify-content: center; margin-top: 0.5rem;">
-                <i class="fas fa-magic text-gold"></i> إنشاء كرت فوري سريع
+              <button type="button" class="btn-topbar" id="btnResetPrintInputs" style="justify-content: center; margin-top: 0.5rem; border-color: rgba(212,175,55,0.4);">
+                <i class="fas fa-magic text-gold"></i> كرت فوري جديد (تفريغ الحقول)
               </button>
             </div>
           </div>
@@ -1312,11 +1505,16 @@
             
             <!-- Categories Column -->
             <div class="categories-tree-card">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.4rem;">
                 <h3 style="color: var(--gold-light); font-weight: 800;"><i class="fas fa-th-large"></i> الأقسام</h3>
-                <button class="btn-topbar" id="btnOpenNewCategoryModal" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">
-                  <i class="fas fa-plus"></i> قسم جديد
-                </button>
+                <div style="display: flex; gap: 0.35rem;">
+                  <button class="btn-topbar" id="btnOpenNewCategoryModal" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">
+                    <i class="fas fa-plus"></i> قسم جديد
+                  </button>
+                  <button class="btn-topbar" id="btnOpenNewSubcategoryModal" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">
+                    <i class="fas fa-folder-plus"></i> قسم فرعي
+                  </button>
+                </div>
               </div>
 
               <div class="category-tree-list" id="categoryTreeList">
@@ -1326,11 +1524,18 @@
 
             <!-- Products Stream -->
             <div class="products-stream-panel">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.65rem;">
                 <h3 style="color: var(--gold-light); font-weight: 800;"><i class="fas fa-boxes"></i> المنتجات والأعمال</h3>
-                <button class="btn-topbar btn-primary-top" id="btnOpenNewProductModal">
-                  <i class="fas fa-plus"></i> إضافة منتج جديد
-                </button>
+                
+                <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                  <input type="text" id="searchProductInput" class="form-input" placeholder="بحث باسم أو كود المنتج..." style="max-width: 190px; padding: 0.45rem 0.75rem; font-size: 0.82rem;">
+                  <select id="filterProductCategorySelect" class="form-select" style="max-width: 160px; padding: 0.45rem 0.75rem; font-size: 0.82rem;">
+                    <option value="">جميع الأقسام</option>
+                  </select>
+                  <button class="btn-topbar btn-primary-top" id="btnOpenNewProductModal">
+                    <i class="fas fa-plus"></i> إضافة منتج جديد
+                  </button>
+                </div>
               </div>
 
               <div class="products-table-wrapper">
@@ -1392,11 +1597,44 @@
               <i class="fas fa-bullhorn text-gold"></i> إرسال حملة إشعارات ترويجية
             </h2>
             <p style="text-align: center; color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.5rem;">
-              إرسال إشعار فوري لجميع عملاء يلوروز المشتركين في الموقع
+              إرسال إشعار فوري لجميع عملاء يلوروز المشتركين في الموقع عبر نظام Web Push المعتمد
             </p>
 
-            <div class="security-badge-banner" style="justify-content: center; margin-bottom: 1.5rem;">
-              <i class="fas fa-users text-gold"></i> عدد المشتركين النشطين بالإشعارات: <strong id="marketingActiveSubscribersCount">0</strong> عميل
+            <!-- Real Subscribers Stats Grid -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem;">
+              <div class="metric-card" style="padding: 0.85rem 1rem;">
+                <div class="metric-icon ready"><i class="fas fa-users"></i></div>
+                <div>
+                  <div class="metric-val" id="marketingActiveSubscribersCount">0</div>
+                  <div class="metric-lbl">المشتركون النشطون</div>
+                </div>
+              </div>
+              <div class="metric-card" style="padding: 0.85rem 1rem;">
+                <div class="metric-icon total"><i class="fas fa-mobile-alt"></i></div>
+                <div>
+                  <div class="metric-val" id="marketingMobileCount">0</div>
+                  <div class="metric-lbl">أجهزة الجوال</div>
+                </div>
+              </div>
+              <div class="metric-card" style="padding: 0.85rem 1rem;">
+                <div class="metric-icon preparing"><i class="fas fa-laptop"></i></div>
+                <div>
+                  <div class="metric-val" id="marketingDesktopCount">0</div>
+                  <div class="metric-lbl">أجهزة الكمبيوتر</div>
+                </div>
+              </div>
+              <div class="metric-card" style="padding: 0.85rem 1rem;">
+                <div class="metric-icon pending"><i class="fas fa-calendar-week"></i></div>
+                <div>
+                  <div class="metric-val" id="marketingNew7DaysCount">0</div>
+                  <div class="metric-lbl">آخر 7 أيام</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="security-badge-banner" style="font-size: 0.84rem; line-height: 1.6; margin-bottom: 1.5rem;">
+              <i class="fas fa-check-circle text-gold"></i>
+              <span>يتم استقبال واشتراك العملاء الحقيقيين تلقائياً عند زيارتهم لمتجر يلوروز والموافقة على تفعيل الإشعارات، وتُحفظ سجلات Web Push المشفرة في قاعدة بيانات MongoDB.</span>
             </div>
 
             <form id="marketingCampaignForm" onsubmit="event.preventDefault(); window.PortalApp.sendMarketingCampaign();">
@@ -1416,7 +1654,7 @@
               </div>
 
               <button type="submit" id="btnSendCampaign" class="login-btn">
-                <i class="fas fa-paper-plane"></i> إرسال الحملة لجميع العملاء
+                <i class="fas fa-paper-plane"></i> إرسال الحملة لجميع المشتركين
               </button>
             </form>
           </div>
@@ -1424,7 +1662,181 @@
 
 
         <!-- =========================================
-             TAB 6: SECURITY & SETTINGS (ADMIN)
+             TAB 6: WHATSAPP TEMPLATES & BRAND IDENTITY (ADMIN)
+        ========================================= -->
+        <section class="tab-section admin-only" id="tabSection-whatsapp">
+          <div class="whatsapp-layout">
+            <div style="text-align: center; margin-bottom: 0.5rem;">
+              <h2 style="color: var(--gold-light); font-weight: 800; font-size: 1.5rem; margin-bottom: 0.35rem;">
+                <i class="fab fa-whatsapp text-gold"></i> تخصيص رسائل الواتساب وهوية المتجر
+              </h2>
+              <p style="color: var(--text-muted); font-size: 0.88rem;">
+                تحكم كامل في نصوص ورسائل الواتساب الأربعة المرسلة للعملاء، وتحديث شعار وهوية يلوروز
+              </p>
+            </div>
+
+            <!-- WhatsApp Message Templates Grid -->
+            <div class="whatsapp-grid">
+              
+              <!-- Template 1: Store Order Message -->
+              <div class="whatsapp-card">
+                <div class="whatsapp-card-title">
+                  <i class="fas fa-shopping-bag text-gold"></i>
+                  <span>1. رسالة الطلب الجديد في المتجر</span>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">
+                  الرسالة التي يتم فتحها في واتساب العميل تلقائياً عند الضغط على "طلب وتنسيق عبر الواتساب" في المتجر أو الكتالوج.
+                </p>
+                <div class="form-group">
+                  <textarea id="cfgWhatsappOrderMessage" class="form-textarea" rows="6" placeholder="اكتب قالب رسالة الطلب..."></textarea>
+                  <div class="template-tags-row">
+                    <span class="template-tag-chip" onclick="window.PortalApp.insertTag('cfgWhatsappOrderMessage', '{product_name}')">+ {product_name}</span>
+                    <span class="template-tag-chip" onclick="window.PortalApp.insertTag('cfgWhatsappOrderMessage', '{category_name}')">+ {category_name}</span>
+                    <span class="template-tag-chip" onclick="window.PortalApp.insertTag('cfgWhatsappOrderMessage', '{product_url}')">+ {product_url}</span>
+                  </div>
+                  <span style="font-size: 0.75rem; color: var(--gold); display: block; margin-top: 4px;">
+                    * ملاحظة: إذا اختار العميل "تقديم كهدية 🎁"، يتم إرفاق بيانات الهدية تلقائياً في نهاية الرسالة.
+                  </span>
+                </div>
+              </div>
+
+              <!-- Template 2: Order Confirmation & Pager Link -->
+              <div class="whatsapp-card">
+                <div class="whatsapp-card-title">
+                  <i class="fas fa-receipt text-gold"></i>
+                  <span>2. رسالة تأكيد الطلب ورابط البيجر</span>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">
+                  الرسالة التي يرسلها المتجر للعميل عند استلام الطلب برقم الطلب ورابط البيجر الذكي للمتابعة الحية.
+                </p>
+                <div class="form-group">
+                  <textarea id="cfgWhatsappConfirmMessage" class="form-textarea" rows="6" placeholder="اكتب قالب رسالة تأكيد الطلب..."></textarea>
+                  <div class="template-tags-row">
+                    <span class="template-tag-chip" onclick="window.PortalApp.insertTag('cfgWhatsappConfirmMessage', '{order_id}')">+ {order_id}</span>
+                    <span class="template-tag-chip" onclick="window.PortalApp.insertTag('cfgWhatsappConfirmMessage', '{customer_name}')">+ {customer_name}</span>
+                    <span class="template-tag-chip" onclick="window.PortalApp.insertTag('cfgWhatsappConfirmMessage', '{pager_url}')">+ {pager_url}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Template 3: Order Ready Notification -->
+              <div class="whatsapp-card">
+                <div class="whatsapp-card-title">
+                  <i class="fas fa-bell text-gold"></i>
+                  <span>3. رسالة إشعار جاهزية الطلب للاستلام</span>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">
+                  الرسالة التي تُرسل للعميل لإبلاغه باكتمال التنسيق وجاهزية الطلب للاستلام الفوري من الفرع.
+                </p>
+                <div class="form-group">
+                  <textarea id="cfgWhatsappReadyMessage" class="form-textarea" rows="6" placeholder="اكتب قالب إشعار الجاهزية..."></textarea>
+                  <div class="template-tags-row">
+                    <span class="template-tag-chip" onclick="window.PortalApp.insertTag('cfgWhatsappReadyMessage', '{order_id}')">+ {order_id}</span>
+                    <span class="template-tag-chip" onclick="window.PortalApp.insertTag('cfgWhatsappReadyMessage', '{customer_name}')">+ {customer_name}</span>
+                    <span class="template-tag-chip" onclick="window.PortalApp.insertTag('cfgWhatsappReadyMessage', '{pager_url}')">+ {pager_url}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Template 4: Review & Rating Request -->
+              <div class="whatsapp-card">
+                <div class="whatsapp-card-title">
+                  <i class="fas fa-star text-gold"></i>
+                  <span>4. رسالة طلب تقييم الخدمة والرأي</span>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">
+                  الرسالة التي تُرسل للعميل بعد تسليم الطلب لقياس رضاه وطلب تقييم تجربته عبر رابط التقييم المباشر.
+                </p>
+                <div class="form-group">
+                  <textarea id="cfgWhatsappRatingMessage" class="form-textarea" rows="6" placeholder="اكتب قالب طلب التقييم..."></textarea>
+                  <div class="template-tags-row">
+                    <span class="template-tag-chip" onclick="window.PortalApp.insertTag('cfgWhatsappRatingMessage', '{order_id}')">+ {order_id}</span>
+                    <span class="template-tag-chip" onclick="window.PortalApp.insertTag('cfgWhatsappRatingMessage', '{customer_name}')">+ {customer_name}</span>
+                    <span class="template-tag-chip" onclick="window.PortalApp.insertTag('cfgWhatsappRatingMessage', '{rating_url}')">+ {rating_url}</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Brand Identity & Logo Card -->
+            <div class="whatsapp-card">
+              <div class="whatsapp-card-title">
+                <i class="fas fa-gem text-gold"></i>
+                <span>شعار وهوية المتجر والشريط الترويجي</span>
+              </div>
+              <p style="font-size: 0.85rem; color: var(--text-muted);">
+                تعديل وتحديث الشعار، الأسماء العربية والإنجليزية، السلوجان، والشريط الإعلاني الذهبي في أعلى المتجر:
+              </p>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; align-items: start;">
+                <div>
+                  <div class="form-group" style="margin-bottom: 0.85rem;">
+                    <label>شعار المتجر (رفع سحابي أو رابط):</label>
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.35rem;">
+                      <input type="file" id="brandLogoFileInput" accept="image/*" style="display: none;">
+                      <button type="button" class="btn-topbar" onclick="document.getElementById('brandLogoFileInput').click();" style="white-space: nowrap;">
+                        <i class="fas fa-upload"></i> اختر شعار
+                      </button>
+                      <input type="text" id="cfgBrandLogoUrl" class="form-input" placeholder="assets/logo.png" style="flex: 1;">
+                    </div>
+                    <span id="brandLogoUploadStatus" style="font-size: 0.78rem; color: var(--gold);"></span>
+                  </div>
+
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
+                    <div class="form-group">
+                      <label>اسم المتجر (عربي):</label>
+                      <input type="text" id="cfgBrandNameAr" class="form-input" placeholder="يلوروز">
+                    </div>
+                    <div class="form-group">
+                      <label>اسم المتجر (إنجليزي):</label>
+                      <input type="text" id="cfgBrandNameEn" class="form-input" placeholder="YELLOW ROSE">
+                    </div>
+                  </div>
+
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
+                    <div class="form-group">
+                      <label>السلوجان العربي:</label>
+                      <input type="text" id="cfgBrandSloganAr" class="form-input" placeholder="للورد والمناسبات">
+                    </div>
+                    <div class="form-group">
+                      <label>السلوجان الإنجليزي:</label>
+                      <input type="text" id="cfgBrandSloganEn" class="form-input" placeholder="YELLOW ROSE • LUXURY FLORAL">
+                    </div>
+                  </div>
+
+                  <!-- Announcement Bar -->
+                  <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 0.85rem; margin-top: 0.5rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; cursor: pointer; margin-bottom: 0.5rem;">
+                      <input type="checkbox" id="cfgAnnouncementEnabled"> تفعيل شريط الإعلانات الذهبي في أعلى الموقع
+                    </label>
+                    <input type="text" id="cfgAnnouncementText" class="form-input" placeholder="✨ يلوروز | نصنع من كل مناسبة تحفة بصرية استثنائية ✨">
+                  </div>
+                </div>
+
+                <!-- Logo Live Preview Box -->
+                <div style="background: rgba(0,0,0,0.3); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1.25rem; text-align: center;">
+                  <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 0.75rem;">المعاينة الحية للشعار في المتجر</span>
+                  <div style="width: 75px; height: 75px; margin: 0 auto 0.75rem; border-radius: 16px; overflow: hidden; border: 2px solid var(--gold); background: #1a1a24; display: flex; align-items: center; justify-content: center;">
+                    <img id="previewLogoImg" src="/assets/logo.png" alt="Logo Preview" style="width: 100%; height: 100%; object-fit: contain;">
+                  </div>
+                  <div id="previewBrandArText" style="font-weight: 800; color: var(--gold-light); font-size: 1.15rem;">يلوروز</div>
+                  <div id="previewBrandEnText" style="font-size: 0.75rem; color: var(--text-muted); letter-spacing: 2px;">YELLOW ROSE</div>
+                  <div id="previewBrandSloganText" style="font-size: 0.8rem; color: var(--text-main); margin-top: 0.35rem;">للورد والمناسبات</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Global Save Button -->
+            <button type="button" id="btnSaveBrandAndWhatsapp" class="login-btn" style="max-width: 440px; margin: 0 auto; display: block; padding: 1rem 2rem;">
+              <i class="fas fa-save"></i> حفظ وتحديث قوالب الواتساب والهوية فوراً
+            </button>
+          </div>
+        </section>
+
+
+        <!-- =========================================
+             TAB 7: SECURITY & SETTINGS (ADMIN)
         ========================================= -->
         <section class="tab-section admin-only" id="tabSection-settings">
           <div class="settings-layout">
@@ -1536,30 +1948,224 @@
   </div>
 
   <!-- =========================================
-       MODALS: QUICK PRINT CARD
+       MODALS: CATEGORY (NEW & EDIT)
   ========================================= -->
-  <div class="modal-backdrop" id="modalQuickPrint">
+  <div class="modal-backdrop" id="modalCategory">
     <div class="modal-box">
       <div class="modal-header">
-        <h3 class="modal-title"><i class="fas fa-magic text-gold"></i> إنشاء كرت إهداء فوري</h3>
+        <h3 class="modal-title" id="categoryModalTitle"><i class="fas fa-folder-plus text-gold"></i> إضافة قسم جديد</h3>
         <button class="modal-close" onclick="window.PortalApp.closeModals()">&times;</button>
       </div>
 
-      <form onsubmit="event.preventDefault(); window.PortalApp.applyQuickCard();">
+      <form id="categoryForm" onsubmit="event.preventDefault(); window.PortalApp.submitCategoryForm();">
+        <input type="hidden" id="catModalId">
+
         <div class="form-group" style="margin-bottom: 0.85rem;">
-          <label>إلى:</label>
-          <input type="text" id="qpRecipient" class="form-input" placeholder="اسم المهدى إليه...">
+          <label>اسم القسم: *</label>
+          <input type="text" id="catModalName" class="form-input" placeholder="مثال: باقات ورد" required>
         </div>
+
         <div class="form-group" style="margin-bottom: 0.85rem;">
-          <label>الرسالة:</label>
-          <textarea id="qpMessage" class="form-textarea" placeholder="نص الإهداء..." required></textarea>
+          <label>رمز القسم للأكواد (Prefix - حرفين): *</label>
+          <input type="text" id="catModalPrefix" class="form-input" placeholder="مثال: YF أو YV" maxlength="2" required style="text-transform: uppercase;">
+          <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 2px;">
+            حرفان إنجليزيان لترميز منتجات هذا القسم تلقائياً (مثل YF-01).
+          </span>
         </div>
+
+        <div class="form-group" style="margin-bottom: 0.85rem;">
+          <label>أيقونة القسم (FontAwesome):</label>
+          <input type="text" id="catModalIcon" class="form-input" placeholder="مثال: fa-seedling أو fa-gem">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0.85rem;">
+          <label>صورة غلاف القسم (رفع سحابي أو رابط):</label>
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.35rem;">
+            <input type="file" id="catModalFileInput" accept="image/*" style="display: none;">
+            <button type="button" class="btn-topbar" onclick="document.getElementById('catModalFileInput').click();" style="white-space: nowrap;">
+              <i class="fas fa-upload"></i> اختر ملف
+            </button>
+            <input type="text" id="catModalCoverUrl" class="form-input" placeholder="أو الصق رابط صورة مباشرة..." style="flex: 1;">
+          </div>
+          <span id="catModalUploadStatus" style="font-size: 0.78rem; color: var(--gold);"></span>
+        </div>
+
         <div class="form-group" style="margin-bottom: 1.25rem;">
-          <label>من:</label>
-          <input type="text" id="qpSender" class="form-input" placeholder="اسم الراسل...">
+          <label>الترتيب في العرض:</label>
+          <input type="number" id="catModalOrder" class="form-input" value="0">
         </div>
-        <button type="submit" class="login-btn">
-          <i class="fas fa-check"></i> تطبيق في محطة الطباعة
+
+        <button type="submit" id="btnSubmitCategory" class="login-btn">
+          <i class="fas fa-save"></i> حفظ القسم
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================
+       MODALS: SUBCATEGORY (NEW & EDIT)
+  ========================================= -->
+  <div class="modal-backdrop" id="modalSubcategory">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" id="subcategoryModalTitle"><i class="fas fa-tags text-gold"></i> إضافة قسم فرعي جديد</h3>
+        <button class="modal-close" onclick="window.PortalApp.closeModals()">&times;</button>
+      </div>
+
+      <form id="subcategoryForm" onsubmit="event.preventDefault(); window.PortalApp.submitSubcategoryForm();">
+        <input type="hidden" id="subcatModalId">
+
+        <div class="form-group" style="margin-bottom: 0.85rem;">
+          <label>القسم الرئيسي التابع له: *</label>
+          <select id="subcatModalParentId" class="form-select" required>
+            <option value="">-- اختر القسم الرئيسي --</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0.85rem;">
+          <label>اسم القسم الفرعي: *</label>
+          <input type="text" id="subcatModalName" class="form-input" placeholder="مثال: مسكات عرايس ملكية" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0.85rem;">
+          <label>رمز الأيقونة (FontAwesome):</label>
+          <input type="text" id="subcatModalIcon" class="form-input" placeholder="مثال: fa-leaf">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0.85rem;">
+          <label>صورة القسم الفرعي:</label>
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.35rem;">
+            <input type="file" id="subcatModalFileInput" accept="image/*" style="display: none;">
+            <button type="button" class="btn-topbar" onclick="document.getElementById('subcatModalFileInput').click();" style="white-space: nowrap;">
+              <i class="fas fa-upload"></i> اختر ملف
+            </button>
+            <input type="text" id="subcatModalCoverUrl" class="form-input" placeholder="أو الصق رابط صورة..." style="flex: 1;">
+          </div>
+          <span id="subcatModalUploadStatus" style="font-size: 0.78rem; color: var(--gold);"></span>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+          <label>الترتيب:</label>
+          <input type="number" id="subcatModalOrder" class="form-input" value="0">
+        </div>
+
+        <button type="submit" id="btnSubmitSubcategory" class="login-btn">
+          <i class="fas fa-save"></i> حفظ القسم الفرعي
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================
+       MODALS: PRODUCT & GALLERY (NEW & EDIT)
+  ========================================= -->
+  <div class="modal-backdrop" id="modalProduct">
+    <div class="modal-box modal-box-large">
+      <div class="modal-header">
+        <h3 class="modal-title" id="productModalTitle"><i class="fas fa-box-open text-gold"></i> إضافة منتج أو عمل جديد</h3>
+        <button class="modal-close" onclick="window.PortalApp.closeModals()">&times;</button>
+      </div>
+
+      <form id="productForm" onsubmit="event.preventDefault(); window.PortalApp.submitProductForm();">
+        <input type="hidden" id="prodModalId">
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.85rem;">
+          <div class="form-group">
+            <label>التصنيف / القسم الرئيسي: *</label>
+            <select id="prodModalCategory" class="form-select" required>
+              <option value="">-- اختر القسم الرئيسي --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>القسم الفرعي (اختياري):</label>
+            <select id="prodModalSubcategory" class="form-select">
+              <option value="">-- بدون قسم فرعي --</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0.85rem;">
+          <label>اسم المنتج أو التنسيق: *</label>
+          <input type="text" id="prodModalTitle" class="form-input" placeholder="مثال: فازة زجاجية توليب ملكي" required>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.75rem; margin-bottom: 0.85rem;">
+          <div class="form-group">
+            <label>كود المنتج (اختياري):</label>
+            <input type="text" id="prodModalCode" class="form-input" placeholder="تلقائي: YF-01" style="text-transform: uppercase;">
+          </div>
+          <div class="form-group">
+            <label>السعر (ر.س): *</label>
+            <input type="number" id="prodModalPrice" class="form-input" placeholder="مثال: 150" step="any" required>
+          </div>
+          <div class="form-group">
+            <label>قبل الخصم (اختياري):</label>
+            <input type="number" id="prodModalOriginalPrice" class="form-input" placeholder="مثال: 180" step="any">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0.85rem;">
+          <label>وصف المنتج وتفاصيل الخامات (اختياري):</label>
+          <textarea id="prodModalDesc" class="form-textarea" rows="3" placeholder="تفاصيل أنواع الزهور، ألوان التنسيق، والخامات المصاحبة..."></textarea>
+        </div>
+
+        <div style="display: flex; gap: 1.5rem; margin-bottom: 1.25rem; align-items: center; flex-wrap: wrap;">
+          <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.88rem; cursor: pointer;">
+            <input type="checkbox" id="prodModalInStock" checked> متوفر في المتجر (In Stock)
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.88rem; cursor: pointer;">
+            <input type="checkbox" id="prodModalFeatured"> تمييز في الواجهة الرئيسية (Featured) ⭐
+          </label>
+          <label style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.88rem; cursor: pointer;">
+            <input type="checkbox" id="prodModalDirectMode"> عرض الصور مباشرة كمعرض صور (Direct Mode)
+          </label>
+        </div>
+
+        <!-- Cloudinary Multi-Image Upload Dropzone -->
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label><i class="fas fa-cloud-upload-alt text-gold"></i> صور المنتج (رفع سحابي مباشر عبر Cloudinary): *</label>
+          <label class="upload-dropzone" for="prodModalFileInput">
+            <i class="fas fa-images text-gold" style="font-size: 2.2rem; margin-bottom: 0.5rem;"></i>
+            <div style="font-weight: 700; color: var(--gold-light); font-size: 0.95rem;">اضغط هنا لاختيار صورة أو عدة صور معاً من جهازك</div>
+            <div style="color: var(--text-muted); font-size: 0.8rem; margin-top: 3px;">يدعم JPG, PNG, WEBP برفع سحابي فوري ومشفر</div>
+            <input type="file" id="prodModalFileInput" multiple accept="image/*" style="display: none;">
+          </label>
+
+          <!-- Upload Progress -->
+          <div id="prodUploadProgressContainer" style="display: none; margin-top: 0.6rem;">
+            <div id="prodUploadProgressStatus" style="font-size: 0.82rem; color: var(--gold); margin-bottom: 4px;">جاري الرفع السحابي...</div>
+            <div style="height: 6px; background: rgba(255,255,255,0.08); border-radius: 4px; overflow: hidden;">
+              <div id="prodUploadProgressBar" style="height: 100%; width: 0%; background: var(--gold-gradient); transition: width 0.2s;"></div>
+            </div>
+          </div>
+
+          <!-- Add Direct URL Alternative -->
+          <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+            <input type="url" id="prodModalDirectUrl" class="form-input" placeholder="أو الصق رابط صورة سحابي مباشر (URL)..." style="flex: 1;">
+            <button type="button" id="btnAddDirectUrl" class="btn-topbar" style="white-space: nowrap;">
+              <i class="fas fa-plus"></i> إضافة الرابط
+            </button>
+          </div>
+        </div>
+
+        <!-- Uploaded Images Preview Grid -->
+        <div style="margin-bottom: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-main);">
+              صور المنتج المرفوعة (<span id="prodImagesCount" style="color: var(--gold);">0</span>):
+            </span>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">
+              اضغط على التاج <i class="fas fa-crown text-gold"></i> لتعيينها كصورة غلاف رئيسية
+            </span>
+          </div>
+
+          <div class="preview-images-grid" id="prodModalImagesGrid">
+            <!-- Rendered dynamically -->
+          </div>
+        </div>
+
+        <button type="submit" id="btnSubmitProduct" class="login-btn">
+          <i class="fas fa-save"></i> حفظ المنتج
         </button>
       </form>
     </div>
