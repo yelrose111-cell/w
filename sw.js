@@ -12,7 +12,7 @@
 const WEBSITE_URL = 'https://yelrose2026.vercel.app';
 const DB_NAME = 'YellowRoseDB';
 const STORE_NAME = 'pager';
-const CACHE_NAME = 'yr-shell-cache-v2';
+const CACHE_NAME = 'yr-shell-cache-v3';
 const STATIC_ASSETS = [
     '/assets/logo.png',
     '/assets/images/yr-icon-192.png',

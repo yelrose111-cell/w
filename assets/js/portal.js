@@ -578,6 +578,11 @@
     },
 
     renderOrderCardHtml(order) {
+      if (window.YellowRoseComponents && typeof window.YellowRoseComponents.createOrderCard === 'function') {
+        const el = window.YellowRoseComponents.createOrderCard(order, { isAdmin: this.state.role === 'admin' });
+        if (el) return el.outerHTML;
+      }
+
       const escape = window.YRUtils ? window.YRUtils.escapeHtml : (str => str || '');
       const safeId = escape(order.orderId);
       const safeName = escape(order.customerName || 'عميل المتجر');
@@ -835,8 +840,14 @@
 
       try {
         const sort = this.state.customersSort || 'lastOrderAt';
-        const res = await fetch(`/api/customers?sort=${encodeURIComponent(sort)}`);
-        const data = await res.json();
+        let data;
+        if (window.YellowRoseComponents && window.YellowRoseComponents.CustomerCrmService) {
+          data = await window.YellowRoseComponents.CustomerCrmService.fetchCustomers(sort);
+        } else {
+          const res = await fetch(`/api/customers?sort=${encodeURIComponent(sort)}`);
+          data = await res.json();
+        }
+
         if (data.success) {
           this.state.customers = data.customers || [];
           this.updateCustomerMetrics(data.stats);
@@ -889,6 +900,15 @@
             </div>
           </div>
         `;
+        return;
+      }
+
+      // الاعتماد على عائلة المكونات الكائنية OOP (CustomerCardComponent)
+      if (window.YellowRoseComponents && typeof window.YellowRoseComponents.createCustomerCard === 'function') {
+        grid.innerHTML = list.map(c => {
+          const cardEl = window.YellowRoseComponents.createCustomerCard(c);
+          return cardEl ? cardEl.outerHTML : '';
+        }).join('');
         return;
       }
 
@@ -980,8 +1000,14 @@
       }
 
       try {
-        const res = await fetch('/api/customers/sync', { method: 'POST' });
-        const data = await res.json();
+        let data;
+        if (window.YellowRoseComponents && window.YellowRoseComponents.CustomerCrmService) {
+          data = await window.YellowRoseComponents.CustomerCrmService.syncFromOrders();
+        } else {
+          const res = await fetch('/api/customers/sync', { method: 'POST' });
+          data = await res.json();
+        }
+
         if (data.success) {
           this.showToast(data.message || 'تمت مزامنة بيانات العملاء بنجاح ✓');
           await this.loadCustomers();
@@ -1020,12 +1046,18 @@
       const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
 
       try {
-        const res = await fetch(`/api/customers/${encodeURIComponent(phone)}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, tags, notes })
-        });
-        const data = await res.json();
+        let data;
+        if (window.YellowRoseComponents && window.YellowRoseComponents.CustomerCrmService) {
+          data = await window.YellowRoseComponents.CustomerCrmService.updateCustomer(phone, { name, tags, notes });
+        } else {
+          const res = await fetch(`/api/customers/${encodeURIComponent(phone)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, tags, notes })
+          });
+          data = await res.json();
+        }
+
         if (data.success) {
           this.showToast('تم حفظ بيانات وملاحظات العميل بنجاح ✓');
           this.closeModals();
@@ -1087,10 +1119,16 @@
       if (!confirmed) return;
 
       try {
-        const res = await fetch(`/api/customers/${encodeURIComponent(phone)}`, {
-          method: 'DELETE'
-        });
-        const data = await res.json();
+        let data;
+        if (window.YellowRoseComponents && window.YellowRoseComponents.CustomerCrmService) {
+          data = await window.YellowRoseComponents.CustomerCrmService.deleteCustomer(phone);
+        } else {
+          const res = await fetch(`/api/customers/${encodeURIComponent(phone)}`, {
+            method: 'DELETE'
+          });
+          data = await res.json();
+        }
+
         if (data.success) {
           this.showToast('تم حذف العميل بنجاح من قاعدة البيانات ✓');
           this.state.customers = (this.state.customers || []).filter(c => c.phone !== phone);
