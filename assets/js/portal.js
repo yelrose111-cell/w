@@ -117,7 +117,7 @@
       }
 
       // Print Studio inputs live updating canvas
-      ['inputCardRecipient', 'inputCardMessage', 'inputCardSender'].forEach(id => {
+      ['inputCardRecipient', 'inputCardMessage', 'inputCardSender', 'inputReceiptPrice'].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', () => this.syncCanvasFromInputs());
       });
@@ -125,6 +125,17 @@
         const el = document.getElementById(id);
         if (el) el.addEventListener('change', () => this.syncCanvasFromInputs());
       });
+
+      // Quick print receipt price modal enter key listener
+      const modalReceiptPriceInput = document.getElementById('inputModalReceiptPrice');
+      if (modalReceiptPriceInput) {
+        modalReceiptPriceInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            this.confirmPrintReceiptWithPrice();
+          }
+        });
+      }
 
       // Custom dimensions live update
       ['inputCustomPrintWidth', 'inputCustomPrintHeight'].forEach(id => {
@@ -1303,19 +1314,44 @@
       el.textContent = `
         @page {
           size: ${cfg.cssPage} !important;
-          margin: ${cfg.margin || '0mm'} !important;
+          margin: 0 !important;
           padding: 0 !important;
         }
-        @page :first { margin: ${cfg.margin || '0mm'} !important; }
-        @page :left { margin: ${cfg.margin || '0mm'} !important; }
-        @page :right { margin: ${cfg.margin || '0mm'} !important; }
+        @page :first { margin: 0 !important; }
+        @page :left { margin: 0 !important; }
+        @page :right { margin: 0 !important; }
 
         @media print {
+          @page {
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          @page :first { margin: 0 !important; }
+          @page :left { margin: 0 !important; }
+          @page :right { margin: 0 !important; }
+
           *, *::before, *::after {
             box-sizing: border-box !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
             color-adjust: exact !important;
+          }
+
+          /* Completely suppress browser URL footers and header links */
+          a, a:visited, a[href]::after, a[href]::before, a::after, a::before {
+            content: "" !important;
+            display: none !important;
+            text-decoration: none !important;
+            color: inherit !important;
+          }
+          a[href] {
+            text-decoration: none !important;
+            color: inherit !important;
+          }
+
+          .modal-backdrop, .modal-box, header, nav, aside, footer, #footer, .sidebar, .topbar, .toast {
+            display: none !important;
+            visibility: hidden !important;
           }
 
           html, body {
@@ -1337,6 +1373,7 @@
 
           body > *:not(#printMasterContainer) {
             display: none !important;
+            visibility: hidden !important;
           }
 
           #printMasterContainer {
@@ -1352,6 +1389,27 @@
             max-height: ${isContinuous ? 'none' : effectivePageHeight} !important;
             overflow: ${isContinuous ? 'visible' : 'hidden'} !important;
             box-sizing: border-box !important;
+          }
+
+          /* Receipt Price & Total Section Styles */
+          .print-receipt-total-section {
+            margin: 3px 0 !important;
+            font-family: 'Tajawal', sans-serif !important;
+            color: #000000 !important;
+          }
+          .print-receipt-sub-divider {
+            border-top: 1px dotted #000000 !important;
+            margin: 3px 0 !important;
+            width: 100% !important;
+          }
+          .print-receipt-grand-total {
+            font-size: 14px !important;
+            font-weight: 900 !important;
+            margin-top: 2px !important;
+            color: #000000 !important;
+          }
+          .print-thermal-receipt.receipt-58mm .print-receipt-grand-total {
+            font-size: 12px !important;
           }
 
           .print-card-canvas {
@@ -1395,7 +1453,7 @@
       return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[m]);
     },
 
-    buildThermalReceiptHtml(order, sizeKey = 'thermal-80') {
+    buildThermalReceiptHtml(order, sizeKey = 'thermal-80', manualPrice = null) {
       const o = order || {};
       const orderId = o.orderId || 'طلب فوري';
       const custName = o.customerName || 'عميل المحل';
@@ -1423,6 +1481,16 @@
 
       const is58 = sizeKey === 'thermal-58';
       const cls58 = is58 ? 'receipt-58mm' : '';
+
+      // Effective Price determination (Manual price takes precedence, followed by order.price or studio input)
+      let rawPrice = (manualPrice !== null && manualPrice !== undefined && manualPrice !== '') 
+        ? manualPrice 
+        : (o.price !== null && o.price !== undefined && o.price !== '')
+          ? o.price
+          : (document.getElementById('inputReceiptPrice')?.value || '');
+      
+      const hasPrice = rawPrice !== null && rawPrice !== undefined && String(rawPrice).trim() !== '';
+      const cleanPrice = hasPrice ? String(rawPrice).trim() : '';
 
       return `
         <div class="print-thermal-receipt ${cls58}" dir="rtl">
@@ -1471,6 +1539,33 @@
                 <div>${this.escapeHtml(notes)}</div>
               </div>
             ` : ''}
+          </div>
+
+          <div class="print-receipt-divider"></div>
+
+          <!-- صندوق السعر والإجمالي للفاتورة المحددة يدوياً -->
+          <div class="print-receipt-total-section">
+            <div style="font-weight: 800; font-size: ${is58 ? '10px' : '11px'}; margin-bottom: 3px;">الحساب والإجمالي:</div>
+            ${hasPrice ? `
+              <div class="print-receipt-row" style="font-size: ${is58 ? '10px' : '11px'};">
+                <span>قيمة الطلب والتنسيق:</span>
+                <span>${this.escapeHtml(cleanPrice)} ر.س</span>
+              </div>
+              <div class="print-receipt-row" style="font-size: ${is58 ? '9px' : '10px'};">
+                <span>ضريبة القيمة المضافة:</span>
+                <span>شاملة الضريبة (15%)</span>
+              </div>
+              <div class="print-receipt-sub-divider"></div>
+              <div class="print-receipt-row print-receipt-grand-total">
+                <span>المبلغ الإجمالي المدفوع:</span>
+                <span dir="ltr">${this.escapeHtml(cleanPrice)} ر.س</span>
+              </div>
+            ` : `
+              <div class="print-receipt-row print-receipt-grand-total">
+                <span>المبلغ الإجمالي:</span>
+                <span style="font-family: monospace; letter-spacing: 2px;">................... ر.س</span>
+              </div>
+            `}
           </div>
 
           ${hasCard ? `
@@ -1568,7 +1663,7 @@
       `;
     },
 
-    async executeDirectPrint({ type = 'card', size = null, order = null, cardData = null, frameStyle = null, customW = null, customH = null }) {
+    async executeDirectPrint({ type = 'card', size = null, order = null, cardData = null, frameStyle = null, customW = null, customH = null, manualPrice = null }) {
       const container = document.getElementById('printMasterContainer');
       if (!container) return;
 
@@ -1593,7 +1688,8 @@
       // 2. Prepare HTML based on print type
       let contentHtml = '';
       if (type === 'receipt') {
-        contentHtml = this.buildThermalReceiptHtml(order, chosenSize);
+        const p = (manualPrice !== null && manualPrice !== undefined) ? manualPrice : (order?.price || document.getElementById('inputReceiptPrice')?.value);
+        contentHtml = this.buildThermalReceiptHtml(order, chosenSize, p);
       } else if (type === 'card') {
         const cd = cardData || (order ? order.cardData : null) || {
           recipient: document.getElementById('inputCardRecipient')?.value,
@@ -1606,6 +1702,7 @@
         const frame = frameStyle || (order?.cardData?.templateStyle) || document.getElementById('selectCardFrameStyle')?.value || 'gold-frame';
         contentHtml = this.buildGiftCardPrintHtml(cd, chosenSize, frame, cW, cH);
       } else if (type === 'both') {
+        const p = (manualPrice !== null && manualPrice !== undefined) ? manualPrice : (order?.price || document.getElementById('inputReceiptPrice')?.value);
         const cd = cardData || (order ? order.cardData : null) || {
           recipient: document.getElementById('inputCardRecipient')?.value,
           message: document.getElementById('inputCardMessage')?.value,
@@ -1620,7 +1717,7 @@
             ${this.buildGiftCardPrintHtml(cd, chosenSize, frame, cW, cH)}
           </div>
           <div style="page-break-before: always !important; break-before: page !important; margin-top: 5mm;">
-            ${this.buildThermalReceiptHtml(order, 'thermal-80')}
+            ${this.buildThermalReceiptHtml(order, 'thermal-80', p)}
           </div>
         `;
       }
@@ -1645,20 +1742,27 @@
       // 4. Route directly to printer
       window.print();
 
-      // 5. Mark order as printed in DB if applicable
+      // 5. Mark order as printed in DB and persist price if provided
       const targetOrder = order || this.state.currentPrintOrder;
-      if (targetOrder && targetOrder.status === 'pending' && targetOrder.orderId) {
+      const effectivePrice = (manualPrice !== null && manualPrice !== undefined && String(manualPrice).trim() !== '')
+        ? String(manualPrice).trim()
+        : (targetOrder?.price || '');
+      if (targetOrder && targetOrder.orderId) {
         try {
           await fetch(`/api/orders/${encodeURIComponent(targetOrder.orderId)}/print`, {
             method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' }
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ price: effectivePrice })
           });
-          this.fetchOrders(true);
+          if (targetOrder.status === 'pending') {
+            this.fetchOrders(true);
+          }
         } catch (e) {}
       }
 
-      // 6. Feedback Toast with exact paper & type sent
-      this.showToast(`تم إرسال أمر الطباعة للجهاز بمقاس (${cfg.name}) بنجاح 🖨️`);
+      // 6. Feedback Toast with exact paper & price details
+      const priceMsg = effectivePrice ? ` بمبلغ (${effectivePrice} ر.س)` : '';
+      this.showToast(`تم إرسال أمر الطباعة للجهاز بمقاس (${cfg.name})${priceMsg} بنجاح 🖨️`);
 
       // 7. Cleanup after print dialog completes
       const cleanup = () => {
@@ -1693,31 +1797,99 @@
         this.showToast('الرجاء تحديد طلب لطباعة فاتورته');
         return;
       }
-      const preferredReceiptSize = localStorage.getItem('yr_preferred_receipt_size') || 'thermal-80';
+      this.openReceiptPriceModal(order);
+    },
+
+    openReceiptPriceModal(order) {
+      this.state.pendingReceiptOrder = order;
+      const orderId = order.orderId || 'طلب فوري';
+      const custName = order.customerName || 'عميل المحل';
+      const prodTitle = order.productTitle || 'تنسيق ورد ومناسبات فاخرة';
+
+      const titleEl = document.getElementById('receiptPriceOrderTitle');
+      if (titleEl) titleEl.textContent = `الطلب رقم: #${orderId}`;
+
+      const infoEl = document.getElementById('receiptPriceCustomerInfo');
+      if (infoEl) infoEl.textContent = `العميل: ${custName} | المنتج: ${prodTitle}`;
+
+      const priceInput = document.getElementById('inputModalReceiptPrice');
+      if (priceInput) {
+        priceInput.value = (order.price !== undefined && order.price !== null) ? order.price : '';
+      }
+
+      const sizeSelect = document.getElementById('selectModalReceiptSize');
+      if (sizeSelect) {
+        sizeSelect.value = localStorage.getItem('yr_preferred_receipt_size') || 'thermal-80';
+      }
+
+      const modal = document.getElementById('modalReceiptPrice');
+      if (modal) {
+        modal.classList.add('active');
+        setTimeout(() => {
+          if (priceInput) {
+            priceInput.focus();
+            priceInput.select();
+          }
+        }, 80);
+      }
+    },
+
+    confirmPrintReceiptWithPrice() {
+      const order = this.state.pendingReceiptOrder || this.state.currentPrintOrder;
+      if (!order) {
+        this.closeModals();
+        return;
+      }
+
+      const priceInput = document.getElementById('inputModalReceiptPrice');
+      const enteredPrice = priceInput ? priceInput.value.trim() : '';
+
+      const sizeSelect = document.getElementById('selectModalReceiptSize');
+      const selectedSize = sizeSelect ? sizeSelect.value : (localStorage.getItem('yr_preferred_receipt_size') || 'thermal-80');
+      if (selectedSize) {
+        localStorage.setItem('yr_preferred_receipt_size', selectedSize);
+      }
+
+      // Update in-memory order object
+      order.price = enteredPrice;
+
+      // Close modal
+      this.closeModals();
+
+      // Execute Direct Print with the manual price
       this.executeDirectPrint({
         type: 'receipt',
-        size: preferredReceiptSize,
-        order: order
+        size: selectedSize,
+        order: order,
+        manualPrice: enteredPrice
       });
     },
 
     printReceiptFromStudio() {
-      if (!this.state.currentPrintOrder) {
-        const mockOrder = {
-          orderId: 'فوري-' + Math.floor(1000 + Math.random() * 9000),
-          customerName: document.getElementById('inputCardRecipient')?.value || 'عميل المحل',
-          customerPhone: '',
-          productTitle: 'طلب كرت إهداء فوري',
-          createdAt: new Date().toISOString(),
-          cardData: {
-            recipient: document.getElementById('inputCardRecipient')?.value,
-            message: document.getElementById('inputCardMessage')?.value,
-            sender: document.getElementById('inputCardSender')?.value
-          }
-        };
-        this.executeDirectPrint({ type: 'receipt', size: 'thermal-80', order: mockOrder });
+      const manualPrice = document.getElementById('inputReceiptPrice')?.value;
+      const targetOrder = this.state.currentPrintOrder || {
+        orderId: 'فوري-' + Math.floor(1000 + Math.random() * 9000),
+        customerName: document.getElementById('inputCardRecipient')?.value || 'عميل المحل',
+        customerPhone: '',
+        productTitle: 'طلب كرت إهداء فوري',
+        createdAt: new Date().toISOString(),
+        cardData: {
+          recipient: document.getElementById('inputCardRecipient')?.value,
+          message: document.getElementById('inputCardMessage')?.value,
+          sender: document.getElementById('inputCardSender')?.value
+        }
+      };
+
+      if (!manualPrice && manualPrice !== 0 && String(manualPrice).trim() === '') {
+        this.openReceiptPriceModal(targetOrder);
       } else {
-        this.executeDirectPrint({ type: 'receipt', size: 'thermal-80', order: this.state.currentPrintOrder });
+        targetOrder.price = manualPrice;
+        this.executeDirectPrint({
+          type: 'receipt',
+          size: localStorage.getItem('yr_preferred_receipt_size') || 'thermal-80',
+          order: targetOrder,
+          manualPrice: manualPrice
+        });
       }
     },
 
@@ -1735,6 +1907,11 @@
       document.getElementById('inputCardRecipient').value = rec;
       document.getElementById('inputCardMessage').value = msg;
       document.getElementById('inputCardSender').value = snd;
+
+      const priceInput = document.getElementById('inputReceiptPrice');
+      if (priceInput) {
+        priceInput.value = (order.price !== undefined && order.price !== null) ? order.price : '';
+      }
 
       if (cd.fontFamily) document.getElementById('selectCardFont').value = cd.fontFamily;
       if (cd.fontSize) document.getElementById('selectCardFontSize').value = cd.fontSize;
@@ -1768,12 +1945,14 @@
       if (badge) badge.textContent = `مقاس الطباعة: ${cfg.name}`;
 
       if (contentType === 'receipt') {
+        const manualPrice = document.getElementById('inputReceiptPrice')?.value;
         const order = this.state.currentPrintOrder || {
           orderId: 'معاينة-01',
           customerName: document.getElementById('inputCardRecipient')?.value || 'عميل المحل',
           customerPhone: '0582739397',
           productTitle: 'باقة ورد جوري أحمر فاخر',
           notes: 'تنسيق في مزهرية مع تغليف ذهبي',
+          price: manualPrice,
           createdAt: new Date().toISOString(),
           cardData: {
             recipient: document.getElementById('inputCardRecipient')?.value,
@@ -1787,7 +1966,7 @@
         canvas.style.padding = '0';
         canvas.style.background = '#ffffff';
         canvas.style.border = '2px dashed var(--border-subtle)';
-        canvas.innerHTML = this.buildThermalReceiptHtml(order, sizeKey);
+        canvas.innerHTML = this.buildThermalReceiptHtml(order, sizeKey, manualPrice);
         return;
       }
 
@@ -1823,13 +2002,15 @@
       const type = selectType ? selectType.value : 'card';
       const customW = document.getElementById('inputCustomPrintWidth')?.value;
       const customH = document.getElementById('inputCustomPrintHeight')?.value;
+      const manualPrice = document.getElementById('inputReceiptPrice')?.value;
 
       await this.executeDirectPrint({
         type: type,
         size: size,
         order: this.state.currentPrintOrder,
         customW: customW,
-        customH: customH
+        customH: customH,
+        manualPrice: manualPrice
       });
     },
 
@@ -1858,9 +2039,11 @@
       const rec = document.getElementById('inputCardRecipient');
       const msg = document.getElementById('inputCardMessage');
       const snd = document.getElementById('inputCardSender');
+      const prc = document.getElementById('inputReceiptPrice');
       if (rec) rec.value = '';
       if (msg) msg.value = '';
       if (snd) snd.value = '';
+      if (prc) prc.value = '';
 
       this.state.currentPrintOrder = null;
       this.syncCanvasFromInputs();

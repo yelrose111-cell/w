@@ -296,19 +296,34 @@
           <title>${title}</title>
           <style>
             @page {
-              size: ${sizeConfig.cssPage};
-              margin: 0;
+              size: ${sizeConfig.cssPage} !important;
+              margin: 0 !important;
+              padding: 0 !important;
             }
-            @page :first { margin: 0; }
+            @page :first { margin: 0 !important; }
+            @page :left { margin: 0 !important; }
+            @page :right { margin: 0 !important; }
             *, *::before, *::after {
               box-sizing: border-box !important;
               -webkit-print-color-adjust: exact !important;
               print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
+            /* Suppress browser-generated link URLs and headers/footers */
+            a, a:visited, a[href]::after, a[href]::before, a::after, a::before {
+              content: "" !important;
+              display: none !important;
+              text-decoration: none !important;
+              color: inherit !important;
+            }
+            a[href] {
+              text-decoration: none !important;
+              color: inherit !important;
             }
             html, body {
               font-family: 'Tajawal', sans-serif, -apple-system;
-              margin: 0;
-              padding: 4px;
+              margin: 0 !important;
+              padding: 4px !important;
               width: ${sizeConfig.width};
               font-size: ${sizeConfig.fontSize};
               color: #000;

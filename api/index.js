@@ -828,9 +828,27 @@ app.get('/api/orders', employeeAuthMiddleware, async (req, res) => {
 
 app.patch('/api/orders/:id/print', employeeAuthMiddleware, async (req, res) => {
     try {
+        const updateFields = { status: 'printed', printedAt: new Date() };
+        if (req.body && req.body.price !== undefined && req.body.price !== null && req.body.price !== '') {
+            updateFields.price = String(req.body.price).trim();
+        }
         const updated = await Order.findOneAndUpdate(
             { orderId: req.params.id },
-            { status: 'printed', printedAt: new Date() },
+            updateFields,
+            { returnDocument: 'after' }
+        );
+        res.json({ success: true, order: updated });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.patch('/api/orders/:id/price', employeeAuthMiddleware, async (req, res) => {
+    try {
+        const { price } = req.body;
+        const updated = await Order.findOneAndUpdate(
+            { orderId: req.params.id },
+            { price: price !== undefined && price !== null ? String(price).trim() : '' },
             { returnDocument: 'after' }
         );
         res.json({ success: true, order: updated });

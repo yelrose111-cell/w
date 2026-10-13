@@ -43,6 +43,7 @@ const orderSchema = new mongoose.Schema({
         enum: ['pickup', 'delivery', 'توصيل', 'استلام من الفرع', '', null],
         default: null
     },
+    price: { type: String, default: null, trim: true },
     status: { 
         type: String, 
         enum: ['pending', 'preparing', 'printed', 'ready', 'completed'], 

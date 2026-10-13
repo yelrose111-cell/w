@@ -1504,12 +1504,52 @@
       background: #ffffff;
     }
 
+    /* Zero page margin definition to suppress default browser URL footers and headers */
+    @page {
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+    @page :first { margin: 0 !important; }
+    @page :left { margin: 0 !important; }
+    @page :right { margin: 0 !important; }
+
     @media print {
+      @page {
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+      @page :first { margin: 0 !important; }
+      @page :left { margin: 0 !important; }
+      @page :right { margin: 0 !important; }
+
       *, *::before, *::after {
         box-sizing: border-box !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
         color-adjust: exact !important;
+      }
+
+      /* Completely suppress any browser or CSS generated URLs, link previews or footers */
+      a, a:visited, a[href]::after, a[href]::before, a::after, a::before {
+        content: "" !important;
+        display: none !important;
+        text-decoration: none !important;
+        color: inherit !important;
+      }
+      a[href] {
+        text-decoration: none !important;
+        color: inherit !important;
+      }
+
+      /* Suppress everything on screen except the isolated master print container */
+      body > *:not(#printMasterContainer) {
+        display: none !important;
+        visibility: hidden !important;
+      }
+
+      .modal-backdrop, .modal-box, header, nav, aside, footer, #footer, .sidebar, .topbar, .toast {
+        display: none !important;
+        visibility: hidden !important;
       }
 
       html, body {
@@ -1522,11 +1562,6 @@
         print-color-adjust: exact !important;
       }
 
-      /* Suppress everything on screen except the isolated master print container */
-      body > *:not(#printMasterContainer) {
-        display: none !important;
-      }
-
       #printMasterContainer {
         display: block !important;
         position: static !important;
@@ -1537,9 +1572,30 @@
       }
 
       /* Page-break avoidance for crisp receipt and card elements */
-      .print-receipt-item, .print-card-canvas, .print-receipt-box {
+      .print-receipt-item, .print-card-canvas, .print-receipt-box, .print-receipt-total-section {
         page-break-inside: avoid !important;
         break-inside: avoid !important;
+      }
+
+      /* Receipt Price & Total Section Styles */
+      .print-receipt-total-section {
+        margin: 3px 0 !important;
+        font-family: 'Tajawal', sans-serif !important;
+        color: #000000 !important;
+      }
+      .print-receipt-sub-divider {
+        border-top: 1px dotted #000000 !important;
+        margin: 3px 0 !important;
+        width: 100% !important;
+      }
+      .print-receipt-grand-total {
+        font-size: 14px !important;
+        font-weight: 900 !important;
+        margin-top: 2px !important;
+        color: #000000 !important;
+      }
+      .print-thermal-receipt.receipt-58mm .print-receipt-grand-total {
+        font-size: 12px !important;
       }
 
       /* Thermal Receipt Styles */
@@ -2135,6 +2191,18 @@
                     <option value="receipt">🧾 فاتورة وتذكرة الطلب كاملة</option>
                     <option value="both">✨ كرت الإهداء + فاتورة الطلب معاً</option>
                   </select>
+                </div>
+              </div>
+
+              <!-- Manual Price Input for Receipts & Invoices -->
+              <div class="form-group" id="groupReceiptPrice" style="background: rgba(212,175,55,0.06); border: 1px solid rgba(212,175,55,0.25); border-radius: 8px; padding: 0.65rem 0.85rem; margin-top: 0.2rem;">
+                <label style="font-weight: 700; color: var(--gold-light); display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px;">
+                  <span><i class="fas fa-coins text-gold"></i> سعر الفاتورة / الإجمالي (ر.س):</span>
+                  <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: normal;">إدخال يدوي قبل الطباعة</span>
+                </label>
+                <div style="position: relative; display: flex; align-items: center;">
+                  <input type="number" id="inputReceiptPrice" class="form-input" placeholder="أدخل السعر (ر.س) ليظهر بالفاتورة..." min="0" step="any" style="font-weight: 800; font-size: 1.05rem; padding-right: 50px;">
+                  <span style="position: absolute; right: 12px; font-weight: 800; color: var(--gold); pointer-events: none;">ر.س</span>
                 </div>
               </div>
 
@@ -3158,6 +3226,54 @@
 
       <div id="crmCustomerOrdersList" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 450px; overflow-y: auto;">
         <!-- Filled dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================
+       MODAL: RECEIPT PRICE & PRINT CALIBRATION (إدخال السعر قبل طباعة الفاتورة)
+  ========================================= -->
+  <div class="modal-backdrop" id="modalReceiptPrice">
+    <div class="modal-box" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fas fa-receipt text-gold"></i> طباعة الفاتورة - إدخال السعر</h3>
+        <button class="modal-close" onclick="window.PortalApp.closeModals()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 1.25rem 0;">
+        <div style="background: rgba(212, 175, 55, 0.08); border: 1px solid rgba(212, 175, 55, 0.25); border-radius: 8px; padding: 0.85rem; margin-bottom: 1.2rem;">
+          <div style="font-weight: 800; color: var(--gold-light); font-size: 1rem;" id="receiptPriceOrderTitle">رقم الطلب: #---</div>
+          <div style="color: var(--text-muted); font-size: 0.85rem; margin-top: 4px;" id="receiptPriceCustomerInfo">العميل: ---</div>
+        </div>
+
+        <div class="form-group">
+          <label style="font-weight: 800; font-size: 0.95rem; margin-bottom: 8px; display: block;">
+            <i class="fas fa-coins text-gold"></i> أدخل سعر / إجمالي الفاتورة (ر.س):
+          </label>
+          <div style="position: relative; display: flex; align-items: center;">
+            <input type="number" id="inputModalReceiptPrice" class="form-input" placeholder="مثال: 150 أو 280..." min="0" step="any" style="font-size: 1.35rem; font-weight: 900; padding: 12px 55px 12px 14px; letter-spacing: 0.5px; text-align: left; direction: ltr;">
+            <span style="position: absolute; right: 14px; font-weight: 800; color: var(--gold); font-size: 1rem; pointer-events: none;">ر.س</span>
+          </div>
+          <span style="font-size: 0.76rem; color: var(--text-muted); display: block; margin-top: 6px;">
+            * أدخل المبلغ الإجمالي، أو اتركه فارغاً لطباعة الفاتورة بدون سعر.
+          </span>
+        </div>
+
+        <div class="form-group" style="margin-top: 1rem;">
+          <label style="font-weight: 700; font-size: 0.88rem; margin-bottom: 5px; display: block;">
+            <i class="fas fa-print text-gold"></i> مقاس ورق الطباعة:
+          </label>
+          <select id="selectModalReceiptSize" class="form-select" style="font-weight: 600;">
+            <option value="thermal-80" selected>🖨️ رول حراري 80 ملم (القياسي المعتمد)</option>
+            <option value="thermal-58">🖨️ رول حراري 58 ملم (طابعات فواتير صغيرة)</option>
+            <option value="a4">📑 ورقة كاملة A4 قياسية</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; gap: 10px; justify-content: flex-end; padding-top: 0.5rem;">
+        <button class="btn btn-secondary" onclick="window.PortalApp.closeModals()">إلغاء</button>
+        <button class="btn btn-gold" id="btnConfirmPrintReceiptWithPrice" onclick="window.PortalApp.confirmPrintReceiptWithPrice()" style="font-weight: 800; padding: 0.65rem 1.4rem;">
+          <i class="fas fa-print"></i> طباعة الفاتورة الآن
+        </button>
       </div>
     </div>
   </div>
