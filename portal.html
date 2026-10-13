@@ -688,6 +688,245 @@
       cursor: pointer;
     }
 
+    /* Delete order button in order cards (Admin Only) */
+    .btn-card-act.delete-order-btn {
+      background: rgba(239, 68, 68, 0.12);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .btn-card-act.delete-order-btn:hover {
+      background: rgba(239, 68, 68, 0.28);
+      color: #fff;
+      border-color: #ef4444;
+    }
+
+    /* =========================================
+       CUSTOMERS CRM TAB & COMPONENTS (ADMIN ONLY)
+    ========================================= */
+    .crm-overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .crm-controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 0.85rem 1.25rem;
+    }
+    .crm-search-wrapper {
+      position: relative;
+      flex: 1;
+      min-width: 260px;
+    }
+    .crm-search-wrapper i {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--gold);
+      font-size: 0.9rem;
+    }
+    .crm-search-input {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 0.65rem 2.5rem 0.65rem 1rem;
+      color: var(--text-main);
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .crm-search-input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+    }
+    .crm-filter-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .crm-sort-select {
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-main);
+      padding: 0.65rem 1rem;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 0.88rem;
+      outline: none;
+      cursor: pointer;
+    }
+    .crm-customers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.25rem;
+    }
+    .customer-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.9rem;
+      box-shadow: var(--shadow-luxury);
+      transition: transform 0.2s, border-color 0.2s;
+      position: relative;
+    }
+    .customer-card:hover {
+      border-color: rgba(212, 175, 55, 0.4);
+      transform: translateY(-2px);
+    }
+    .customer-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding-bottom: 0.75rem;
+    }
+    .customer-name-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+    .customer-name {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--gold-light);
+    }
+    .customer-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: rgba(212, 175, 55, 0.15);
+      color: var(--gold-light);
+      border: 1px solid rgba(212, 175, 55, 0.3);
+    }
+    .customer-tag.vip {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+    .customer-phone-row {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.92rem;
+      color: var(--text-main);
+      font-weight: 600;
+    }
+    .customer-phone-row i {
+      color: var(--gold);
+    }
+    .customer-stats-box {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 10px;
+      padding: 0.65rem 0.85rem;
+    }
+    .customer-mini-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .customer-mini-stat .lbl {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+    .customer-mini-stat .val {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .customer-notes-display {
+      background: rgba(212, 175, 55, 0.05);
+      border: 1px dashed rgba(212, 175, 55, 0.25);
+      border-radius: 8px;
+      padding: 0.55rem 0.75rem;
+      font-size: 0.82rem;
+      color: var(--text-main);
+      line-height: 1.4;
+    }
+    .customer-actions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: auto;
+      padding-top: 0.5rem;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .btn-cust-act {
+      flex: 1;
+      min-width: 65px;
+      padding: 0.48rem 0.6rem;
+      font-size: 0.76rem;
+      font-weight: 700;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-input);
+      color: var(--text-main);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-cust-act:hover {
+      background: rgba(255,255,255,0.08);
+      transform: translateY(-1px);
+    }
+    .btn-cust-act.wa {
+      background: rgba(16, 185, 129, 0.15);
+      color: #6ee7b7;
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+    .btn-cust-act.wa:hover {
+      background: rgba(16, 185, 129, 0.28);
+      color: #fff;
+    }
+    .btn-cust-act.call {
+      background: rgba(59, 130, 246, 0.15);
+      color: #93c5fd;
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+    .btn-cust-act.orders-btn {
+      background: rgba(212, 175, 55, 0.12);
+      color: var(--gold-light);
+      border-color: rgba(212, 175, 55, 0.25);
+    }
+    .btn-cust-act.edit-notes-btn {
+      background: rgba(168, 85, 247, 0.12);
+      color: #d8b4fe;
+      border-color: rgba(168, 85, 247, 0.25);
+    }
+    .btn-cust-act.delete-cust-btn {
+      background: rgba(239, 68, 68, 0.1);
+      color: #fca5a5;
+      border-color: rgba(239, 68, 68, 0.2);
+      flex: 0 0 auto;
+    }
+    .btn-cust-act.delete-cust-btn:hover {
+      background: rgba(239, 68, 68, 0.28);
+      color: #fff;
+    }
+
     /* =========================================
        TAB 2: A7 PRINT STUDIO
     ========================================= */
@@ -1520,6 +1759,12 @@
           <span>تقييمات وآراء العملاء</span>
         </div>
 
+        <div class="nav-item admin-only" data-tab="customers">
+          <i class="fas fa-users"></i>
+          <span>سجل وقاعدة العملاء</span>
+          <span class="nav-badge" id="navCustomersBadge">0</span>
+        </div>
+
         <div class="nav-item admin-only" data-tab="marketing">
           <i class="fas fa-bullhorn"></i>
           <span>حملات الإشعارات</span>
@@ -1871,6 +2116,68 @@
 
           <div class="reviews-stream" id="reviewsStreamList">
             <!-- Rendered dynamically -->
+          </div>
+        </section>
+
+
+        <!-- =========================================
+             TAB: CUSTOMERS CRM & DATABASE (ADMIN ONLY)
+        ========================================= -->
+        <section class="tab-section admin-only" id="tabSection-customers">
+          <!-- Overview Metrics -->
+          <div class="crm-overview-grid">
+            <div class="metric-card">
+              <div class="metric-icon total"><i class="fas fa-users text-gold"></i></div>
+              <div>
+                <div class="metric-val" id="metricTotalCustomers">0</div>
+                <div class="metric-lbl">إجمالي العملاء المسجلين</div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon ready"><i class="fas fa-user-check text-green"></i></div>
+              <div>
+                <div class="metric-val" id="metricRepeatCustomers">0</div>
+                <div class="metric-lbl">عملاء دائمين (أكثر من طلب)</div>
+              </div>
+            </div>
+
+            <div class="metric-card">
+              <div class="metric-icon preparing"><i class="fas fa-shopping-bag text-blue"></i></div>
+              <div>
+                <div class="metric-val" id="metricTotalCustomerOrders">0</div>
+                <div class="metric-lbl">إجمالي طلبات العملاء</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Controls Bar -->
+          <div class="crm-controls-bar">
+            <div class="crm-search-wrapper">
+              <i class="fas fa-search"></i>
+              <input type="text" id="crmSearchInput" class="crm-search-input" placeholder="بحث باسم العميل، رقم الجوال، أو الملاحظات...">
+            </div>
+
+            <div class="crm-filter-actions">
+              <select id="crmSortSelect" class="crm-sort-select">
+                <option value="lastOrderAt">الأحدث طلباً</option>
+                <option value="ordersCount">الأكثر طلباً (VIP)</option>
+                <option value="name">الاسم أبجدياً</option>
+                <option value="oldest">الأقدم تسجيلاً</option>
+              </select>
+
+              <button class="btn-topbar" id="btnSyncCrmCustomers" title="تحديث ومزامنة بيانات العملاء تلقائياً من الطلبات">
+                <i class="fas fa-sync-alt"></i> مزامنة العملاء
+              </button>
+            </div>
+          </div>
+
+          <!-- Customers Cards Grid -->
+          <div class="crm-customers-grid" id="crmCustomersGrid">
+            <div class="empty-state-box">
+              <i class="fas fa-users"></i>
+              <div>جاري تحميل قاعدة بيانات العملاء...</div>
+            </div>
           </div>
         </section>
 
@@ -2609,6 +2916,57 @@
           <i class="fas fa-save"></i> حفظ المنتج
         </button>
       </form>
+    </div>
+  </div>
+
+  <!-- =========================================
+       MODAL: CUSTOMER EDIT & NOTES (CRM)
+  ========================================= -->
+  <div class="modal-backdrop" id="modalCustomerEdit">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title" id="crmModalTitle"><i class="fas fa-user-edit text-gold"></i> تعديل بيانات وملاحظات العميل</h3>
+        <button class="modal-close" onclick="window.PortalApp.closeModals()">&times;</button>
+      </div>
+
+      <form id="crmCustomerEditForm" onsubmit="event.preventDefault(); window.PortalApp.submitCustomerEdit();">
+        <input type="hidden" id="crmEditPhone">
+
+        <div class="form-group" style="margin-bottom: 0.85rem;">
+          <label>اسم العميل: *</label>
+          <input type="text" id="crmEditName" class="form-input" placeholder="اسم العميل" required>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0.85rem;">
+          <label>تصنيفات ووسوم العميل (افصل بفواصل مثل: VIP, دائم):</label>
+          <input type="text" id="crmEditTags" class="form-input" placeholder="VIP, عميل مميز, دائم">
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+          <label>ملاحظات الإدارة عن العميل:</label>
+          <textarea id="crmEditNotes" class="form-input" rows="4" placeholder="أدخل أي ملاحظات خاصة (تفضيلات الورد، المناسبات، التوصيل)..."></textarea>
+        </div>
+
+        <button type="submit" class="login-btn">
+          <i class="fas fa-save"></i> حفظ التعديلات
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- =========================================
+       MODAL: CUSTOMER ORDER HISTORY (CRM)
+  ========================================= -->
+  <div class="modal-backdrop" id="modalCustomerOrders">
+    <div class="modal-box modal-box-large">
+      <div class="modal-header">
+        <h3 class="modal-title" id="crmOrdersModalTitle"><i class="fas fa-history text-gold"></i> سجل طلبات العميل</h3>
+        <button class="modal-close" onclick="window.PortalApp.closeModals()">&times;</button>
+      </div>
+
+      <div id="crmCustomerOrdersList" style="display: flex; flex-direction: column; gap: 0.75rem; max-height: 450px; overflow-y: auto;">
+        <!-- Filled dynamically -->
+      </div>
     </div>
   </div>
 

@@ -20,6 +20,7 @@ const Order = require('../models/Order');
 const PushSubscription = require('../models/PushSubscription');
 const Rating = require('../models/Rating');
 const MarketingSubscription = require('../models/MarketingSubscription');
+const Customer = require('../models/Customer');
 const webpush = require('web-push');
 
 if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
@@ -728,6 +729,38 @@ app.post('/api/orders', async (req, res) => {
         }
         
         const saved = await Order.create(data);
+
+        // تسجيل / تحديث العميل في قاعدة بيانات وسجل العملاء CRM تلقائياً
+        if (saved.customerPhone && saved.customerPhone.trim() && saved.customerPhone.trim() !== '0000000000') {
+            const cPhone = saved.customerPhone.trim();
+            try {
+                await Customer.findOneAndUpdate(
+                    { phone: cPhone },
+                    {
+                        $setOnInsert: { firstOrderAt: saved.createdAt || new Date() },
+                        $set: { 
+                            name: saved.customerName && saved.customerName !== 'عميل' ? saved.customerName : undefined,
+                            lastOrderAt: saved.createdAt || new Date(),
+                            updatedAt: new Date()
+                        },
+                        $inc: { ordersCount: 1 },
+                        $push: {
+                            orders: {
+                                orderId: saved.orderId,
+                                createdAt: saved.createdAt || new Date(),
+                                productTitle: saved.productTitle || '',
+                                status: saved.status,
+                                pagerToken: saved.pagerToken
+                            }
+                        }
+                    },
+                    { upsert: true, returnDocument: 'after' }
+                );
+            } catch (custErr) {
+                console.error('Customer CRM upsert error:', custErr.message);
+            }
+        }
+
         res.status(201).json({ success: true, order: saved });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
@@ -785,6 +818,40 @@ app.patch('/api/orders/:id/status', employeeAuthMiddleware, async (req, res) => 
             { returnDocument: 'after' }
         );
         res.json({ success: true, order: updated });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// ============================================
+// Order Deletion API (Admin Only - صلاحية حذف الطلب للمدير)
+// ============================================
+app.delete('/api/orders/:id', authMiddleware, async (req, res) => {
+    try {
+        const orderId = req.params.id;
+        const order = await Order.findOne({ orderId });
+        if (!order) {
+            return res.status(404).json({ success: false, error: 'الطلب غير موجود في قاعدة البيانات' });
+        }
+
+        // 1. حذف التقييمات المرتبطة بالطلب
+        await Rating.deleteMany({ orderId }).catch(() => {});
+
+        // 2. تحديث سجل العميل إن وُجد
+        if (order.customerPhone) {
+            await Customer.findOneAndUpdate(
+                { phone: order.customerPhone.trim() },
+                {
+                    $pull: { orders: { orderId: order.orderId } },
+                    $inc: { ordersCount: -1 }
+                }
+            ).catch(() => {});
+        }
+
+        // 3. حذف الطلب بشكل نهائي ومن الجذور
+        await Order.deleteOne({ orderId });
+
+        res.json({ success: true, message: `تم حذف الطلب ${orderId} نهائياً بنجاح` });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
@@ -1450,6 +1517,175 @@ app.get('/share-target', (req, res) => {
         return res.redirect(url);
     }
     res.redirect('/');
+});
+
+// ============================================
+// Customers CRM API (Admin Only - قاعدة وسجل العملاء للمدير)
+// ============================================
+app.get('/api/customers', authMiddleware, async (req, res) => {
+    try {
+        const { search = '', sort = 'lastOrderAt', limit = 200, page = 1 } = req.query;
+        let query = {};
+        if (search && search.trim()) {
+            const s = search.trim();
+            query = {
+                $or: [
+                    { name: { $regex: s, $options: 'i' } },
+                    { phone: { $regex: s, $options: 'i' } },
+                    { notes: { $regex: s, $options: 'i' } }
+                ]
+            };
+        }
+
+        let sortObj = { lastOrderAt: -1 };
+        if (sort === 'ordersCount') sortObj = { ordersCount: -1 };
+        if (sort === 'name') sortObj = { name: 1 };
+        if (sort === 'oldest') sortObj = { firstOrderAt: 1 };
+
+        const pageNum = Math.max(1, parseInt(page) || 1);
+        const limitNum = Math.min(500, Math.max(1, parseInt(limit) || 200));
+        const skip = (pageNum - 1) * limitNum;
+
+        const customers = await Customer.find(query)
+            .sort(sortObj)
+            .skip(skip)
+            .limit(limitNum)
+            .lean();
+
+        const totalFiltered = await Customer.countDocuments(query);
+        const totalCustomers = await Customer.countDocuments();
+        const repeatCustomers = await Customer.countDocuments({ ordersCount: { $gt: 1 } });
+        
+        // حساب إجمالي طلبات العملاء المسجلين
+        const ordersAgg = await Customer.aggregate([
+            { $group: { _id: null, totalOrders: { $sum: '$ordersCount' } } }
+        ]);
+        const totalCustomerOrders = ordersAgg.length > 0 ? ordersAgg[0].totalOrders : 0;
+
+        res.json({
+            success: true,
+            customers,
+            totalCount: totalFiltered,
+            stats: {
+                totalCustomers,
+                repeatCustomers,
+                totalCustomerOrders
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.get('/api/customers/:phone', authMiddleware, async (req, res) => {
+    try {
+        const phone = (req.params.phone || '').trim();
+        const customer = await Customer.findOne({ phone }).lean();
+        if (!customer) {
+            return res.status(404).json({ success: false, error: 'العميل غير مسجل' });
+        }
+        res.json({ success: true, customer });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.post('/api/customers/sync', authMiddleware, async (req, res) => {
+    try {
+        const orders = await Order.find({}).sort({ createdAt: 1 }).lean();
+        const customerMap = {};
+
+        for (const ord of orders) {
+            const rawPhone = (ord.customerPhone || '').trim();
+            if (!rawPhone || rawPhone === '0000000000') continue;
+
+            if (!customerMap[rawPhone]) {
+                customerMap[rawPhone] = {
+                    phone: rawPhone,
+                    name: ord.customerName || 'عميل يلوروز',
+                    ordersCount: 0,
+                    firstOrderAt: ord.createdAt || new Date(),
+                    lastOrderAt: ord.createdAt || new Date(),
+                    orders: []
+                };
+            }
+
+            customerMap[rawPhone].ordersCount += 1;
+            customerMap[rawPhone].lastOrderAt = ord.createdAt || customerMap[rawPhone].lastOrderAt;
+            if (ord.customerName && ord.customerName.length > 1 && ord.customerName !== 'عميل') {
+                customerMap[rawPhone].name = ord.customerName;
+            }
+            customerMap[rawPhone].orders.push({
+                orderId: ord.orderId,
+                createdAt: ord.createdAt,
+                productTitle: ord.productTitle || '',
+                status: ord.status,
+                pagerToken: ord.pagerToken
+            });
+        }
+
+        let count = 0;
+        for (const phone in customerMap) {
+            const data = customerMap[phone];
+            await Customer.findOneAndUpdate(
+                { phone },
+                {
+                    $set: {
+                        name: data.name,
+                        ordersCount: data.ordersCount,
+                        firstOrderAt: data.firstOrderAt,
+                        lastOrderAt: data.lastOrderAt,
+                        orders: data.orders,
+                        updatedAt: new Date()
+                    }
+                },
+                { upsert: true, returnDocument: 'after' }
+            );
+            count++;
+        }
+
+        res.json({ success: true, syncedCount: count, message: `تمت مزامنة وتحديث بيانات ${count} عميل بنجاح` });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.patch('/api/customers/:phone', authMiddleware, async (req, res) => {
+    try {
+        const phone = (req.params.phone || '').trim();
+        const { name, notes, tags } = req.body;
+        const updateFields = { updatedAt: new Date() };
+        if (typeof name === 'string' && name.trim()) updateFields.name = name.trim();
+        if (typeof notes === 'string') updateFields.notes = notes.trim();
+        if (Array.isArray(tags)) updateFields.tags = tags;
+
+        const updated = await Customer.findOneAndUpdate(
+            { phone },
+            { $set: updateFields },
+            { returnDocument: 'after' }
+        );
+
+        if (!updated) {
+            return res.status(404).json({ success: false, error: 'العميل غير مسجل' });
+        }
+
+        res.json({ success: true, customer: updated });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+app.delete('/api/customers/:phone', authMiddleware, async (req, res) => {
+    try {
+        const phone = (req.params.phone || '').trim();
+        const result = await Customer.deleteOne({ phone });
+        if (result.deletedCount === 0) {
+            return res.status(404).json({ success: false, error: 'العميل غير موجود' });
+        }
+        res.json({ success: true, message: 'تم حذف العميل بنجاح من قاعدة البيانات' });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
 });
 
 // ============================================

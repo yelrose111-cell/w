@@ -24,7 +24,10 @@
       lastKnownOrderCount: 0,
       pollingTimer: null,
       currentPrintOrder: null,
-      pingCooldowns: new Map()
+      pingCooldowns: new Map(),
+      customers: [],
+      customersSearchQuery: '',
+      customersSort: 'lastOrderAt'
     },
 
     // =========================================
@@ -291,6 +294,28 @@
           if (el) el.textContent = e.target.value || 'للورد والمناسبات';
         });
       }
+
+      // CRM Search & Sort Events
+      const crmSearch = document.getElementById('crmSearchInput');
+      if (crmSearch) {
+        crmSearch.addEventListener('input', (e) => {
+          this.state.customersSearchQuery = e.target.value.trim().toLowerCase();
+          this.renderCustomers();
+        });
+      }
+
+      const crmSort = document.getElementById('crmSortSelect');
+      if (crmSort) {
+        crmSort.addEventListener('change', (e) => {
+          this.state.customersSort = e.target.value;
+          this.loadCustomers();
+        });
+      }
+
+      const btnSyncCrm = document.getElementById('btnSyncCrmCustomers');
+      if (btnSyncCrm) {
+        btnSyncCrm.addEventListener('click', () => this.syncCustomersFromOrders());
+      }
     },
 
     async checkAuth() {
@@ -371,6 +396,7 @@
         this.loadCategoriesAndProducts();
         this.loadMarketingStats();
         this.loadSettings();
+        this.loadCustomers();
       }
     },
 
@@ -398,7 +424,7 @@
 
     switchTab(tabId) {
       // Check admin restrictions
-      if (this.state.role !== 'admin' && ['products', 'reviews', 'marketing', 'whatsapp', 'settings'].includes(tabId)) {
+      if (this.state.role !== 'admin' && ['products', 'reviews', 'marketing', 'whatsapp', 'settings', 'customers'].includes(tabId)) {
         this.showToast('هذا القسم مخصص للمشرف العام فقط');
         return;
       }
@@ -421,6 +447,7 @@
         print: 'محطة الطباعة الذكية ومعايرة الأجهزة',
         products: 'إدارة المنتجات والأقسام',
         reviews: 'تقييمات وآراء العملاء',
+        customers: 'سجل وقاعدة بيانات العملاء CRM (للمدير)',
         marketing: 'حملات الإشعارات الترويجية',
         whatsapp: 'تخصيص رسائل الواتساب وهوية المتجر',
         settings: 'إدارة الرموز والأمان'
@@ -432,6 +459,7 @@
       const sidebar = document.getElementById('sidebar');
       if (sidebar) sidebar.classList.remove('open');
 
+      if (tabId === 'customers') this.loadCustomers();
       if (tabId === 'reviews') this.renderReviews();
       if (tabId === 'whatsapp') this.loadSettings();
       if (tabId === 'marketing') this.loadMarketingStats();
@@ -677,6 +705,12 @@
             <a class="btn-card-act wa" href="https://wa.me/${window.YRUtils ? window.YRUtils.formatWhatsAppPhone(order.customerPhone) : '966582739397'}?text=${encodeURIComponent(this.buildCustomerWhatsAppMessage(order))}" target="_blank" rel="noopener">
               <i class="fab fa-whatsapp"></i> واتساب
             </a>
+
+            ${this.state.role === 'admin' ? `
+              <button class="btn-card-act delete-order-btn" onclick="window.PortalApp.confirmDeleteOrder('${safeId}')" title="حذف الطلب نهائياً من قاعدة البيانات (صلاحية المدير)">
+                <i class="fas fa-trash-alt"></i> حذف
+              </button>
+            ` : ''}
           </div>
         </article>
       `;
@@ -761,6 +795,311 @@
         }
       } catch (err) {
         this.showToast('فشل الاتصال بالخادم');
+      }
+    },
+
+    async confirmDeleteOrder(orderId) {
+      if (this.state.role !== 'admin') {
+        this.showToast('صلاحية حذف الطلب مخصصة فقط للمشرف العام (المدير)', 'error');
+        return;
+      }
+      const confirmed = confirm(`⚠️ تنبيه للمدير:\nهل أنت متأكد تماماً من حذف الطلب [${orderId}] بشكل نهائي من قاعدة البيانات؟\nسيتم مسح سجل الطلب وتقييماته كلياً.`);
+      if (!confirmed) return;
+
+      try {
+        const res = await fetch(`/api/orders/${encodeURIComponent(orderId)}`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        if (data.success) {
+          this.showToast(`تم حذف الطلب ${orderId} نهائياً بنجاح ✓`);
+          this.state.orders = this.state.orders.filter(o => o.orderId !== orderId);
+          this.updateMetrics();
+          this.renderOrders();
+        } else {
+          this.showToast(data.error || 'تعذر حذف الطلب');
+        }
+      } catch (err) {
+        this.showToast('حدث خطأ في الاتصال بالخادم أثناء الحذف');
+      }
+    },
+
+    // =========================================
+    // TAB: CUSTOMER CRM & DATABASE (ADMIN ONLY)
+    // =========================================
+    async loadCustomers() {
+      if (this.state.role !== 'admin') return;
+      const grid = document.getElementById('crmCustomersGrid');
+      if (grid) grid.innerHTML = '<div class="empty-state-box" style="grid-column: 1 / -1;"><i class="fas fa-spinner fa-spin"></i><div>جاري تحميل قاعدة بيانات العملاء...</div></div>';
+
+      try {
+        const sort = this.state.customersSort || 'lastOrderAt';
+        const res = await fetch(`/api/customers?sort=${encodeURIComponent(sort)}`);
+        const data = await res.json();
+        if (data.success) {
+          this.state.customers = data.customers || [];
+          this.updateCustomerMetrics(data.stats);
+          this.renderCustomers();
+        } else {
+          if (grid) grid.innerHTML = `<div class="empty-state-box" style="grid-column: 1 / -1;"><i class="fas fa-exclamation-circle text-orange"></i><div>${data.error || 'تعذر تحميل بيانات العملاء'}</div></div>`;
+        }
+      } catch (err) {
+        if (grid) grid.innerHTML = '<div class="empty-state-box" style="grid-column: 1 / -1;"><i class="fas fa-exclamation-triangle text-red"></i><div>خطأ في الاتصال بالخادم</div></div>';
+      }
+    },
+
+    updateCustomerMetrics(stats) {
+      if (!stats) return;
+      const elTotal = document.getElementById('metricTotalCustomers');
+      const elRepeat = document.getElementById('metricRepeatCustomers');
+      const elOrders = document.getElementById('metricTotalCustomerOrders');
+      const navBadge = document.getElementById('navCustomersBadge');
+
+      if (elTotal) elTotal.textContent = stats.totalCustomers || 0;
+      if (elRepeat) elRepeat.textContent = stats.repeatCustomers || 0;
+      if (elOrders) elOrders.textContent = stats.totalCustomerOrders || 0;
+      if (navBadge) navBadge.textContent = stats.totalCustomers || 0;
+    },
+
+    renderCustomers() {
+      const grid = document.getElementById('crmCustomersGrid');
+      if (!grid) return;
+
+      const q = (this.state.customersSearchQuery || '').trim().toLowerCase();
+      let list = this.state.customers || [];
+
+      if (q) {
+        list = list.filter(c => {
+          const name = (c.name || '').toLowerCase();
+          const phone = (c.phone || '').toLowerCase();
+          const notes = (c.notes || '').toLowerCase();
+          const tags = Array.isArray(c.tags) ? c.tags.join(' ').toLowerCase() : '';
+          return name.includes(q) || phone.includes(q) || notes.includes(q) || tags.includes(q);
+        });
+      }
+
+      if (list.length === 0) {
+        grid.innerHTML = `
+          <div class="empty-state-box" style="grid-column: 1 / -1;">
+            <i class="fas fa-users-slash text-gold" style="font-size: 2.5rem; margin-bottom: 0.75rem;"></i>
+            <div style="font-size: 1.1rem; font-weight: 700;">لا يوجد عملاء يطابقون البحث</div>
+            <div style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.35rem;">
+              يمكنك الضغط على زر "مزامنة العملاء" لتحديث واستيراد بيانات العملاء من الطلبات
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      const escape = window.YRUtils ? window.YRUtils.escapeHtml : (s => s || '');
+
+      grid.innerHTML = list.map(c => {
+        const safePhone = escape(c.phone || '');
+        const safeName = escape(c.name || 'عميل');
+        const ordersCount = c.ordersCount || (c.orders ? c.orders.length : 0);
+        const lastOrderDate = c.lastOrderAt ? (window.YRUtils ? window.YRUtils.formatDateArabic(c.lastOrderAt) : new Date(c.lastOrderAt).toLocaleDateString('ar-SA')) : 'غير محدد';
+        const notes = (c.notes || '').trim();
+        const tags = Array.isArray(c.tags) ? c.tags : [];
+        const isVip = ordersCount >= 3 || tags.includes('VIP') || tags.includes('عميل مميز');
+
+        const waPhone = safePhone.replace(/[^0-9]/g, '');
+        const fullWaPhone = waPhone.startsWith('0') ? '966' + waPhone.slice(1) : waPhone;
+        const defaultWaMsg = `مرحباً بك عميلنا العزيز ${safeName}، يسعدنا تواصلك دائماً مع متجر Yellow Rose 💛`;
+
+        return `
+          <article class="customer-card" id="cust-card-${safePhone}">
+            <div class="customer-card-header">
+              <div class="customer-name-wrapper">
+                <span class="customer-name">${safeName}</span>
+                ${isVip ? `<span class="customer-tag vip"><i class="fas fa-crown"></i> VIP</span>` : ''}
+                ${tags.map(t => `<span class="customer-tag">${escape(t)}</span>`).join('')}
+              </div>
+              <div style="font-size: 0.78rem; color: var(--text-muted);">
+                <i class="fas fa-calendar-alt"></i> ${lastOrderDate}
+              </div>
+            </div>
+
+            <div class="customer-phone-row">
+              <i class="fas fa-phone-alt"></i>
+              <span dir="ltr">${safePhone}</span>
+            </div>
+
+            <div class="customer-stats-box">
+              <div class="customer-mini-stat">
+                <span class="lbl">إجمالي الطلبات</span>
+                <span class="val">${ordersCount} طلب${ordersCount > 2 && ordersCount < 11 ? 'ات' : ''}</span>
+              </div>
+              <div class="customer-mini-stat">
+                <span class="lbl">فئة العميل</span>
+                <span class="val" style="color: ${ordersCount > 1 ? 'var(--green)' : 'var(--text-muted)'};">
+                  ${ordersCount > 1 ? 'عميل دائم' : 'طلب جديد'}
+                </span>
+              </div>
+            </div>
+
+            ${notes ? `
+              <div class="customer-notes-display">
+                <i class="fas fa-info-circle text-gold"></i> ${escape(notes)}
+              </div>
+            ` : ''}
+
+            <div class="customer-actions-row">
+              ${safePhone && safePhone !== '0000000000' ? `
+                <a class="btn-cust-act wa" href="https://wa.me/${fullWaPhone}?text=${encodeURIComponent(defaultWaMsg)}" target="_blank" rel="noopener" title="محادثة واتساب">
+                  <i class="fab fa-whatsapp"></i> واتساب
+                </a>
+                <a class="btn-cust-act call" href="tel:${safePhone}" title="اتصال هاتفي">
+                  <i class="fas fa-phone"></i> اتصال
+                </a>
+              ` : ''}
+
+              <button class="btn-cust-act orders-btn" onclick="window.PortalApp.openCustomerOrdersModal('${safePhone}')" title="عرض تفاصيل وسجل الطلبات">
+                <i class="fas fa-history"></i> الطلبات (${ordersCount})
+              </button>
+
+              <button class="btn-cust-act edit-notes-btn" onclick="window.PortalApp.openCustomerEditModal('${safePhone}')" title="تعديل الملاحظات والاسم">
+                <i class="fas fa-edit"></i> ملاحظات
+              </button>
+
+              <button class="btn-cust-act delete-cust-btn" onclick="window.PortalApp.confirmDeleteCustomer('${safePhone}')" title="حذف العميل من قاعدة البيانات">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </div>
+          </article>
+        `;
+      }).join('');
+    },
+
+    async syncCustomersFromOrders() {
+      if (this.state.role !== 'admin') return;
+      const btn = document.getElementById('btnSyncCrmCustomers');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري المزامنة...';
+      }
+
+      try {
+        const res = await fetch('/api/customers/sync', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          this.showToast(data.message || 'تمت مزامنة بيانات العملاء بنجاح ✓');
+          await this.loadCustomers();
+        } else {
+          this.showToast(data.error || 'فشلت المزامنة');
+        }
+      } catch (err) {
+        this.showToast('تعذر الاتصال بالخادم أثناء المزامنة');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fas fa-sync-alt"></i> مزامنة العملاء';
+        }
+      }
+    },
+
+    openCustomerEditModal(phone) {
+      const c = (this.state.customers || []).find(item => item.phone === phone);
+      if (!c) return;
+
+      document.getElementById('crmEditPhone').value = c.phone || '';
+      document.getElementById('crmEditName').value = c.name || '';
+      document.getElementById('crmEditTags').value = Array.isArray(c.tags) ? c.tags.join(', ') : '';
+      document.getElementById('crmEditNotes').value = c.notes || '';
+
+      const modal = document.getElementById('modalCustomerEdit');
+      if (modal) modal.classList.add('active');
+    },
+
+    async submitCustomerEdit() {
+      const phone = document.getElementById('crmEditPhone').value.trim();
+      const name = document.getElementById('crmEditName').value.trim();
+      const tagsRaw = document.getElementById('crmEditTags').value.trim();
+      const notes = document.getElementById('crmEditNotes').value.trim();
+
+      const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+
+      try {
+        const res = await fetch(`/api/customers/${encodeURIComponent(phone)}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, tags, notes })
+        });
+        const data = await res.json();
+        if (data.success) {
+          this.showToast('تم حفظ بيانات وملاحظات العميل بنجاح ✓');
+          this.closeModals();
+          await this.loadCustomers();
+        } else {
+          this.showToast(data.error || 'فشل حفظ التعديلات');
+        }
+      } catch (err) {
+        this.showToast('تعذر الاتصال بالخادم');
+      }
+    },
+
+    openCustomerOrdersModal(phone) {
+      const c = (this.state.customers || []).find(item => item.phone === phone);
+      if (!c) return;
+
+      const title = document.getElementById('crmOrdersModalTitle');
+      if (title) title.innerHTML = `<i class="fas fa-history text-gold"></i> سجل طلبات العميل: ${c.name} (${c.phone})`;
+
+      const listContainer = document.getElementById('crmCustomerOrdersList');
+      if (!listContainer) return;
+
+      const orders = c.orders || [];
+      if (orders.length === 0) {
+        listContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 2rem;">لا توجد تفاصيل طلبات محفوظة لهذا العميل</div>';
+      } else {
+        const escape = window.YRUtils ? window.YRUtils.escapeHtml : (s => s || '');
+        listContainer.innerHTML = orders.slice().reverse().map(ord => {
+          const ordDate = ord.createdAt ? (window.YRUtils ? window.YRUtils.formatDateArabic(ord.createdAt) : new Date(ord.createdAt).toLocaleDateString('ar-SA')) : '';
+          return `
+            <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+              <div>
+                <div style="font-weight: 800; color: var(--gold-light); font-size: 1rem;">${escape(ord.orderId)}</div>
+                <div style="font-size: 0.85rem; color: var(--text-main); margin-top: 2px;">${escape(ord.productTitle || 'تنسيق ورد')}</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">${ordDate}</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 0.8rem; padding: 3px 8px; border-radius: 6px; background: rgba(212,175,55,0.15); color: var(--gold-light);">
+                  ${escape(ord.status || 'مكتمل')}
+                </span>
+                ${ord.pagerToken ? `
+                  <a href="/p/${escape(ord.pagerToken)}" target="_blank" class="btn-cust-act" style="padding: 0.35rem 0.6rem; font-size: 0.75rem;">
+                    <i class="fas fa-external-link-alt"></i> فتح
+                  </a>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      const modal = document.getElementById('modalCustomerOrders');
+      if (modal) modal.classList.add('active');
+    },
+
+    async confirmDeleteCustomer(phone) {
+      if (this.state.role !== 'admin') return;
+      const confirmed = confirm(`⚠️ هل أنت متأكد من حذف هذا العميل [${phone}] من قاعدة بيانات العملاء نهائياً؟`);
+      if (!confirmed) return;
+
+      try {
+        const res = await fetch(`/api/customers/${encodeURIComponent(phone)}`, {
+          method: 'DELETE'
+        });
+        const data = await res.json();
+        if (data.success) {
+          this.showToast('تم حذف العميل بنجاح من قاعدة البيانات ✓');
+          this.state.customers = (this.state.customers || []).filter(c => c.phone !== phone);
+          this.renderCustomers();
+        } else {
+          this.showToast(data.error || 'تعذر حذف العميل');
+        }
+      } catch (err) {
+        this.showToast('تعذر الاتصال بالخادم');
       }
     },
 

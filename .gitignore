@@ -24,3 +24,4 @@ cookies_tampered.txt
 # Backup files
 *.bak
 yellowrose-website-backup/
+scratch/
