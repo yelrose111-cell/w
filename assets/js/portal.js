@@ -2605,6 +2605,10 @@
 
     playNotificationChime() {
       if (!this.state.audioEnabled) return;
+      if (window.YellowRoseComponents && window.YellowRoseComponents.PagerNotifierService) {
+        window.YellowRoseComponents.PagerNotifierService.playChime('ready');
+        return;
+      }
       try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         if (!AudioCtx) return;
@@ -2613,8 +2617,8 @@
         const gain = ctx.createGain();
 
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15); // A5
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.15);
 
         gain.gain.setValueAtTime(0.3, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);

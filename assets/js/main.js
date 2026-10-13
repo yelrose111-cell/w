@@ -136,50 +136,50 @@ function renderCircularCategories(cats) {
 function setupSliderDots() {
   const slider = document.getElementById('categoriesSlider');
   const dotsContainer = document.getElementById('sliderDots');
-  
+
   if (!slider || !dotsContainer) return;
 
   const calculateDots = () => {
-      dotsContainer.innerHTML = '';
-      
-      const totalScrollableWidth = slider.scrollWidth - slider.clientWidth;
-      if (totalScrollableWidth <= 0) return;
+    dotsContainer.innerHTML = '';
 
-      const pages = Math.ceil(slider.scrollWidth / slider.clientWidth); 
+    const totalScrollableWidth = slider.scrollWidth - slider.clientWidth;
+    if (totalScrollableWidth <= 0) return;
 
-      for (let i = 0; i < pages; i++) {
-          const dot = document.createElement('button');
-          dot.className = 'slider-dot';
-          dot.setAttribute('aria-label', `انتقل للصفحة ${i + 1}`);
-          
-          dot.addEventListener('click', () => {
-              const scrollAmount = i * slider.clientWidth;
-              const isRTL = document.dir === 'rtl' || getComputedStyle(document.body).direction === 'rtl';
-              
-              slider.scrollTo({
-                  left: isRTL ? -scrollAmount : scrollAmount,
-                  behavior: 'smooth'
-              });
-          });
-          
-          dotsContainer.appendChild(dot);
-      }
+    const pages = Math.ceil(slider.scrollWidth / slider.clientWidth);
+
+    for (let i = 0; i < pages; i++) {
+      const dot = document.createElement('button');
+      dot.className = 'slider-dot';
+      dot.setAttribute('aria-label', `انتقل للصفحة ${i + 1}`);
+
+      dot.addEventListener('click', () => {
+        const scrollAmount = i * slider.clientWidth;
+        const isRTL = document.dir === 'rtl' || getComputedStyle(document.body).direction === 'rtl';
+
+        slider.scrollTo({
+          left: isRTL ? -scrollAmount : scrollAmount,
+          behavior: 'smooth'
+        });
+      });
+
+      dotsContainer.appendChild(dot);
+    }
   };
 
   const updateActiveDot = () => {
-      const dots = dotsContainer.children;
-      if (dots.length === 0) return;
+    const dots = dotsContainer.children;
+    if (dots.length === 0) return;
 
-      const scrollPosition = Math.abs(slider.scrollLeft);
-      const activeIndex = Math.round(scrollPosition / slider.clientWidth);
+    const scrollPosition = Math.abs(slider.scrollLeft);
+    const activeIndex = Math.round(scrollPosition / slider.clientWidth);
 
-      Array.from(dots).forEach((dot, index) => {
-          if (index === activeIndex) {
-              dot.classList.add('active');
-          } else {
-              dot.classList.remove('active');
-          }
-      });
+    Array.from(dots).forEach((dot, index) => {
+      if (index === activeIndex) {
+        dot.classList.add('active');
+      } else {
+        dot.classList.remove('active');
+      }
+    });
   };
 
   calculateDots();
@@ -187,8 +187,8 @@ function setupSliderDots() {
 
   slider.addEventListener('scroll', updateActiveDot);
   window.addEventListener('resize', () => {
-      calculateDots();
-      updateActiveDot();
+    calculateDots();
+    updateActiveDot();
   });
 }
 
@@ -196,12 +196,12 @@ function setupSliderDots() {
 function renderHomeProductsGrid(products) {
   const homeGrid = document.getElementById("homeProductsGrid");
   if (!homeGrid) return;
-  
+
   homeGrid.innerHTML = "";
-  
+
   // ترتيب المنتجات حسب الأحدث
   const sortedProducts = [...products].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-  
+
   sortedProducts.forEach(prod => {
     homeGrid.appendChild(createProductCard(prod));
   });
@@ -269,7 +269,7 @@ function setupSearchFilter() {
 
   searchInput.addEventListener("input", (e) => {
     const q = e.target.value.trim().toLowerCase();
-    
+
     if (q === "") {
       // إخفاء نتائج البحث وإعادة إظهار الأقسام الدائرية والشبكة الرئيسية
       if (mainShowcaseUI) mainShowcaseUI.classList.remove("hidden");
@@ -281,12 +281,12 @@ function setupSearchFilter() {
       if (homeProductsGridContainer) homeProductsGridContainer.classList.add("hidden");
       searchResultsUI.classList.remove("hidden");
 
-      const filtered = allProducts.filter(p => 
-        (p.title && p.title.toLowerCase().includes(q)) || 
+      const filtered = allProducts.filter(p =>
+        (p.title && p.title.toLowerCase().includes(q)) ||
         (p.description && p.description.toLowerCase().includes(q)) ||
         (window.CATEGORIES[p.categoryId] && window.CATEGORIES[p.categoryId].name.toLowerCase().includes(q))
       );
-      
+
       searchResultsGrid.innerHTML = "";
       filtered.forEach(prod => {
         // إنشاء بطاقة لكن نضيف لها تنسيق يناسب الشبكة بدلاً من الشريط الأفقي

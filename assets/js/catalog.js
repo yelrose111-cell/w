@@ -408,53 +408,9 @@ function renderProductsGrid(products, catInfo, hasDirectAlbums = false) {
   document.getElementById("pageItemCount").textContent = `${products.length} ${products.length > 10 ? 'منتج' : 'منتجات'}`;
 
   products.forEach(p => {
-    const cover = p.coverUrl || (p.images && p.images.length > 0 && (p.images[0].thumbnailUrl || p.images[0].url)) || "assets/logo.png";
-    const waUrl = window.YellowRoseDB.buildWhatsAppUrl(p);
-
-    let priceBadgeHtml = '';
-    if (p.showPrice !== false && (p.price || p.priceText)) {
-      const displayLabel = p.priceText ? escapeHtml(p.priceText) : `${escapeHtml(p.price)} ر.س`;
-      const origHtml = p.originalPrice ? `<del class="price-original-badge">${escapeHtml(p.originalPrice)} ر.س</del>` : '';
-      priceBadgeHtml = `
-        <div class="card-price-badge">
-          <span class="price-badge-icon"><i class="fas fa-tag"></i></span>
-          <span class="price-badge-text">${displayLabel}</span>
-          ${origHtml}
-        </div>
-      `;
-    }
-
-    const card = document.createElement("div");
-    card.className = "modern-showcase-card";
-    
-    // override width and flex to fit naturally in a grid instead of horizontal scroll
-    card.style.flex = "none";
-    card.style.width = "100%";
-
-    card.innerHTML = `
-      <div class="card-media-box">
-        <a href="catalog.html?id=${p.id}">
-          <img src="${escapeHtml(cover)}" alt="${escapeHtml(p.title)}" class="card-media-img" loading="lazy" onerror="this.src='assets/logo.png';">
-        </a>
-        <span class="card-category-tag"><i class="fas fa-gem"></i> ${escapeHtml(catInfo.name)}</span>
-        ${p.featured ? '<div class="gallery-featured-badge" style="top:auto;bottom:12px;right:12px;"><i class="fas fa-star"></i> مميز</div>' : ''}
-      </div>
-      <div class="card-details-box">
-        <h4 class="card-product-title">
-          <a href="catalog.html?id=${p.id}">${escapeHtml(p.title)}</a>
-        </h4>
-        ${priceBadgeHtml}
-        <p class="card-product-desc">${escapeHtml(p.description) || "تنسيق متقن يعكس فخامة وأناقة مناسباتكم الراقية."}</p>
-        <div class="card-dual-actions">
-          <a href="catalog.html?id=${p.id}" class="btn-card-view">
-            <i class="fas fa-eye"></i> تفاصيل العمل
-          </a>
-          <a href="${waUrl}" target="_blank" rel="noopener" class="btn-card-order">
-            <i class="fab fa-whatsapp"></i> طلب بالواتساب
-          </a>
-        </div>
-      </div>
-    `;
+    const card = window.YellowRoseComponents && typeof window.YellowRoseComponents.createCatalogCard === 'function'
+      ? window.YellowRoseComponents.createCatalogCard(p, { categoryName: catInfo.name })
+      : (window.createProductCard ? window.createProductCard(p) : document.createElement("div"));
     productsGrid.appendChild(card);
   });
 }
