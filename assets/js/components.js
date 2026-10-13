@@ -261,16 +261,21 @@
   class ThermalPrinterService {
     constructor() {
       this.paperSizes = {
-        '58mm': { width: '48mm', fontSize: '11px' },
-        '80mm': { width: '72mm', fontSize: '13px' },
-        'card': { width: '90mm', fontSize: '14px' }
+        '58mm': { width: '48mm', cssPage: '58mm auto', fontSize: '11px', name: 'رول حراري 58 ملم' },
+        '80mm': { width: '72mm', cssPage: '80mm auto', fontSize: '13px', name: 'رول حراري 80 ملم' },
+        'a7-landscape': { width: '105mm', height: '74mm', cssPage: '105mm 74mm landscape', fontSize: '14pt', name: 'كرت A7 أفقي (105×74 ملم)' },
+        'a7-portrait': { width: '74mm', height: '105mm', cssPage: '74mm 105mm portrait', fontSize: '14pt', name: 'كرت A7 طولي (74×105 ملم)' },
+        'mini-card': { width: '85mm', height: '55mm', cssPage: '85mm 55mm landscape', fontSize: '12pt', name: 'كرت ميني (85×55 ملم)' },
+        'a6': { width: '105mm', height: '148mm', cssPage: '105mm 148mm portrait', fontSize: '14pt', name: 'كرت A6 (105×148 ملم)' },
+        'a4': { width: '190mm', height: 'auto', cssPage: 'A4 portrait', fontSize: '13px', name: 'ورقة A4' },
+        'card': { width: '105mm', height: '74mm', cssPage: '105mm 74mm landscape', fontSize: '14pt', name: 'كرت إهداء' }
       };
     }
 
     /**
-     * طباعة محتوى HTML عبر نافذة طباعة مؤمنة أو iframe
+     * طباعة محتوى HTML عبر نافذة طباعة مؤمنة أو iframe بمعايرة دقيقة لأبعاد الطابعة
      */
-    printContent(htmlContent, title = 'طباعة يلوروز', paperSize = '58mm') {
+    printContent(htmlContent, title = 'طباعة يلوروز', paperSize = '80mm') {
       const iframe = document.createElement('iframe');
       iframe.style.position = 'fixed';
       iframe.style.right = '0';
@@ -280,7 +285,7 @@
       iframe.style.border = '0';
       document.body.appendChild(iframe);
 
-      const sizeConfig = this.paperSizes[paperSize] || this.paperSizes['58mm'];
+      const sizeConfig = this.paperSizes[paperSize] || this.paperSizes['80mm'];
       const doc = iframe.contentWindow.document;
       doc.open();
       doc.write(`
@@ -290,15 +295,26 @@
           <meta charset="UTF-8">
           <title>${title}</title>
           <style>
-            @page { margin: 0; size: auto; }
-            body {
+            @page {
+              size: ${sizeConfig.cssPage};
+              margin: 0;
+            }
+            @page :first { margin: 0; }
+            *, *::before, *::after {
+              box-sizing: border-box !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
+            html, body {
               font-family: 'Tajawal', sans-serif, -apple-system;
               margin: 0;
-              padding: 8px;
+              padding: 4px;
               width: ${sizeConfig.width};
               font-size: ${sizeConfig.fontSize};
               color: #000;
               background: #fff;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
             }
             img { max-width: 100%; height: auto; }
             .text-center { text-align: center; }
@@ -320,8 +336,8 @@
         iframe.contentWindow.print();
         setTimeout(() => {
           if (iframe.parentNode) document.body.removeChild(iframe);
-        }, 2000);
-      }, 400);
+        }, 3000);
+      }, 500);
     }
   }
 

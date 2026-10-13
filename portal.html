@@ -1476,14 +1476,47 @@
       display: none !important;
     }
 
+    /* Screen Preview for Thermal Receipt inside Canvas Target */
+    .a7-canvas-wrapper.preview-receipt {
+      background: #ffffff !important;
+      color: #000000 !important;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      border-radius: 8px;
+      overflow-y: auto !important;
+      max-height: 480px;
+    }
+    .a7-canvas-wrapper.gold-frame {
+      border: 5px double #d4af37;
+      outline: 1.5px solid rgba(212, 175, 55, 0.6);
+      outline-offset: -7px;
+    }
+    .a7-canvas-wrapper.style-modern {
+      border: 1.5px solid #222222;
+      border-radius: 6px;
+      background: #faf8f5;
+    }
+    .a7-canvas-wrapper.style-floral {
+      border: 8px double #d4af37;
+      background: radial-gradient(circle, #ffffff 60%, #fdfbf7 100%);
+    }
+    .a7-canvas-wrapper.style-borderless {
+      border: 1px dashed rgba(212, 175, 55, 0.4);
+      background: #ffffff;
+    }
+
     @media print {
+      *, *::before, *::after {
+        box-sizing: border-box !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        color-adjust: exact !important;
+      }
+
       html, body {
         margin: 0 !important;
         padding: 0 !important;
         background: #ffffff !important;
         color: #000000 !important;
-        width: 100% !important;
-        height: auto !important;
         font-family: 'Tajawal', sans-serif !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
@@ -1501,7 +1534,6 @@
         padding: 0 !important;
         background: #ffffff !important;
         color: #000000 !important;
-        width: 100% !important;
       }
 
       /* Page-break avoidance for crisp receipt and card elements */
@@ -1510,12 +1542,12 @@
         break-inside: avoid !important;
       }
 
-      /* Thermal 80mm Receipt Styles */
+      /* Thermal Receipt Styles */
       .print-thermal-receipt {
         width: 74mm !important;
         max-width: 74mm !important;
         margin: 0 auto !important;
-        padding: 3mm 1mm !important;
+        padding: 2mm 1mm !important;
         box-sizing: border-box !important;
         font-family: 'Tajawal', sans-serif !important;
         color: #000000 !important;
@@ -1525,97 +1557,169 @@
         direction: rtl !important;
         text-align: right !important;
       }
+      .print-thermal-receipt.receipt-58mm {
+        width: 50mm !important;
+        max-width: 50mm !important;
+        font-size: 11px !important;
+        padding: 1.5mm 0.5mm !important;
+      }
       .print-receipt-header {
         text-align: center !important;
-        margin-bottom: 6px !important;
+        margin-bottom: 5px !important;
       }
       .print-receipt-logo {
-        width: 48px !important;
-        height: 48px !important;
+        width: 44px !important;
+        height: 44px !important;
         object-fit: contain !important;
-        margin: 0 auto 4px !important;
+        margin: 0 auto 3px !important;
         display: block !important;
       }
+      .print-thermal-receipt.receipt-58mm .print-receipt-logo {
+        width: 34px !important;
+        height: 34px !important;
+      }
       .print-receipt-brand {
-        font-size: 15px !important;
-        font-weight: 800 !important;
+        font-size: 14px !important;
+        font-weight: 900 !important;
         color: #000000 !important;
         margin: 0 !important;
         line-height: 1.2 !important;
       }
       .print-receipt-sub {
-        font-size: 10px !important;
-        color: #444444 !important;
-        margin-bottom: 4px !important;
+        font-size: 9px !important;
+        color: #000000 !important;
+        margin-bottom: 3px !important;
         letter-spacing: 0.5px !important;
+        font-weight: 700 !important;
       }
       .print-receipt-contacts {
-        font-size: 11px !important;
-        color: #222222 !important;
+        font-size: 10px !important;
+        color: #000000 !important;
         line-height: 1.3 !important;
       }
       .print-receipt-divider {
-        border-top: 1px dashed #000000 !important;
-        margin: 6px 0 !important;
+        border-top: 1.5px dashed #000000 !important;
+        margin: 5px 0 !important;
         width: 100% !important;
       }
       .print-receipt-order-id {
-        font-size: 16px !important;
+        font-size: 17px !important;
         font-weight: 900 !important;
         text-align: center !important;
-        margin: 3px 0 !important;
+        margin: 2px 0 !important;
         letter-spacing: 0.5px !important;
+        color: #000000 !important;
       }
       .print-receipt-badge {
         text-align: center !important;
         font-size: 11px !important;
         font-weight: 700 !important;
-        margin-bottom: 4px !important;
+        margin-bottom: 3px !important;
+        color: #000000 !important;
+      }
+      .print-receipt-datetime {
+        font-size: 10px !important;
+        color: #000000 !important;
+      }
+      .print-receipt-delivery {
+        font-size: 11px !important;
+        font-weight: 800 !important;
+        margin-top: 2px !important;
+        color: #000000 !important;
+      }
+      .print-receipt-customer-section {
+        font-size: 12px !important;
+        margin-bottom: 3px !important;
+        color: #000000 !important;
       }
       .print-receipt-row {
         display: flex !important;
         justify-content: space-between !important;
-        font-size: 12px !important;
+        font-size: 11px !important;
         margin: 2px 0 !important;
+        color: #000000 !important;
+      }
+      .print-receipt-items-section {
+        font-size: 11px !important;
+        color: #000000 !important;
       }
       .print-receipt-notes {
-        background: #f7f7f7 !important;
-        border: 1px solid #ddd !important;
-        padding: 5px 7px !important;
+        background: #fdfdfd !important;
+        border: 1px solid #000000 !important;
+        padding: 4px 6px !important;
         border-radius: 4px !important;
         font-size: 11px !important;
-        margin: 5px 0 !important;
+        margin: 4px 0 !important;
+        color: #000000 !important;
       }
       .print-receipt-card-box {
         border: 1.5px solid #000000 !important;
-        border-radius: 6px !important;
-        padding: 6px 8px !important;
-        margin: 6px 0 !important;
+        border-radius: 5px !important;
+        padding: 5px 7px !important;
+        margin: 5px 0 !important;
         background: #ffffff !important;
+        color: #000000 !important;
       }
       .print-receipt-card-title {
-        font-weight: 800 !important;
-        font-size: 12px !important;
-        margin-bottom: 4px !important;
-        border-bottom: 1px dashed #888 !important;
+        font-weight: 900 !important;
+        font-size: 11px !important;
+        margin-bottom: 3px !important;
+        border-bottom: 1px dashed #000000 !important;
         padding-bottom: 2px !important;
+        color: #000000 !important;
+      }
+      .print-receipt-card-msg {
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        line-height: 1.4 !important;
+        margin: 4px 0 !important;
+        font-family: 'Amiri', 'Tajawal', serif !important;
+        color: #000000 !important;
       }
       .print-receipt-qr-wrap {
         text-align: center !important;
-        margin: 8px 0 4px !important;
+        margin: 6px 0 3px !important;
+      }
+      .print-receipt-qr-title {
+        font-size: 10px !important;
+        font-weight: 800 !important;
+        margin-bottom: 3px !important;
+        color: #000000 !important;
       }
       .print-receipt-qr-img {
-        width: 125px !important;
-        height: 125px !important;
+        width: 115px !important;
+        height: 115px !important;
         image-rendering: pixelated !important;
         margin: 0 auto !important;
         display: block !important;
       }
+      .print-thermal-receipt.receipt-58mm .print-receipt-qr-img {
+        width: 90px !important;
+        height: 90px !important;
+      }
+      .print-receipt-qr-caption {
+        font-size: 9px !important;
+        color: #000000 !important;
+        margin-top: 2px !important;
+        font-weight: 700 !important;
+      }
       .print-receipt-footer {
         text-align: center !important;
-        font-size: 11px !important;
-        margin-top: 6px !important;
-        color: #333333 !important;
+        font-size: 10px !important;
+        margin-top: 5px !important;
+        color: #000000 !important;
+        font-weight: 700 !important;
+      }
+      .print-receipt-cut-line {
+        text-align: center !important;
+        font-size: 10px !important;
+        margin-top: 8px !important;
+        color: #000000 !important;
+        letter-spacing: 1px !important;
+        font-family: monospace !important;
+      }
+      .print-receipt-feed-spacer {
+        height: 8mm !important;
       }
 
       /* Multi-Size Gift Card Printing */
@@ -1630,48 +1734,121 @@
         justify-content: space-between !important;
         margin: 0 auto !important;
       }
+      .print-card-canvas.gold-frame {
+        border: 4px double #000000 !important;
+        outline: 1.5px solid #000000 !important;
+        outline-offset: -5px !important;
+      }
+      .print-card-canvas.style-modern {
+        border: 1.5px solid #000000 !important;
+        border-radius: 4px !important;
+      }
+      .print-card-canvas.style-floral {
+        border: 5px double #000000 !important;
+      }
+      .print-card-canvas.style-borderless {
+        border: none !important;
+        outline: none !important;
+      }
+
       .print-card-canvas.size-thermal-80 {
         width: 74mm !important;
         min-height: 95mm !important;
         padding: 5mm 3.5mm !important;
-        border: 2px solid #000000 !important;
+      }
+      .print-card-canvas.size-thermal-58 {
+        width: 50mm !important;
+        min-height: 80mm !important;
+        padding: 3.5mm 2mm !important;
       }
       .print-card-canvas.size-a7-landscape {
         width: 105mm !important;
         height: 74mm !important;
+        max-height: 74mm !important;
         padding: 6mm !important;
-        border: 3.5px solid #000000 !important;
       }
       .print-card-canvas.size-a7-portrait {
         width: 74mm !important;
         height: 105mm !important;
+        max-height: 105mm !important;
         padding: 6mm !important;
-        border: 3.5px solid #000000 !important;
       }
       .print-card-canvas.size-mini-card {
         width: 85mm !important;
         height: 55mm !important;
+        max-height: 55mm !important;
         padding: 4mm !important;
-        border: 2px solid #000000 !important;
       }
       .print-card-canvas.size-a6 {
         width: 105mm !important;
         height: 148mm !important;
+        max-height: 148mm !important;
         padding: 8mm !important;
-        border: 4px solid #000000 !important;
       }
       .print-card-canvas.size-a4 {
         width: 190mm !important;
         min-height: 270mm !important;
         padding: 15mm !important;
-        border: 4px double #000000 !important;
       }
+
+      .print-card-header-row {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        width: 100% !important;
+        z-index: 1 !important;
+      }
+      .print-card-recipient-label {
+        font-size: 13pt !important;
+        font-weight: 800 !important;
+        color: #000000 !important;
+      }
+      .print-card-body-text {
+        color: #000000 !important;
+        line-height: 1.6 !important;
+        white-space: pre-wrap !important;
+        margin: auto 0 !important;
+        padding: 6px 0 !important;
+        z-index: 1 !important;
+        word-break: break-word !important;
+      }
+      .print-card-footer-row {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: flex-end !important;
+        width: 100% !important;
+        z-index: 1 !important;
+      }
+      .print-card-sender-label {
+        font-size: 12pt !important;
+        font-weight: 800 !important;
+        color: #000000 !important;
+        text-align: left !important;
+      }
+      .print-card-brand-micro {
+        font-size: 8px !important;
+        color: #444444 !important;
+        letter-spacing: 1px !important;
+        font-weight: 700 !important;
+      }
+      .print-card-corner {
+        position: absolute !important;
+        font-size: 12px !important;
+        color: #000000 !important;
+        line-height: 1 !important;
+        z-index: 1 !important;
+      }
+      .print-card-corner.tr { top: 4px; right: 4px; }
+      .print-card-corner.tl { top: 4px; left: 4px; }
+      .print-card-corner.br { bottom: 4px; right: 4px; }
+      .print-card-corner.bl { bottom: 4px; left: 4px; }
+
       .print-card-watermark {
         position: absolute !important;
         top: 50% !important;
         left: 50% !important;
         transform: translate(-50%, -50%) !important;
-        width: 45% !important;
+        width: 42% !important;
         opacity: 0.08 !important;
         pointer-events: none !important;
       }
@@ -1679,7 +1856,7 @@
         width: 32px !important;
         height: 32px !important;
         object-fit: contain !important;
-        margin: 0 auto 3px !important;
+        margin: 0 !important;
         display: block !important;
       }
     }
@@ -1940,12 +2117,14 @@
                 <div class="form-group">
                   <label><i class="fas fa-ruler-combined text-gold"></i> مقاس ورق الطباعة:</label>
                   <select id="selectPrintPageSize" class="form-select">
-                    <option value="thermal-80" selected>🖨️ رول حراري 80 ملم (طابعات الفواتير والكروت)</option>
-                    <option value="a7-landscape">📄 كرت إهداء A7 أفقي (105 × 74 ملم)</option>
+                    <option value="a7-landscape" selected>📄 كرت إهداء A7 أفقي (105 × 74 ملم) - المعتمد</option>
                     <option value="a7-portrait">📄 كرت إهداء A7 طولي (74 × 105 ملم)</option>
                     <option value="mini-card">💳 كرت ميني / بطاقة (85 × 55 ملم)</option>
+                    <option value="thermal-80">🖨️ رول حراري 80 ملم (طابعات الفواتير والكروت)</option>
+                    <option value="thermal-58">🖨️ رول حراري 58 ملم (طابعات فواتير صغيرة)</option>
                     <option value="a6">📜 كرت إهداء كبير A6 (105 × 148 ملم)</option>
-                    <option value="a4">📑 فاتورة قياسية A4</option>
+                    <option value="a4">📑 ورقة كاملة A4 قياسية</option>
+                    <option value="custom">📐 مقاس مخصص (إدخال العرض والارتفاع ملم)</option>
                   </select>
                 </div>
 
@@ -1953,9 +2132,21 @@
                   <label><i class="fas fa-print text-gold"></i> محتوى الطباعة:</label>
                   <select id="selectPrintContentType" class="form-select">
                     <option value="card" selected>💌 كرت الإهداء فقط</option>
-                    <option value="receipt">🧾 فاتورة وتذكرة الطلب كاملة 80mm</option>
+                    <option value="receipt">🧾 فاتورة وتذكرة الطلب كاملة</option>
                     <option value="both">✨ كرت الإهداء + فاتورة الطلب معاً</option>
                   </select>
+                </div>
+              </div>
+
+              <!-- Custom Dimensions Input (visible when 'custom' is selected) -->
+              <div id="groupCustomDimensions" style="display: none; grid-template-columns: 1fr 1fr; gap: 0.75rem; background: rgba(212,175,55,0.06); border: 1px dashed rgba(212,175,55,0.3); border-radius: 8px; padding: 0.65rem; margin-top: 0.2rem;">
+                <div class="form-group">
+                  <label style="font-size: 0.78rem;"><i class="fas fa-arrows-alt-h text-gold"></i> العرض (ملم):</label>
+                  <input type="number" id="inputCustomPrintWidth" class="form-input" value="90" min="40" max="300" style="padding: 0.45rem 0.65rem;">
+                </div>
+                <div class="form-group">
+                  <label style="font-size: 0.78rem;"><i class="fas fa-arrows-alt-v text-gold"></i> الارتفاع (ملم):</label>
+                  <input type="number" id="inputCustomPrintHeight" class="form-input" value="60" min="30" max="400" style="padding: 0.45rem 0.65rem;">
                 </div>
               </div>
 
@@ -2014,9 +2205,10 @@
                 <div class="form-group">
                   <label>إطار الكرت:</label>
                   <select id="selectCardFrameStyle" class="form-select">
-                    <option value="gold-frame" selected>إطار ذهبي فخم</option>
-                    <option value="style-modern">عصري ناعم</option>
-                    <option value="style-floral">كلاسيكي مزدوج</option>
+                    <option value="gold-frame" selected>إطار ذهبي ملكي فخم ❖</option>
+                    <option value="style-modern">عصري ناعم أنيق</option>
+                    <option value="style-floral">كلاسيكي مزخرف ✿</option>
+                    <option value="style-borderless">بدون إطار (للكروت المطبوعة مسبقاً)</option>
                   </select>
                 </div>
               </div>
@@ -2980,8 +3172,8 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
   <script src="/assets/dist/js/utils.min.js?v=2"></script>
   <!-- مكتبة المكونات الكائنية والخدمات OOP -->
-  <script src="/assets/dist/js/components.min.js?v=2"></script>
-  <script src="/assets/dist/js/portal.min.js?v=4"></script>
+  <script src="/assets/dist/js/components.min.js?v=5"></script>
+  <script src="/assets/dist/js/portal.min.js?v=5"></script>
 
   <!-- PWA Service Worker Registration -->
   <script>

@@ -46,12 +46,14 @@
         if (cachedLogo) {
           this.updateLogoPreview(cachedLogo);
         }
-        const cachedPrintSize = localStorage.getItem('yr_preferred_print_size');
+        const cachedPrintSize = localStorage.getItem('yr_preferred_print_size') || 'a7-landscape';
         const selectSize = document.getElementById('selectPrintPageSize');
-        if (cachedPrintSize && selectSize) {
+        if (selectSize) {
           selectSize.value = cachedPrintSize;
         }
-        this.updatePrintCanvasScale(cachedPrintSize || 'thermal-80');
+        const customGroup = document.getElementById('groupCustomDimensions');
+        if (customGroup) customGroup.style.display = cachedPrintSize === 'custom' ? 'grid' : 'none';
+        this.updatePrintCanvasScale(cachedPrintSize);
       } catch (e) {}
     },
 
@@ -124,13 +126,32 @@
         if (el) el.addEventListener('change', () => this.syncCanvasFromInputs());
       });
 
+      // Custom dimensions live update
+      ['inputCustomPrintWidth', 'inputCustomPrintHeight'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', () => {
+          this.updatePrintCanvasScale('custom');
+          this.syncCanvasFromInputs();
+        });
+      });
+
       // Print Studio Paper Size & Content Type listeners
       const selectPageSize = document.getElementById('selectPrintPageSize');
       if (selectPageSize) {
         selectPageSize.addEventListener('change', (e) => {
           const val = e.target.value;
           try { localStorage.setItem('yr_preferred_print_size', val); } catch (err) {}
+          const customGroup = document.getElementById('groupCustomDimensions');
+          if (customGroup) customGroup.style.display = val === 'custom' ? 'grid' : 'none';
           this.updatePrintCanvasScale(val);
+          this.syncCanvasFromInputs();
+        });
+      }
+
+      const selectContentType = document.getElementById('selectPrintContentType');
+      if (selectContentType) {
+        selectContentType.addEventListener('change', () => {
+          this.syncCanvasFromInputs();
         });
       }
 
@@ -1144,68 +1165,119 @@
     // =========================================
     // TAB 2: SMART PRINT STUDIO & DIRECT HARDWARE ENGINE
     // =========================================
-    getPrintPaperConfig(sizeKey) {
+    getPrintPaperConfig(sizeKey, customW = null, customH = null) {
       const map = {
         'thermal-80': {
           cssPage: '80mm auto',
           width: '74mm',
+          pageWidth: '80mm',
           height: 'auto',
+          pageHeight: 'auto',
+          isContinuous: true,
           margin: '0mm',
-          name: 'رول حراري 80 ملم',
-          aspectRatio: '80 / 115',
+          name: 'رول حراري 80 ملم (طابعات فواتير وكروت)',
+          aspectRatio: '80 / 120',
           maxWidth: '380px'
+        },
+        'thermal-58': {
+          cssPage: '58mm auto',
+          width: '50mm',
+          pageWidth: '58mm',
+          height: 'auto',
+          pageHeight: 'auto',
+          isContinuous: true,
+          margin: '0mm',
+          name: 'رول حراري 58 ملم (طابعات فواتير صغيرة)',
+          aspectRatio: '58 / 95',
+          maxWidth: '300px'
         },
         'a7-landscape': {
           cssPage: '105mm 74mm landscape',
           width: '105mm',
+          pageWidth: '105mm',
           height: '74mm',
+          pageHeight: '74mm',
+          isContinuous: false,
           margin: '0mm',
-          name: 'كرت A7 أفقي (105×74 ملم)',
+          name: 'كرت إهداء A7 أفقي (105×74 ملم) - المعتمد',
           aspectRatio: '105 / 74',
           maxWidth: '525px'
         },
         'a7-portrait': {
           cssPage: '74mm 105mm portrait',
           width: '74mm',
+          pageWidth: '74mm',
           height: '105mm',
+          pageHeight: '105mm',
+          isContinuous: false,
           margin: '0mm',
-          name: 'كرت A7 طولي (74×105 ملم)',
+          name: 'كرت إهداء A7 طولي (74×105 ملم)',
           aspectRatio: '74 / 105',
           maxWidth: '370px'
         },
         'mini-card': {
           cssPage: '85mm 55mm landscape',
           width: '85mm',
+          pageWidth: '85mm',
           height: '55mm',
+          pageHeight: '55mm',
+          isContinuous: false,
           margin: '0mm',
-          name: 'كرت ميني (85×55 ملم)',
+          name: 'كرت ميني / بطاقة (85×55 ملم)',
           aspectRatio: '85 / 55',
           maxWidth: '480px'
         },
         'a6': {
           cssPage: '105mm 148mm portrait',
           width: '105mm',
+          pageWidth: '105mm',
           height: '148mm',
+          pageHeight: '148mm',
+          isContinuous: false,
           margin: '0mm',
-          name: 'كرت كبير A6 (105×148 ملم)',
+          name: 'كرت إهداء كبير A6 (105×148 ملم)',
           aspectRatio: '105 / 148',
           maxWidth: '370px'
         },
         'a4': {
           cssPage: 'A4 portrait',
           width: '190mm',
-          height: 'auto',
+          pageWidth: '210mm',
+          height: '280mm',
+          pageHeight: 'auto',
+          isContinuous: false,
           margin: '8mm',
-          name: 'ورقة كاملة A4',
+          name: 'ورقة كاملة A4 قياسية',
           aspectRatio: '210 / 297',
           maxWidth: '460px'
         }
       };
-      return map[sizeKey] || map['thermal-80'];
+
+      if (sizeKey === 'custom' || (sizeKey && sizeKey.startsWith('custom'))) {
+        const wVal = parseInt(customW || document.getElementById('inputCustomPrintWidth')?.value) || 90;
+        const hVal = parseInt(customH || document.getElementById('inputCustomPrintHeight')?.value) || 60;
+        const isLandscape = wVal >= hVal;
+        return {
+          cssPage: `${wVal}mm ${hVal}mm ${isLandscape ? 'landscape' : 'portrait'}`,
+          width: `${wVal}mm`,
+          pageWidth: `${wVal}mm`,
+          height: `${hVal}mm`,
+          pageHeight: `${hVal}mm`,
+          isContinuous: false,
+          margin: '0mm',
+          name: `مقاس مخصص (${wVal}×${hVal} ملم)`,
+          aspectRatio: `${wVal} / ${hVal}`,
+          maxWidth: isLandscape ? '520px' : '360px'
+        };
+      }
+
+      return map[sizeKey] || map['a7-landscape'];
     },
 
     updatePrintCanvasScale(sizeKey) {
-      const cfg = this.getPrintPaperConfig(sizeKey);
+      const customW = document.getElementById('inputCustomPrintWidth')?.value;
+      const customH = document.getElementById('inputCustomPrintHeight')?.value;
+      const cfg = this.getPrintPaperConfig(sizeKey, customW, customH);
       const canvas = document.getElementById('a7CanvasTarget');
       const badge = document.getElementById('printSizeBadge');
       if (badge) badge.textContent = `مقاس الطباعة: ${cfg.name}`;
@@ -1215,22 +1287,92 @@
       }
     },
 
-    applyDynamicPrintStyles(sizeKey) {
-      const cfg = this.getPrintPaperConfig(sizeKey);
+    applyDynamicPrintStyles(sizeKey, printType = 'card', customW = null, customH = null) {
+      const cfg = this.getPrintPaperConfig(sizeKey, customW, customH);
       let el = document.getElementById('yrDynamicPrintEngineStyle');
       if (!el) {
         el = document.createElement('style');
         el.id = 'yrDynamicPrintEngineStyle';
         document.head.appendChild(el);
       }
+
+      const isContinuous = cfg.isContinuous || printType === 'receipt';
+      const effectivePageWidth = isContinuous ? (cfg.pageWidth || '80mm') : cfg.width;
+      const effectivePageHeight = isContinuous ? 'auto' : cfg.height;
+
       el.textContent = `
+        @page {
+          size: ${cfg.cssPage} !important;
+          margin: ${cfg.margin || '0mm'} !important;
+          padding: 0 !important;
+        }
+        @page :first { margin: ${cfg.margin || '0mm'} !important; }
+        @page :left { margin: ${cfg.margin || '0mm'} !important; }
+        @page :right { margin: ${cfg.margin || '0mm'} !important; }
+
         @media print {
-          @page {
-            size: ${cfg.cssPage} !important;
-            margin: ${cfg.margin} !important;
+          *, *::before, *::after {
+            box-sizing: border-box !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+          }
+
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            font-family: 'Tajawal', sans-serif !important;
+            width: ${effectivePageWidth} !important;
+            max-width: ${effectivePageWidth} !important;
+            min-width: ${effectivePageWidth} !important;
+            height: ${effectivePageHeight} !important;
+            min-height: ${effectivePageHeight} !important;
+            max-height: ${isContinuous ? 'none' : effectivePageHeight} !important;
+            overflow: ${isContinuous ? 'visible' : 'hidden'} !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+
+          body > *:not(#printMasterContainer) {
+            display: none !important;
+          }
+
+          #printMasterContainer {
+            display: block !important;
+            position: static !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            width: ${effectivePageWidth} !important;
+            max-width: ${effectivePageWidth} !important;
+            height: ${effectivePageHeight} !important;
+            max-height: ${isContinuous ? 'none' : effectivePageHeight} !important;
+            overflow: ${isContinuous ? 'visible' : 'hidden'} !important;
+            box-sizing: border-box !important;
+          }
+
+          .print-card-canvas {
+            box-sizing: border-box !important;
+            background: #ffffff !important;
+            color: #000000 !important;
+            position: relative !important;
+            overflow: hidden !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            margin: 0 auto !important;
+            width: ${cfg.width} !important;
+            height: ${isContinuous ? 'auto' : cfg.height} !important;
+            max-height: ${isContinuous ? 'none' : cfg.height} !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
           }
         }
       `;
+      return cfg;
     },
 
     generateQrDataUrl(text) {
@@ -1253,14 +1395,14 @@
       return String(str).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' })[m]);
     },
 
-    buildThermalReceiptHtml(order) {
+    buildThermalReceiptHtml(order, sizeKey = 'thermal-80') {
       const o = order || {};
-      const orderId = o.orderId || 'طلب جديد';
+      const orderId = o.orderId || 'طلب فوري';
       const custName = o.customerName || 'عميل المحل';
       const custPhone = o.customerPhone || '-';
-      const productTitle = o.productTitle || 'تنسيق ورد ومناسبات';
+      const productTitle = o.productTitle || 'تنسيق ورد ومناسبات فاخرة';
       const notes = o.notes || '';
-      const deliveryMethod = o.deliveryMethod === 'delivery' ? 'توصيل للعنوان' : (o.deliveryMethod === 'pickup' ? 'استلام من الفرع' : 'طلب مباشر');
+      const deliveryMethod = o.deliveryMethod === 'delivery' ? 'توصيل للعنوان 🚗' : (o.deliveryMethod === 'pickup' ? 'استلام من الفرع 🛍️' : 'طلب مباشر');
       const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleString('ar-SA', {
         year: 'numeric', month: 'short', day: 'numeric',
         hour: '2-digit', minute: '2-digit'
@@ -1277,31 +1419,34 @@
 
       // Card snippet
       const cd = o.cardData || {};
-      const hasCard = cd.message || o.needsPrint;
+      const hasCard = cd.message || o.needsPrint || cd.recipient || cd.sender;
+
+      const is58 = sizeKey === 'thermal-58';
+      const cls58 = is58 ? 'receipt-58mm' : '';
 
       return `
-        <div class="print-thermal-receipt" dir="rtl">
+        <div class="print-thermal-receipt ${cls58}" dir="rtl">
           <div class="print-receipt-header">
             <img src="${logoUrl}" class="print-receipt-logo" alt="Yellow Rose" onerror="this.src='/assets/logo.png'">
             <h2 class="print-receipt-brand">يلوروز للورد والمناسبات</h2>
             <div class="print-receipt-sub">YELLOW ROSE • LUXURY FLORAL</div>
             <div class="print-receipt-contacts">
               <div>هاتف / واتساب: ${storePhone}</div>
-              ${branchAddress ? `<div>${branchAddress}</div>` : ''}
+              ${branchAddress ? `<div>${this.escapeHtml(branchAddress)}</div>` : ''}
             </div>
           </div>
 
           <div class="print-receipt-divider"></div>
 
           <div class="print-receipt-badge">
-            <div class="print-receipt-order-id">رقم الطلب: ${orderId}</div>
-            <div style="font-size: 11px; color: #333;">${dateStr}</div>
-            <div style="font-size: 11px; margin-top: 2px;">نوع الاستلام: ${deliveryMethod}</div>
+            <div class="print-receipt-order-id"># ${orderId}</div>
+            <div class="print-receipt-datetime">${dateStr}</div>
+            <div class="print-receipt-delivery">نوع الاستلام: ${deliveryMethod}</div>
           </div>
 
           <div class="print-receipt-divider"></div>
 
-          <div style="font-size: 12px; margin-bottom: 4px;">
+          <div class="print-receipt-customer-section">
             <div class="print-receipt-row">
               <strong>العميل:</strong>
               <span>${this.escapeHtml(custName)}</span>
@@ -1314,15 +1459,15 @@
 
           <div class="print-receipt-divider"></div>
 
-          <div style="font-size: 12px;">
-            <div style="font-weight: 800; margin-bottom: 3px;">تفاصيل الطلب:</div>
+          <div class="print-receipt-items-section">
+            <div style="font-weight: 800; margin-bottom: 3px;">تفاصيل الطلب والتجهيز:</div>
             <div class="print-receipt-row">
               <span>• ${this.escapeHtml(productTitle)}</span>
-              <span>1x</span>
+              <span style="font-weight: 700;">1x</span>
             </div>
             ${notes ? `
               <div class="print-receipt-notes">
-                <strong>ملاحظات التحضير:</strong>
+                <strong>ملاحظات التجهيز والتنسيق:</strong>
                 <div>${this.escapeHtml(notes)}</div>
               </div>
             ` : ''}
@@ -1331,21 +1476,21 @@
           ${hasCard ? `
             <div class="print-receipt-divider"></div>
             <div class="print-receipt-card-box">
-              <div class="print-receipt-card-title">💌 كرت الإهداء المرفق:</div>
-              ${cd.recipient ? `<div style="font-size: 11px; font-weight: 700; margin-bottom: 2px;">إلى: ${this.escapeHtml(cd.recipient)}</div>` : ''}
-              <div style="font-size: 12px; font-weight: 600; line-height: 1.4; margin: 4px 0; font-family: 'Amiri', 'Tajawal', serif;">
+              <div class="print-receipt-card-title">💌 كرت الإهداء المرفق بالطلب:</div>
+              ${cd.recipient ? `<div style="font-size: 11px; font-weight: 800; margin-bottom: 2px;">إلى: ${this.escapeHtml(cd.recipient)}</div>` : ''}
+              <div class="print-receipt-card-msg">
                 "${this.escapeHtml(cd.message || '')}"
               </div>
-              ${cd.sender ? `<div style="font-size: 11px; font-weight: 700; text-align: left; margin-top: 2px;">من: ${this.escapeHtml(cd.sender)}</div>` : ''}
+              ${cd.sender ? `<div style="font-size: 11px; font-weight: 800; text-align: left; margin-top: 2px;">من: ${this.escapeHtml(cd.sender)}</div>` : ''}
             </div>
           ` : ''}
 
           ${qrDataUrl ? `
             <div class="print-receipt-divider"></div>
             <div class="print-receipt-qr-wrap">
-              <div style="font-size: 10px; font-weight: 700; margin-bottom: 3px;">امسح الكود لتتبع حالة طلبك والبيجر 📲</div>
+              <div class="print-receipt-qr-title">امسح الكود لمتابعة حالة الطلب والبيجر 📲</div>
               <img src="${qrDataUrl}" class="print-receipt-qr-img" alt="QR Code">
-              <div style="font-size: 9px; color: #555; margin-top: 2px;">${orderId}</div>
+              <div class="print-receipt-qr-caption">${orderId}</div>
             </div>
           ` : ''}
 
@@ -1355,56 +1500,100 @@
             <div>نسعد بخدمتكم دائماً في يلوروز ✨</div>
             <div>شكراً لثقتكم واختياركم لنا</div>
           </div>
+
+          <div class="print-receipt-cut-line">
+            ✂ - - - - - - - - - - - - - - - - - - - - - - ✂
+          </div>
+          <div class="print-receipt-feed-spacer"></div>
         </div>
       `;
     },
 
-    buildGiftCardPrintHtml(cardData, sizeKey, frameStyle) {
+    buildGiftCardPrintHtml(cardData, sizeKey, frameStyle, customW = null, customH = null) {
       const cd = cardData || {};
       const rec = (cd.recipient || '').trim();
-      const msg = (cd.message || 'أجمل التهاني وأصدق التبريكات ✨').trim();
+      const rawMsg = (cd.message || 'أجمل التهاني وأصدق التبريكات ✨').trim();
       const snd = (cd.sender || '').trim();
       const font = cd.fontFamily || 'Tajawal';
-      const size = cd.fontSize || '16pt';
+      let size = cd.fontSize || '16pt';
       const align = cd.textAlign || 'center';
       const frame = frameStyle || cd.templateStyle || 'gold-frame';
+
+      // Smart Font Scaling to prevent card overflow
+      if (rawMsg.length > 220) {
+        size = '11pt';
+      } else if (rawMsg.length > 140) {
+        size = '13pt';
+      } else if (rawMsg.length > 80 && size === '20pt') {
+        size = '16pt';
+      }
 
       const s = this.state.settings || {};
       const logoUrl = s.logoUrl || '/assets/logo.png';
 
+      // Corner ornaments for gold and floral frames
+      const cornerGlyph = frame === 'gold-frame' ? '❖' : (frame === 'style-floral' ? '✿' : '');
+
+      const customStyle = (sizeKey === 'custom' && customW && customH)
+        ? `style="--print-custom-w: ${customW}mm; --print-custom-h: ${customH}mm; width: ${customW}mm !important; height: ${customH}mm !important; max-height: ${customH}mm !important;"`
+        : '';
+
       return `
-        <div class="print-card-canvas size-${sizeKey} ${frame}" dir="rtl">
-          <img src="${logoUrl}" class="print-card-watermark" alt="Watermark" onerror="this.src='/assets/logo.png'">
-          
-          <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; z-index: 1;">
-            <div style="font-size: 13pt; font-weight: 700; color: #111;">
+        <div class="print-card-canvas size-${sizeKey} ${frame}" ${customStyle} dir="rtl">
+          <img src="${logoUrl}" class="print-card-watermark brand-logo" alt="Watermark" onerror="this.src='/assets/logo.png'">
+
+          ${cornerGlyph ? `<span class="print-card-corner tr">${cornerGlyph}</span>` : ''}
+          ${cornerGlyph ? `<span class="print-card-corner tl">${cornerGlyph}</span>` : ''}
+          ${cornerGlyph ? `<span class="print-card-corner br">${cornerGlyph}</span>` : ''}
+          ${cornerGlyph ? `<span class="print-card-corner bl">${cornerGlyph}</span>` : ''}
+
+          <div class="print-card-header-row">
+            <div class="print-card-recipient-label">
               ${rec ? `إلى: ${this.escapeHtml(rec)}` : ''}
             </div>
             <img src="${logoUrl}" class="print-card-header-logo" alt="Logo" onerror="this.src='/assets/logo.png'">
           </div>
 
-          <div style="font-family: '${font}', serif; font-size: ${size}; text-align: ${align}; color: #111; line-height: 1.6; white-space: pre-wrap; margin: auto 0; padding: 10px 0; z-index: 1;">
-            ${this.escapeHtml(msg)}
+          <div class="print-card-body-text" style="font-family: '${font}', serif; font-size: ${size}; text-align: ${align};">
+            ${this.escapeHtml(rawMsg)}
           </div>
 
-          <div style="font-size: 12pt; font-weight: 700; color: #111; text-align: left; width: 100%; z-index: 1;">
-            ${snd ? `من: ${this.escapeHtml(snd)}` : ''}
+          <div class="print-card-footer-row">
+            <div class="print-card-sender-label">
+              ${snd ? `من: ${this.escapeHtml(snd)}` : ''}
+            </div>
+            <div class="print-card-brand-micro">YELLOW ROSE FLORAL</div>
           </div>
         </div>
       `;
     },
 
-    async executeDirectPrint({ type = 'card', size = 'thermal-80', order = null, cardData = null, frameStyle = 'gold-frame' }) {
+    async executeDirectPrint({ type = 'card', size = null, order = null, cardData = null, frameStyle = null, customW = null, customH = null }) {
       const container = document.getElementById('printMasterContainer');
       if (!container) return;
 
+      // Automatically determine size accurately based on type and preferences
+      let chosenSize = size;
+      if (!chosenSize) {
+        if (type === 'receipt') {
+          chosenSize = localStorage.getItem('yr_preferred_receipt_size') || 'thermal-80';
+        } else {
+          const orderCardSize = order?.cardData?.paperSize;
+          chosenSize = orderCardSize || localStorage.getItem('yr_preferred_card_size') || localStorage.getItem('yr_preferred_print_size') || 'a7-landscape';
+        }
+      }
+
+      // Load custom dimensions if needed
+      const cW = customW || document.getElementById('inputCustomPrintWidth')?.value || 90;
+      const cH = customH || document.getElementById('inputCustomPrintHeight')?.value || 60;
+
       // 1. Calibrate dynamic @page dimensions for device
-      this.applyDynamicPrintStyles(size);
+      const cfg = this.applyDynamicPrintStyles(chosenSize, type, cW, cH);
 
       // 2. Prepare HTML based on print type
       let contentHtml = '';
       if (type === 'receipt') {
-        contentHtml = this.buildThermalReceiptHtml(order);
+        contentHtml = this.buildThermalReceiptHtml(order, chosenSize);
       } else if (type === 'card') {
         const cd = cardData || (order ? order.cardData : null) || {
           recipient: document.getElementById('inputCardRecipient')?.value,
@@ -1414,8 +1603,8 @@
           fontSize: document.getElementById('selectCardFontSize')?.value,
           textAlign: document.getElementById('selectCardAlign')?.value
         };
-        const frame = frameStyle || document.getElementById('selectCardFrameStyle')?.value || 'gold-frame';
-        contentHtml = this.buildGiftCardPrintHtml(cd, size, frame);
+        const frame = frameStyle || (order?.cardData?.templateStyle) || document.getElementById('selectCardFrameStyle')?.value || 'gold-frame';
+        contentHtml = this.buildGiftCardPrintHtml(cd, chosenSize, frame, cW, cH);
       } else if (type === 'both') {
         const cd = cardData || (order ? order.cardData : null) || {
           recipient: document.getElementById('inputCardRecipient')?.value,
@@ -1425,23 +1614,38 @@
           fontSize: document.getElementById('selectCardFontSize')?.value,
           textAlign: document.getElementById('selectCardAlign')?.value
         };
-        const frame = frameStyle || document.getElementById('selectCardFrameStyle')?.value || 'gold-frame';
+        const frame = frameStyle || (order?.cardData?.templateStyle) || document.getElementById('selectCardFrameStyle')?.value || 'gold-frame';
         contentHtml = `
-          <div style="page-break-after: always; break-after: page;">
-            ${this.buildGiftCardPrintHtml(cd, size, frame)}
+          <div style="page-break-after: always !important; break-after: page !important;">
+            ${this.buildGiftCardPrintHtml(cd, chosenSize, frame, cW, cH)}
           </div>
-          <div style="margin-top: 10mm;">
-            ${this.buildThermalReceiptHtml(order)}
+          <div style="page-break-before: always !important; break-before: page !important; margin-top: 5mm;">
+            ${this.buildThermalReceiptHtml(order, 'thermal-80')}
           </div>
         `;
       }
 
       container.innerHTML = contentHtml;
 
-      // 3. Route directly to printer
+      // 3. Pre-load images & custom fonts to ensure crisp rendering in print spooler
+      const imgs = Array.from(container.querySelectorAll('img'));
+      await Promise.all(imgs.map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+          img.onload = resolve;
+          img.onerror = resolve;
+          setTimeout(resolve, 800);
+        });
+      }));
+      if (document.fonts && document.fonts.ready) {
+        try { await document.fonts.ready; } catch (e) {}
+      }
+      await new Promise(r => setTimeout(r, 120));
+
+      // 4. Route directly to printer
       window.print();
 
-      // 4. Mark order as printed in DB if applicable
+      // 5. Mark order as printed in DB if applicable
       const targetOrder = order || this.state.currentPrintOrder;
       if (targetOrder && targetOrder.status === 'pending' && targetOrder.orderId) {
         try {
@@ -1453,30 +1657,33 @@
         } catch (e) {}
       }
 
-      // 5. Cleanup & Toast
-      const cfg = this.getPrintPaperConfig(size);
-      this.showToast(`تم توجيه أمر الطباعة للجهاز بمقاس (${cfg.name}) بنجاح 🖨️`);
+      // 6. Feedback Toast with exact paper & type sent
+      this.showToast(`تم إرسال أمر الطباعة للجهاز بمقاس (${cfg.name}) بنجاح 🖨️`);
 
-      // Clear container after print window closes
-      setTimeout(() => {
+      // 7. Cleanup after print dialog completes
+      const cleanup = () => {
         if (container) container.innerHTML = '';
-      }, 1500);
+      };
+      window.addEventListener('afterprint', cleanup, { once: true });
+      setTimeout(cleanup, 30000);
     },
 
     quickPrintCard(orderId) {
       const order = this.state.orders.find(o => o.orderId === orderId);
       if (!order) return;
-      const preferredSize = localStorage.getItem('yr_preferred_print_size') || 'thermal-80';
+      const preferredCardSize = order.cardData?.paperSize || localStorage.getItem('yr_preferred_card_size') || localStorage.getItem('yr_preferred_print_size') || 'a7-landscape';
       const cd = order.cardData || {
         recipient: '',
         message: order.notes || 'أجمل التهاني وأصدق التبريكات ✨',
         sender: ''
       };
+      const frame = order.cardData?.templateStyle || 'gold-frame';
       this.executeDirectPrint({
         type: 'card',
-        size: preferredSize,
+        size: preferredCardSize,
         order: order,
-        cardData: cd
+        cardData: cd,
+        frameStyle: frame
       });
     },
 
@@ -1486,9 +1693,10 @@
         this.showToast('الرجاء تحديد طلب لطباعة فاتورته');
         return;
       }
+      const preferredReceiptSize = localStorage.getItem('yr_preferred_receipt_size') || 'thermal-80';
       this.executeDirectPrint({
         type: 'receipt',
-        size: 'thermal-80',
+        size: preferredReceiptSize,
         order: order
       });
     },
@@ -1531,10 +1739,13 @@
       if (cd.fontFamily) document.getElementById('selectCardFont').value = cd.fontFamily;
       if (cd.fontSize) document.getElementById('selectCardFontSize').value = cd.fontSize;
       if (cd.textAlign) document.getElementById('selectCardAlign').value = cd.textAlign;
+      if (cd.templateStyle) document.getElementById('selectCardFrameStyle').value = cd.templateStyle;
 
-      const preferredSize = localStorage.getItem('yr_preferred_print_size') || 'thermal-80';
+      const preferredSize = cd.paperSize || localStorage.getItem('yr_preferred_card_size') || localStorage.getItem('yr_preferred_print_size') || 'a7-landscape';
       const selectSize = document.getElementById('selectPrintPageSize');
       if (selectSize) selectSize.value = preferredSize;
+      const customGroup = document.getElementById('groupCustomDimensions');
+      if (customGroup) customGroup.style.display = preferredSize === 'custom' ? 'grid' : 'none';
       this.updatePrintCanvasScale(preferredSize);
 
       this.syncCanvasFromInputs();
@@ -1543,6 +1754,44 @@
     },
 
     syncCanvasFromInputs() {
+      const contentType = document.getElementById('selectPrintContentType')?.value || 'card';
+      const sizeKey = document.getElementById('selectPrintPageSize')?.value || 'a7-landscape';
+      const customW = document.getElementById('inputCustomPrintWidth')?.value;
+      const customH = document.getElementById('inputCustomPrintHeight')?.value;
+      const cfg = this.getPrintPaperConfig(sizeKey, customW, customH);
+
+      const canvas = document.getElementById('a7CanvasTarget');
+      if (!canvas) return;
+
+      // Update badge
+      const badge = document.getElementById('printSizeBadge');
+      if (badge) badge.textContent = `مقاس الطباعة: ${cfg.name}`;
+
+      if (contentType === 'receipt') {
+        const order = this.state.currentPrintOrder || {
+          orderId: 'معاينة-01',
+          customerName: document.getElementById('inputCardRecipient')?.value || 'عميل المحل',
+          customerPhone: '0582739397',
+          productTitle: 'باقة ورد جوري أحمر فاخر',
+          notes: 'تنسيق في مزهرية مع تغليف ذهبي',
+          createdAt: new Date().toISOString(),
+          cardData: {
+            recipient: document.getElementById('inputCardRecipient')?.value,
+            message: document.getElementById('inputCardMessage')?.value,
+            sender: document.getElementById('inputCardSender')?.value
+          }
+        };
+        canvas.className = 'a7-canvas-wrapper preview-receipt';
+        canvas.style.aspectRatio = cfg.isContinuous ? '80 / 125' : cfg.aspectRatio;
+        canvas.style.maxWidth = cfg.maxWidth;
+        canvas.style.padding = '0';
+        canvas.style.background = '#ffffff';
+        canvas.style.border = '2px dashed var(--border-subtle)';
+        canvas.innerHTML = this.buildThermalReceiptHtml(order, sizeKey);
+        return;
+      }
+
+      // Card or Both preview:
       const rec = document.getElementById('inputCardRecipient')?.value.trim() || '';
       const msg = document.getElementById('inputCardMessage')?.value.trim() || '';
       const snd = document.getElementById('inputCardSender')?.value.trim() || '';
@@ -1552,35 +1801,35 @@
       const align = document.getElementById('selectCardAlign')?.value || 'center';
       const frame = document.getElementById('selectCardFrameStyle')?.value || 'gold-frame';
 
-      const canvas = document.getElementById('a7CanvasTarget');
-      const recEl = document.getElementById('canvasRecipientText');
-      const msgEl = document.getElementById('canvasMessageText');
-      const sndEl = document.getElementById('canvasSenderText');
+      canvas.style.aspectRatio = cfg.aspectRatio;
+      canvas.style.maxWidth = cfg.maxWidth;
+      canvas.style.padding = '24px';
+      canvas.style.background = '#ffffff';
+      canvas.style.border = '';
+      canvas.className = `a7-canvas-wrapper ${frame}`;
 
-      if (recEl) recEl.textContent = rec ? `إلى: ${rec}` : '';
-      if (msgEl) {
-        msgEl.textContent = msg || 'أجمل التهاني وأصدق التبريكات ✨';
-        msgEl.style.fontFamily = font;
-        msgEl.style.fontSize = size;
-        msgEl.style.textAlign = align;
-      }
-      if (sndEl) sndEl.textContent = snd ? `من: ${snd}` : '';
-
-      if (canvas) {
-        canvas.className = `a7-canvas-wrapper ${frame}`;
-      }
+      canvas.innerHTML = `
+        <img src="/assets/logo.png" class="card-watermark brand-logo" alt="Watermark" onerror="this.src='/assets/logo.png'">
+        <div class="card-recipient-text" id="canvasRecipientText">${rec ? `إلى: ${this.escapeHtml(rec)}` : ''}</div>
+        <div class="card-message-text" id="canvasMessageText" style="font-family: '${font}', serif; font-size: ${size}; text-align: ${align};">${this.escapeHtml(msg || 'أجمل التهاني وأصدق التبريكات ✨')}</div>
+        <div class="card-sender-text" id="canvasSenderText">${snd ? `من: ${this.escapeHtml(snd)}` : ''}</div>
+      `;
     },
 
     async executePrint() {
       const selectSize = document.getElementById('selectPrintPageSize');
-      const size = selectSize ? selectSize.value : (localStorage.getItem('yr_preferred_print_size') || 'thermal-80');
+      const size = selectSize ? selectSize.value : (localStorage.getItem('yr_preferred_print_size') || 'a7-landscape');
       const selectType = document.getElementById('selectPrintContentType');
       const type = selectType ? selectType.value : 'card';
+      const customW = document.getElementById('inputCustomPrintWidth')?.value;
+      const customH = document.getElementById('inputCustomPrintHeight')?.value;
 
       await this.executeDirectPrint({
         type: type,
         size: size,
-        order: this.state.currentPrintOrder
+        order: this.state.currentPrintOrder,
+        customW: customW,
+        customH: customH
       });
     },
 
