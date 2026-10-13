@@ -82,14 +82,23 @@
     }
 
     /**
-     * استخراج صورة الغلاف الرئيسية مع فحص البدائل
+     * استخراج صورة الغلاف الرئيسية مع فحص البدائل وسلاسل النصوص والكائنات
      */
     getCoverImage() {
       const p = this.product;
-      return p.coverUrl ||
-        (p.images && p.images.length > 0 && (p.images[0].thumbnailUrl || p.images[0].url)) ||
-        (p.images && p.images[0]?.url) ||
-        '/assets/logo.png';
+      if (p.coverUrl && typeof p.coverUrl === 'string' && p.coverUrl.trim()) {
+        return p.coverUrl;
+      }
+      if (Array.isArray(p.images) && p.images.length > 0) {
+        const first = p.images[0];
+        if (typeof first === 'string' && first.trim()) {
+          return first;
+        }
+        if (first && typeof first === 'object') {
+          return first.thumbnailUrl || first.url || '/assets/logo.png';
+        }
+      }
+      return '/assets/logo.png';
     }
 
     /**
@@ -105,19 +114,22 @@
     }
 
     /**
-     * توليد شارة السعر مع احترام إعداد إخفاء/إظهار السعر
+     * توليد شارة السعر مع احترام إعداد إخفاء/إظهار السعر والأسعار الصفرية
      */
     renderPriceBadge() {
       const p = this.product;
       // التحقق من خيار إخفاء السعر (إذا كان false يتم إخفاؤه تماماً)
       if (p.showPrice === false) return '';
-      if (!p.price && !p.priceText) return '';
 
-      const displayLabel = p.priceText
+      const hasPriceVal = p.price !== undefined && p.price !== null && p.price !== '';
+      const hasPriceText = p.priceText !== undefined && p.priceText !== null && p.priceText !== '';
+      if (!hasPriceVal && !hasPriceText) return '';
+
+      const displayLabel = hasPriceText
         ? this.escapeHtml(p.priceText)
         : `${this.escapeHtml(p.price)} ر.س`;
 
-      const origHtml = p.originalPrice
+      const origHtml = (p.originalPrice !== undefined && p.originalPrice !== null && p.originalPrice !== '')
         ? `<del class="price-original-badge">${this.escapeHtml(p.originalPrice)} ر.س</del>`
         : '';
 

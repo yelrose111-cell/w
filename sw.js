@@ -17,6 +17,7 @@ const STATIC_ASSETS = [
     '/assets/logo.png',
     '/assets/images/yr-icon-192.png',
     '/assets/images/yr-icon-512.png',
+    '/assets/dist/js/components.min.js',
     '/manifest.json',
     '/manifest-portal.json'
 ];
