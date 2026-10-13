@@ -87,7 +87,9 @@ orderSchema.pre('validate', function(next) {
     } else {
         this.deliveryMethod = null;
     }
-    next();
+    if (typeof next === 'function') {
+        next();
+    }
 });
 
 orderSchema.index({ status: 1, createdAt: -1 });

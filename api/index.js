@@ -74,24 +74,45 @@ app.use(express.json({ limit: '1mb' }));  // Reduced from 50mb
 app.use(cookieParser());
 
 // ============================================
-// MongoDB Connection (Serverless-Optimized)
+// MongoDB Connection (Serverless-Optimized & Resilient)
 // ============================================
+const DIRECT_REPLICA_SET_URI = "mongodb://yelrose111_db_user:ItfyFIKR0wa7ko6i@ac-0xadylg-shard-00-00.adziqck.mongodb.net:27017,ac-0xadylg-shard-00-01.adziqck.mongodb.net:27017,ac-0xadylg-shard-00-02.adziqck.mongodb.net:27017/test?ssl=true&authSource=admin&retryWrites=true&w=majority";
+
 let cached = global.mongoose;
 if (!cached) {
     cached = global.mongoose = { conn: null, promise: null };
 }
 
+function resolveMongoUri(inputUri) {
+    if (!inputUri) return DIRECT_REPLICA_SET_URI;
+    if (inputUri.includes('yellowrose.adziqck.mongodb.net')) {
+        return DIRECT_REPLICA_SET_URI;
+    }
+    return inputUri;
+}
+
 async function connectDB() {
-    if (cached.conn) return cached.conn;
+    if (cached.conn && mongoose.connection.readyState === 1) return cached.conn;
     
+    const targetUri = resolveMongoUri(process.env.MONGODB_URI);
+    const connectOptions = {
+        bufferCommands: false,
+        maxPoolSize: 2,
+        serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
+        connectTimeoutMS: 10000,
+        family: 4,
+        authSource: 'admin',
+        dbName: 'test'
+    };
+
     if (!cached.promise) {
-        cached.promise = mongoose.connect(process.env.MONGODB_URI, {
-            bufferCommands: false,
-            maxPoolSize: 2,
-            serverSelectionTimeoutMS: 5000,
-            socketTimeoutMS: 45000,
-            connectTimeoutMS: 10000,
-            family: 4
+        cached.promise = mongoose.connect(targetUri, connectOptions).catch(async (primaryErr) => {
+            console.warn('Primary MongoDB URI failed, attempting direct replica set fallback:', primaryErr.message);
+            if (targetUri !== DIRECT_REPLICA_SET_URI) {
+                return mongoose.connect(DIRECT_REPLICA_SET_URI, connectOptions);
+            }
+            throw primaryErr;
         });
     }
     
@@ -99,6 +120,7 @@ async function connectDB() {
         cached.conn = await cached.promise;
     } catch (e) {
         cached.promise = null;
+        cached.conn = null;
         throw e;
     }
     return cached.conn;
@@ -734,26 +756,35 @@ app.post('/api/orders', async (req, res) => {
         if (saved.customerPhone && saved.customerPhone.trim() && saved.customerPhone.trim() !== '0000000000') {
             const cPhone = saved.customerPhone.trim();
             try {
+                const updateDoc = {
+                    $setOnInsert: { 
+                        firstOrderAt: saved.createdAt || new Date()
+                    },
+                    $set: {
+                        lastOrderAt: saved.createdAt || new Date(),
+                        updatedAt: new Date()
+                    },
+                    $inc: { ordersCount: 1 },
+                    $push: {
+                        orders: {
+                            orderId: saved.orderId,
+                            createdAt: saved.createdAt || new Date(),
+                            productTitle: saved.productTitle || '',
+                            status: saved.status,
+                            pagerToken: saved.pagerToken
+                        }
+                    }
+                };
+
+                if (saved.customerName && saved.customerName !== 'عميل' && saved.customerName.trim()) {
+                    updateDoc.$set.name = saved.customerName.trim();
+                } else {
+                    updateDoc.$setOnInsert.name = 'عميل';
+                }
+
                 await Customer.findOneAndUpdate(
                     { phone: cPhone },
-                    {
-                        $setOnInsert: { firstOrderAt: saved.createdAt || new Date() },
-                        $set: { 
-                            name: saved.customerName && saved.customerName !== 'عميل' ? saved.customerName : undefined,
-                            lastOrderAt: saved.createdAt || new Date(),
-                            updatedAt: new Date()
-                        },
-                        $inc: { ordersCount: 1 },
-                        $push: {
-                            orders: {
-                                orderId: saved.orderId,
-                                createdAt: saved.createdAt || new Date(),
-                                productTitle: saved.productTitle || '',
-                                status: saved.status,
-                                pagerToken: saved.pagerToken
-                            }
-                        }
-                    },
+                    updateDoc,
                     { upsert: true, returnDocument: 'after' }
                 );
             } catch (custErr) {
