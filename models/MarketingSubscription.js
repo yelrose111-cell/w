@@ -68,4 +68,4 @@ const marketingSubscriptionSchema = new mongoose.Schema({
 marketingSubscriptionSchema.index({ isActive: 1, interests: 1 });
 marketingSubscriptionSchema.index({ consentedAt: -1 });
 
-module.exports = mongoose.model('MarketingSubscription', marketingSubscriptionSchema);
+module.exports = mongoose.models.MarketingSubscription || mongoose.model('MarketingSubscription', marketingSubscriptionSchema);

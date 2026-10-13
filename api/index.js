@@ -55,17 +55,19 @@ app.use(helmet({
     crossOriginEmbedderPolicy: false
 }));
 
-// CORS - Restrictive
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://yelrose2026.vercel.app,https://yellowrose.com')
-    .split(',').map(o => o.trim());
+// CORS - Flexible for store domains & Vercel deployments
+const configuredOrigins = (process.env.ALLOWED_ORIGINS || 'https://yelrose2026.vercel.app,https://yellow-rose-seven.vercel.app,https://yellowrose.com')
+    .split(',').map(o => o.trim()).filter(Boolean);
 
 app.use(cors({
     origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
-        } else {
-            callback(new Error('Not allowed by CORS'));
+        if (!origin) return callback(null, true);
+        if (configuredOrigins.includes(origin)) return callback(null, true);
+        // Allow any Vercel deployment of the project (*.vercel.app) or local development
+        if (/^https:\/\/([a-z0-9-]+)\.vercel\.app$/i.test(origin) || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
+            return callback(null, true);
         }
+        return callback(new Error('Not allowed by CORS'));
     },
     credentials: true
 }));
@@ -1717,6 +1719,18 @@ app.delete('/api/customers/:phone', authMiddleware, async (req, res) => {
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
+});
+
+// ============================================
+// Global Error Handler
+// ============================================
+app.use((err, req, res, next) => {
+    console.error('Unhandled Application Error:', err);
+    if (res.headersSent) return next(err);
+    if (err.message === 'Not allowed by CORS') {
+        return res.status(403).json({ success: false, error: 'غير مسموح به عبر سياسة CORS' });
+    }
+    res.status(500).json({ success: false, error: err.message || 'حدث خطأ غير متوقع في الخادم' });
 });
 
 // ============================================

@@ -98,8 +98,8 @@ async function savePagerToken(token) {
 // ============================================
 function isSafeUrl(url) {
     if (!url || typeof url !== 'string') return false;
-    // اسمح فقط بالروابط النسبية أو روابط الموقع الرسمي
-    return url.startsWith('/') || url.startsWith(WEBSITE_URL);
+    // اسمح بالروابط النسبية أو روابط الموقع الرسمي أو النطاق الحالي
+    return url.startsWith('/') || url.startsWith(WEBSITE_URL) || url.startsWith(self.location.origin);
 }
 
 // ============================================

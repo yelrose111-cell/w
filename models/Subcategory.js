@@ -9,4 +9,4 @@ const subcategorySchema = new mongoose.Schema({
   order: { type: Number, default: 0 }
 }, { timestamps: true });
 
-module.exports = mongoose.model('Subcategory', subcategorySchema);
+module.exports = mongoose.models.Subcategory || mongoose.model('Subcategory', subcategorySchema);

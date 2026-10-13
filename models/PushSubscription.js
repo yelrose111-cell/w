@@ -38,4 +38,4 @@ pushSubscriptionSchema.index(
 
 pushSubscriptionSchema.index({ pagerToken: 1, lastUsedAt: -1 });
 
-module.exports = mongoose.model('PushSubscription', pushSubscriptionSchema);
+module.exports = mongoose.models.PushSubscription || mongoose.model('PushSubscription', pushSubscriptionSchema);
