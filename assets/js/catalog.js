@@ -206,7 +206,7 @@ async function renderAllProductsView() {
         card.innerHTML = `
           <div class="card-media-box">
             <a href="catalog.html?id=${p.id}">
-              <img src="${escapeHtml(cover)}" alt="${escapeHtml(p.title)}" class="card-media-img" loading="lazy" onerror="this.src='assets/logo.png';">
+              <img src="${escapeHtml(cover)}" alt="${escapeHtml(p.title)} - باقة ورد يلوروز بالليث والوسقة" class="card-media-img" loading="lazy" onerror="this.src='assets/logo.png';">
             </a>
             <span class="card-category-tag"><i class="fas fa-gem"></i> ${escapeHtml(catInfo.name)}</span>
             ${p.featured ? '<div class="gallery-featured-badge" style="top:auto;bottom:12px;right:12px;"><i class="fas fa-star"></i> مميز</div>' : ''}
@@ -300,7 +300,7 @@ async function renderCategoryView(categoryId, activeSubcategoryId = "all") {
         tabsContainer.innerHTML += `
           <button class="category-circle-item ${activeSubcategoryId === sub.id ? 'active' : ''}" data-subcategory="${sub.id}" style="border:none; background:transparent; padding:0; outline:none;">
             <div class="category-circle-img-box">
-              <img src="${escapeHtml(cover)}" alt="${escapeHtml(sub.name)}" class="category-circle-img" loading="lazy" onerror="this.src='assets/logo.png';">
+              <img src="${escapeHtml(cover)}" alt="قسم ${escapeHtml(sub.name)} - يلوروز للورد والهدايا" class="category-circle-img" loading="lazy" onerror="this.src='assets/logo.png';">
             </div>
             <span class="category-circle-name">${escapeHtml(sub.name)}</span>
           </button>
@@ -472,7 +472,7 @@ function renderDirectImagesGrid(directAlbums, catInfo) {
 
     itemCard.innerHTML = `
       <div class="album-photo-inner" onclick="openLightbox(${index})" title="اضغط للتكبير الكامل">
-        <img src="${escapeHtml(photoThumbUrl)}" alt="${escapeHtml(photoName)}" class="album-photo-img" loading="lazy" onerror="this.src='assets/logo.png';">
+        <img src="${escapeHtml(photoThumbUrl)}" alt="${escapeHtml(photoName)} - ورد وهدايا يلوروز بالليث والوسقة" class="album-photo-img" loading="lazy" onerror="this.src='assets/logo.png';">
         <div class="album-photo-overlay">
           <button class="btn-zoom-photo" title="عرض بدقة كاملة">
             <i class="fas fa-search-plus"></i>
@@ -624,7 +624,7 @@ async function renderProductView(productId) {
 
     itemCard.innerHTML = `
       <div class="album-photo-inner" onclick="openLightbox(${index})" title="اضغط للتكبير الكامل">
-        <img src="${escapeHtml(photoThumbUrl)}" alt="${escapeHtml(photoName)}" class="album-photo-img" loading="lazy" onerror="this.src='assets/logo.png';">
+        <img src="${escapeHtml(photoThumbUrl)}" alt="${escapeHtml(photoName)} - ورد وهدايا يلوروز بالليث والوسقة" class="album-photo-img" loading="lazy" onerror="this.src='assets/logo.png';">
         <div class="album-photo-overlay">
           <button class="btn-zoom-photo" title="عرض بدقة كاملة">
             <i class="fas fa-search-plus"></i>

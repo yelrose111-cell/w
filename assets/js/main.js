@@ -121,7 +121,7 @@ function renderCircularCategories(cats) {
     item.className = "category-circle-item";
     item.innerHTML = `
       <div class="category-circle-img-box">
-        <img src="${escapeHtml(cover)}" alt="${escapeHtml(cat.name)}" class="category-circle-img" loading="lazy" onerror="this.src='assets/logo.png';">
+        <img src="${escapeHtml(cover)}" alt="قسم ${escapeHtml(cat.name)} - محل ورد يلوروز بالليث والوسقة" class="category-circle-img" loading="lazy" onerror="this.src='assets/logo.png';">
       </div>
       <span class="category-circle-name">${escapeHtml(cat.name)}</span>
     `;
@@ -231,7 +231,7 @@ function createProductCard(product) {
   card.innerHTML = `
     <div class="card-media-box">
       <a href="catalog.html?id=${product.id}">
-        <img src="${cover}" alt="${escapeHtml(product.title)}" class="card-media-img" loading="lazy" onerror="this.src='assets/logo.png';">
+        <img src="${cover}" alt="${escapeHtml(product.title)} - باقة ورد يلوروز في الليث والوسقة" class="card-media-img" loading="lazy" onerror="this.src='assets/logo.png';">
       </a>
       <span class="card-category-tag"><i class="fas fa-gem"></i> ${escapeHtml(catName)}</span>
     </div>
